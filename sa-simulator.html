@@ -94,16 +94,25 @@
     </div>
 
     <div class="container text-left">
-      <div class="row my-5">
+      <div class="row mt-5">
         <div class="col">
           <label for="edTargetPoints" class="form-label">Target points</label>
+        </div>
+        <div class="col">
+          <label for="edFirstTier" class="form-label">Save copies from tier</label>
+        </div>
+        <div class="col">
+          <label for="edSimulationCount" class="form-label">Simulation count</label>
+        </div>
+      </div>
+      <div class="row mb-5">
+        <div class="col">
           <input type="text" class="form-control" id="edTargetPoints" placeholder="200" aria-describedby="deTargetPoints">
           <div id="deTargetPoints" class="form-text">
             For example 200 points for guaranteed B-tier
           </div>
         </div>
         <div class="col">
-          <label for="edFirstTier" class="form-label">Save copies from tier</label>
           <select class="form-select" aria-label="Default select example" id="edFirstTier">
             <option value="6">C-</option>
             <option value="7">C</option>
@@ -115,17 +124,16 @@
           </select>
         </div>
         <div class="col">
-          <label for="edSimulationCount" class="form-label">Simulation count</label>
           <input type="text" class="form-control" id="edSimulationCount" placeholder="10000" aria-describedby="deSimulationCount">
           <div id="deSimulationCount" class="form-text">
             At least 10000 for accurate results
           </div>
         </div>
       </div>
-      <div class="row my-5">
+      <div class="row my-3">
         <button type="button" class="btn btn-primary">Start calculation</button>
       </div>
-      <div class="row my-3 text-center">
+      <div class="row mt-5 text-center">
         <label id="reResults" class="form-label">Average/min/max starry gems needed: -/-/-</label>
       </div>
       <div class="row my-3 justify-content-center">
