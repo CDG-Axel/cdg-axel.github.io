@@ -7,8 +7,6 @@
     <title>Idle heroes Soul-Awakening simulator</title>
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <style>
-      .spacers { margin-top:20px; margin-bottom: 20px}
-
       .bi {
         vertical-align: -.125em;
         fill: currentColor;
@@ -40,8 +38,9 @@
       }
     </style>
   </head>
-  <body>
+  <body onload="init();">
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/sa-sim.js"></script>
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
       <symbol id="check2" viewBox="0 0 16 16">
         <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
@@ -107,13 +106,13 @@
       <div class="row mb-5">
         <div class="col">
           <input type="number" class="form-control" id="edTargetPoints" placeholder="200"
-                 aria-describedby="deTargetPoints" value=200>
+                 aria-describedby="deTargetPoints" value=200 onchange="storeLocal(this);">
           <div id="deTargetPoints" class="form-text">
             For example 200 points for guaranteed B- tier
           </div>
         </div>
         <div class="col">
-          <select class="form-select" aria-label="Default select example" id="edFirstTier">
+          <select class="form-select" aria-label="Default select example" id="edFirstTier" onchange="storeLocal(this);">
             <option value="6">C-</option>
             <option value="7">C</option>
             <option value="8">C+</option>
@@ -125,7 +124,7 @@
         </div>
         <div class="col">
           <input type="number" class="form-control" id="edSimulationCount" placeholder="10000"
-                 aria-describedby="deSimulationCount" value=10000>
+                 aria-describedby="deSimulationCount" value=10000 onchange="storeLocal(this);">
           <div id="deSimulationCount" class="form-text">
             At least 10000 for accurate results
           </div>
@@ -133,7 +132,7 @@
       </div>
       <div class="row my-3">
         <div class="d-grid gap-2 col-6 mx-auto">
-          <button type="button" class="btn btn-primary">Start calculation</button>
+          <button type="button" class="btn btn-primary" onclick="runSimulation();">Start calculation</button>
         </div>
       </div>
       <div class="row mt-5 text-center">
