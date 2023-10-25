@@ -107,9 +107,10 @@
       </div>
       <div class="row mb-5">
         <div class="col">
-          <input type="text" class="form-control" id="edTargetPoints" placeholder="200" aria-describedby="deTargetPoints">
+          <input type="number" class="form-control" id="edTargetPoints" placeholder="200"
+                 aria-describedby="deTargetPoints" value=200>
           <div id="deTargetPoints" class="form-text">
-            For example 200 points for guaranteed B-tier
+            For example 200 points for guaranteed B- tier
           </div>
         </div>
         <div class="col">
@@ -117,14 +118,15 @@
             <option value="6">C-</option>
             <option value="7">C</option>
             <option value="8">C+</option>
-            <option value="9">B-</option>
+            <option selected="selected" value="9">B-</option>
             <option value="10">B</option>
             <option value="11">B+</option>
             <option value="12">A-</option>
           </select>
         </div>
         <div class="col">
-          <input type="text" class="form-control" id="edSimulationCount" placeholder="10000" aria-describedby="deSimulationCount">
+          <input type="number" class="form-control" id="edSimulationCount" placeholder="10000"
+                 aria-describedby="deSimulationCount" value=10000>
           <div id="deSimulationCount" class="form-text">
             At least 10000 for accurate results
           </div>
