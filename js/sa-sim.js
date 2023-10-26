@@ -12,6 +12,7 @@ let maxPoints;
 const elCount = chances.length;
 let intervals = new Array(elCount);
 let tierDrop = new Array(elCount);
+let isRussian = false;
 
 
 const lsPrefix = 'sa_sim_';
@@ -91,9 +92,10 @@ function simulationBlock() {
 	updateValues();
 }
 
-function runSimulation() {
+function runSimulation(isRus = false) {
 	if (!simRunning) {
 		simRunning = true;
+		isRussian = isRus;
 
 		targetPoints = parseInt(document.getElementById('edTargetPoints').value);
         firstTier = parseInt(document.getElementById('edFirstTier').value);
@@ -117,9 +119,11 @@ function runSimulation() {
 }
 
 function updateValues() {
-    document.getElementById('startBtn').innerHTML =
-        simRunning ? 'Please wait: ' + (simulationCount - simNum) : 'Start simulation';
-    document.getElementById('lbSimResults').innerHTML = 'Starry gems needed (average/min/max): ' +
+    let resLab = isRussian ? 'Необходимо звездных алмазов (среднее/мин/макс): ' : 'Starry gems needed (average/min/max): ';
+    let waitLab = isRussian ? 'Осталось симуляций: ' : 'Simulations left: ';
+    let runLab = isRussian ? 'Запуск симуляции' : 'Start simulation';
+    document.getElementById('startBtn').innerHTML = simRunning ? waitLab + (simulationCount - simNum) : runLab;
+    document.getElementById('lbSimResults').innerHTML = resLab +
         100 * Math.round(totalPoints / simNum) + '/' + minPoints * 100 + '/' + maxPoints * 100;
     for (let i = 0; i < elCount; i++) {
         document.getElementById('avRes' + i).innerHTML = (tierDrop[i] / simNum).toFixed(1);
