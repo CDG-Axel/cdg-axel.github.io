@@ -70,179 +70,206 @@
       </ul>
     </div>
 
-    <div class="container text-left">
-      <div class="row mt-5">
-        <div class="col">
-          <label for="edTargetPoints" class="form-label">Target points</label>
-        </div>
-        <div class="col">
-          <label for="edFirstTier" class="form-label">Save copies from tier</label>
-        </div>
-        <div class="col">
-          <label for="edSimulationCount" class="form-label">Simulation count</label>
-        </div>
-      </div>
-      <div class="row mb-5">
-        <div class="col">
-          <input type="number" class="form-control" id="edTargetPoints" placeholder="200"
-                 aria-describedby="deTargetPoints" value=200 onchange="storeLocal(this);">
-          <div id="deTargetPoints" class="form-text">
-            For example 200 points for guaranteed B- tier
-          </div>
-        </div>
-        <div class="col">
-          <select class="form-select" aria-label="Default select example" id="edFirstTier" onchange="storeLocal(this);">
-            <option value="6">C-</option>
-            <option value="7">C</option>
-            <option value="8">C+</option>
-            <option selected="selected" value="9">B-</option>
-            <option value="10">B</option>
-            <option value="11">B+</option>
-            <option value="12">A-</option>
-          </select>
-        </div>
-        <div class="col">
-          <input type="number" class="form-control" id="edSimulationCount" placeholder="10000"
-                 aria-describedby="deSimulationCount" value=10000 onchange="storeLocal(this);">
-          <div id="deSimulationCount" class="form-text">
-            At least 10000 for accurate results
+    <div class="accordion" id="accordionExample">
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button d-block text-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+            How to use it
+          </button>
+        </h2>
+        <div id="collapseOne" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <ul>
+              <li>Simulate a soul awakening session 'Simulation count' times.
+                A minimum of 10,000 simulations is required for accurate results.</li>
+              <li>Each simulation continues until 'Target points' reached.
+                 For instance, 200 points are needed for a guaranteed B-tier.</li>
+              <li>Any copies with a tier lower than 'Save copies from tier' are retired, and
+                the required number of starry gems is decreased by the value of the retired copies.</li>
+              <li>The average quantity of each tear dropped is displayed in the last column of the table.</li>
+            </ul>
+            During the simulation, you can view the results, and it becomes more accurate with more simulations.
           </div>
         </div>
       </div>
-      <div class="row my-3">
-        <div class="d-grid gap-2 col-6 mx-auto">
-          <button type="button" id="startBtn" class="btn btn-primary" onclick="runSimulation();">Start calculation</button>
-        </div>
-      </div>
-      <div class="row mt-5 text-center">
-        <label class="form-label">Starry gems needed</label>
-      </div>
-      <div class="row mb-5 text-center">
-        <div class="col">
-          <label for="edResAvg" class="form-label">Average</label>
-          <input type="number" class="form-control" id="edResAvg" value=0 disabled readonly>
-        </div>
-        <div class="col">
-          <label for="edResMin" class="form-label">Minimum</label>
-          <input type="number" class="form-control" id="edResMin" value=0 disabled readonly>
-        </div>
-        <div class="col">
-          <label for="edResMax" class="form-label">Maximum</label>
-          <input type="number" class="form-control" id="edResMax" value=0 disabled readonly>
-        </div>
-      </div>
-      <div class="row my-3 justify-content-center">
-        <div class="col-6">
-          <table id="resTable" class="table table-sm table-striped">
-            <thead>
-              <tr>
-                <th scope="col">Tier</th>
-                <th scope="col">Chance</th>
-                <th scope="col">Points</th>
-                <th scope="col">Average</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">E-</th>
-                <td>4.3</td>
-                <td>3</td>
-                <td id="avRes0">-</td>
-              </tr>
-              <tr>
-                <th scope="row">E</th>
-                <td>19.8</td>
-                <td>4</td>
-                <td id="avRes1">-</td>
-              </tr>
-              <tr>
-                <th scope="row">E+</th>
-                <td>28.8</td>
-                <td>5</td>
-                <td id="avRes2">-</td>
-              </tr>
-              <tr>
-                <th scope="row">D-</th>
-                <td>20</td>
-                <td>6</td>
-                <td id="avRes3">-</td>
-              </tr>
-              <tr>
-                <th scope="row">D</th>
-                <td>9.2</td>
-                <td>7</td>
-                <td id="avRes4">-</td>
-              </tr>
-              <tr>
-                <th scope="row">D+</th>
-                <td>4.8</td>
-                <td>8</td>
-                <td id="avRes5">-</td>
-              </tr>
-              <tr>
-                <th scope="row">C-</th>
-                <td>4.4</td>
-                <td>9</td>
-                <td id="avRes6">-</td>
-              </tr>
-              <tr>
-                <th scope="row">C</th>
-                <td>4.3</td>
-                <td>10</td>
-                <td id="avRes7">-</td>
-              </tr>
-              <tr>
-                <th scope="row">C+</th>
-                <td>2.13</td>
-                <td>11</td>
-                <td id="avRes8">-</td>
-              </tr>
-              <tr>
-                <th scope="row">B-</th>
-                <td>1.62</td>
-                <td>12</td>
-                <td id="avRes9">-</td>
-              </tr>
-              <tr>
-                <th scope="row">B</th>
-                <td>0.55</td>
-                <td>13</td>
-                <td id="avRes10">-</td>
-              </tr>
-              <tr>
-                <th scope="row">B+</th>
-                <td>0.0745</td>
-                <td>14</td>
-                <td id="avRes11">-</td>
-              </tr>
-              <tr>
-                <th scope="row">A-</th>
-                <td>0.015</td>
-                <td>15</td>
-                <td id="avRes12">-</td>
-              </tr>
-              <tr>
-                <th scope="row">A</th>
-                <td>0.0065</td>
-                <td>16</td>
-                <td id="avRes13">-</td>
-              </tr>
-              <tr>
-                <th scope="row">A+</th>
-                <td>0.0025</td>
-                <td>17</td>
-                <td id="avRes14">-</td>
-              </tr>
-              <tr>
-                <th scope="row">S</th>
-                <td>0.0015</td>
-                <td>18-20</td>
-                <td id="avRes15">-</td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button d-block text-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+            Idle heroes Soul-Awakening simulator
+          </button>
+        </h2>
+        <div id="collapseTwo" class="accordion-collapse collapse show">
+          <div class="accordion-body">
+            <div class="container text-left">
+              <div class="row">
+                <div class="col">
+                  <label for="edTargetPoints" class="form-label">Target points</label>
+                </div>
+                <div class="col">
+                  <label for="edFirstTier" class="form-label">Save copies from tier</label>
+                </div>
+                <div class="col">
+                  <label for="edSimulationCount" class="form-label">Simulation count</label>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  <input type="number" class="form-control" id="edTargetPoints" placeholder="200" value=200 onchange="storeLocal(this);">
+                </div>
+                <div class="col">
+                  <select class="form-select" aria-label="Default select example" id="edFirstTier" onchange="storeLocal(this);">
+                    <option value="6">C-</option>
+                    <option value="7">C</option>
+                    <option value="8">C+</option>
+                    <option selected="selected" value="9">B-</option>
+                    <option value="10">B</option>
+                    <option value="11">B+</option>
+                    <option value="12">A-</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <input type="number" class="form-control" id="edSimulationCount" placeholder="10000" value=10000 onchange="storeLocal(this);">
+                </div>
+              </div>
+              <div class="row my-5">
+                <div class="d-grid gap-2 col-6 mx-auto">
+                  <button type="button" id="startBtn" class="btn btn-primary" onclick="runSimulation();">Start calculation</button>
+                </div>
+              </div>
+              <div class="row mt-5   text-center">
+                <label class="form-label">Starry gems needed</label>
+              </div>
+              <div class="row mb-5 text-center">
+                <div class="col">
+                  <label for="edResAvg" class="form-label">Average</label>
+                  <input type="number" class="form-control" id="edResAvg" value=0 disabled readonly>
+                </div>
+                <div class="col">
+                  <label for="edResMin" class="form-label">Minimum</label>
+                  <input type="number" class="form-control" id="edResMin" value=0 disabled readonly>
+                </div>
+                <div class="col">
+                  <label for="edResMax" class="form-label">Maximum</label>
+                  <input type="number" class="form-control" id="edResMax" value=0 disabled readonly>
+                </div>
+              </div>
+              <div class="row my-3 justify-content-center">
+                <div class="col-6">
+                  <table id="resTable" class="table table-sm table-striped">
+                    <thead>
+                      <tr>
+                        <th scope="col">Tier</th>
+                        <th scope="col">Chance</th>
+                        <th scope="col">Points</th>
+                        <th scope="col">Average</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">E-</th>
+                        <td>4.3</td>
+                        <td>3</td>
+                        <td id="avRes0">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">E</th>
+                        <td>19.8</td>
+                        <td>4</td>
+                        <td id="avRes1">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">E+</th>
+                        <td>28.8</td>
+                        <td>5</td>
+                        <td id="avRes2">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">D-</th>
+                        <td>20</td>
+                        <td>6</td>
+                        <td id="avRes3">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">D</th>
+                        <td>9.2</td>
+                        <td>7</td>
+                        <td id="avRes4">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">D+</th>
+                        <td>4.8</td>
+                        <td>8</td>
+                        <td id="avRes5">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">C-</th>
+                        <td>4.4</td>
+                        <td>9</td>
+                        <td id="avRes6">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">C</th>
+                        <td>4.3</td>
+                        <td>10</td>
+                        <td id="avRes7">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">C+</th>
+                        <td>2.13</td>
+                        <td>11</td>
+                        <td id="avRes8">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">B-</th>
+                        <td>1.62</td>
+                        <td>12</td>
+                        <td id="avRes9">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">B</th>
+                        <td>0.55</td>
+                        <td>13</td>
+                        <td id="avRes10">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">B+</th>
+                        <td>0.0745</td>
+                        <td>14</td>
+                        <td id="avRes11">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">A-</th>
+                        <td>0.015</td>
+                        <td>15</td>
+                        <td id="avRes12">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">A</th>
+                        <td>0.0065</td>
+                        <td>16</td>
+                        <td id="avRes13">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">A+</th>
+                        <td>0.0025</td>
+                        <td>17</td>
+                        <td id="avRes14">-</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">S</th>
+                        <td>0.0015</td>
+                        <td>18-20</td>
+                        <td id="avRes15">-</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
   </body>
 </html>
