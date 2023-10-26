@@ -118,10 +118,9 @@ function runSimulation() {
 
 function updateValues() {
     document.getElementById('startBtn').innerHTML =
-        simRunning ? 'Please wait: ' + (simulationCount - simNum) : 'Start calculation';
-    document.getElementById('edResAvg').value = 100 * Math.round(totalPoints / simNum);
-    document.getElementById('edResMin').value = minPoints * 100;
-    document.getElementById('edResMax').value = maxPoints * 100;
+        simRunning ? 'Please wait: ' + (simulationCount - simNum) : 'Start simulation';
+    document.getElementById('lbSimResults').innerHTML = 'Starry gems needed (average/min/max): ' +
+        100 * Math.round(totalPoints / simNum) + '/' + minPoints * 100 + '/' + maxPoints * 100;
     for (let i = 0; i < elCount; i++) {
         document.getElementById('avRes' + i).innerHTML = (tierDrop[i] / simNum).toFixed(1);
     }

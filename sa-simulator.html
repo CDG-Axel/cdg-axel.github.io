@@ -131,30 +131,18 @@
                   <input type="number" class="form-control" id="edSimulationCount" placeholder="10000" value=10000 onchange="storeLocal(this);">
                 </div>
               </div>
-              <div class="row my-5">
+              <div class="row mt-5">
                 <div class="d-grid gap-2 col-6 mx-auto">
-                  <button type="button" id="startBtn" class="btn btn-primary" onclick="runSimulation();">Start calculation</button>
+                  <button type="button" id="startBtn" class="btn btn-primary" onclick="runSimulation();">Start simulation</button>
                 </div>
               </div>
-              <div class="row mt-5   text-center">
-                <label class="form-label">Starry gems needed</label>
-              </div>
-              <div class="row mb-5 text-center">
-                <div class="col">
-                  <label for="edResAvg" class="form-label">Average</label>
-                  <input type="number" class="form-control" id="edResAvg" value=0 disabled readonly>
-                </div>
-                <div class="col">
-                  <label for="edResMin" class="form-label">Minimum</label>
-                  <input type="number" class="form-control" id="edResMin" value=0 disabled readonly>
-                </div>
-                <div class="col">
-                  <label for="edResMax" class="form-label">Maximum</label>
-                  <input type="number" class="form-control" id="edResMax" value=0 disabled readonly>
-                </div>
+              <div class="row mt-3 text-center">
+                <h3>
+                  <label id="lbSimResults" class="form-label lb-lg">Starry gems needed (average/min/max): -/-/-</label>
+                </h3>
               </div>
               <div class="row my-3 justify-content-center">
-                <div class="col-6">
+                <div class="col-8">
                   <table id="resTable" class="table table-sm table-striped">
                     <thead>
                       <tr>
