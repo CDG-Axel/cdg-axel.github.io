@@ -21,15 +21,12 @@ const lsPrefix = 'sa_sim_';
 function init() {
 	// check local storage
 	if (typeof (Storage) !== 'undefined') {
-		if (localStorage.getItem(lsPrefix + 'edTargetPoints') !== null) {
-			document.getElementById('edTargetPoints').value = localStorage.getItem(lsPrefix + 'edTargetPoints');
-			document.getElementById('edFirstTier').value = localStorage.getItem(lsPrefix + 'edFirstTier');
-			document.getElementById('edSimulationCount').value = localStorage.getItem(lsPrefix + 'edSimulationCount');
-		} else {
-			localStorage.setItem(lsPrefix + 'edTargetPoints', 200);
-			localStorage.setItem(lsPrefix + 'edFirstTier', 9);
-			localStorage.setItem(lsPrefix + '', 10000);
-		}
+	    let etp = localStorage.getItem(lsPrefix + 'edTargetPoints');
+	    let eft = localStorage.getItem(lsPrefix + 'edFirstTier');
+	    let esc = localStorage.getItem(lsPrefix + 'edSimulationCount');
+	    if (etp != null) { document.getElementById('edTargetPoints').value = etp; }
+	    if (eft != null) { document.getElementById('edFirstTier').value = eft; }
+	    if (esc != null) { document.getElementById('edSimulationCount').value = esc; }
 	}
 }
 
