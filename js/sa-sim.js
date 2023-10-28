@@ -76,7 +76,7 @@ function simulationStep() {
 }
 
 function simulationBlock() {
-	if (simNum < simulationCount) {
+	if (simRunning && simNum < simulationCount) {
 	    // one block is 100 simulation steps
 		for (let i = 0; i < 100; i++) {
 			simNum++;
@@ -112,7 +112,7 @@ function runSimulation(isRus = false) {
         }
 
 		setTimeout(simulationBlock, 1);
-	}
+	} else { simRunning = false; }
 }
 
 function updateValues() {
