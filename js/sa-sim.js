@@ -3,6 +3,7 @@ let simRunning = false;
 let targetPoints;
 let firstTier;
 let simulationCount;
+let tiers = ["E-", "E", "E+", "D-", "D", "D+", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "S"]
 let chances = [4.3, 19.8, 28.8, 20, 9.2, 4.8, 4.4, 4.3, 2.13, 1.62, .55, .0745, .015, .0065, .0025, .0015];
 let points = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 let gems = [10, 15, 20, 30, 50, 70, 100, 150, 200, 300, 600, 1800, 8000, 15000, 25000, 50000];
@@ -18,8 +19,16 @@ let isRussian = false;
 const lsPrefix = 'sa_sim_';
 
 
+function generateTable() {
+    document.getElementById('resTableBody').innerHTML = tiers.map(
+        (tier, i) =>
+        `<tr><th scope="row">${tier}</th><td>${chances[i]}</td><td>${points[i]}</td><td id="avRes${i}">-</td></tr>`
+    ).join('')
+}
+
 function init() {
 	// check local storage
+	generateTable();
 	if (typeof (Storage) !== 'undefined') {
 	    let etp = localStorage.getItem(lsPrefix + 'edTargetPoints');
 	    let eft = localStorage.getItem(lsPrefix + 'edFirstTier');
@@ -126,7 +135,6 @@ function updateValues() {
         document.getElementById('avRes' + i).innerHTML = (tierDrop[i] / simNum).toFixed(1);
     }
 }
-
 
 window.init = init;
 window.storeLocal = storeLocal;
