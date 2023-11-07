@@ -18,11 +18,19 @@ let isRussian = false;
 
 const lsPrefix = 'sa_sim_';
 
+function esc(unsafe) {
+    return String(unsafe)
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+ }
 
 function generateTable() {
     document.getElementById('resTableBody').innerHTML = tiers.map(
         (tier, i) =>
-        `<tr><th scope="row">${tier}</th><td>${chances[i]}</td><td>${points[i]}</td><td id="avRes${i}">-</td></tr>`
+        `<tr><th scope="row">${esc(tier)}</th><td>${chances[i]}</td><td>${points[i]}</td><td id="avRes${i}">-</td></tr>`
     ).join('')
 }
 
