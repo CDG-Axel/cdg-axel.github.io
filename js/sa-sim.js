@@ -55,7 +55,7 @@ function binSearch(value) {
     let right = intervals.length;
 
     while (left + 1 < right) {
-        let mid = Math.floor((left + right)/2);
+        let mid = (left + right) >> 1;
         if (value > intervals[mid]) {
             left = mid;
         }
