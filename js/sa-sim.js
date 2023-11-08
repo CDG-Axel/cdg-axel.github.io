@@ -11,7 +11,7 @@ let totalPoints;
 let minPoints;
 let maxPoints;
 const elCount = chances.length;
-const maxProb = 1000000;
+const maxProb = 200000;
 let intervals = new Array(elCount);
 let tierDrop = new Array(elCount);
 let fullProb = new Array(maxProb)
