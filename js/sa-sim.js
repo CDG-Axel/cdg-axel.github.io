@@ -20,19 +20,16 @@ let isRussian = false;
 const lsPrefix = 'sa_sim_';
 
 function esc(parts, ...params){
-    return parts[0] + params.map((p,i) => String(p).replace(/(&|<|>|"|')/g, s=>({"<": "&lt;", ">": "&gt", '"':"&quot;","'":"&#039;"})[s]) + parts[i+1]).join('');
-}
-
-function generateTable() {
-    document.getElementById('resTableBody').innerHTML = tiers.map((tier, i) =>
-        esc`<tr><th scope="row">${tier}</th><td>${chances[i]}</td><td>${points[i]}</td><td id="avRes${i}">-</td></tr>`
-    ).join('')
+    return parts[0] + params.map((p, i) => 
+        String(p).replace(/(&|<|>|"|')/g, s=>({"<": "&lt;", ">": "&gt", '"':"&quot;","'":"&#039;"})[s]) + parts[i+1]).join('');
 }
 
 function init() {
-	// check local storage
-	generateTable();
-	if (typeof (Storage) !== 'undefined') {
+    document.getElementById('resTableBody').innerHTML = tiers.map((tier, i) =>
+        esc`<tr><th scope="row">${tier}</th><td>${chances[i]}</td><td>${points[i]}</td><td id="avRes${i}">-</td></tr>`
+    ).join('')
+
+    if (typeof (Storage) !== 'undefined') {
 	    let etp = localStorage.getItem(lsPrefix + 'edTargetPoints');
 	    let eft = localStorage.getItem(lsPrefix + 'edFirstTier');
 	    let esc = localStorage.getItem(lsPrefix + 'edSimulationCount');
@@ -42,29 +39,18 @@ function init() {
 	}
 }
 
-
-function storeLocal(i) {
-	if (typeof (Storage) !== 'undefined') {
-		localStorage.setItem(lsPrefix + i.id, i.value);
-	}
+function storeLocal(element) {
+	if (typeof (Storage) !== 'undefined') localStorage.setItem(lsPrefix + element.id, element.value);
 }
 
-
-function binSearch(value) {
-    let left = 0;
-    let right = intervals.length;
-
-    while (left + 1 < right) {
-        let mid = (left + right) >> 1;
-        if (value > intervals[mid]) {
-            left = mid;
-        }
-        else {
-            right = mid;
-        }
-    }
-
-    return value < intervals[left] ? left : right;
+function updateValues() {
+    let runLab = isRussian ? 'Запуск симуляции' : 'Start simulation';
+    let waitLab = isRussian ? 'Осталось симуляций: ' : 'Simulations left: ';
+    let resLab = isRussian ? 'Необходимо звездных алмазов (среднее/мин/макс): ' : 'Starry gems needed (average/min/max): ';
+    document.getElementById('startBtn').innerHTML = simRunning ? waitLab + (simulationCount - simNum) : runLab;
+    document.getElementById('lbSimRes').innerHTML = resLab +
+        100 * Math.round(totalPoints / simNum) + '/' + minPoints * 100 + '/' + maxPoints * 100;
+    for (let i = 0; i < elCount; i++) document.getElementById('avRes' + i).innerHTML = (tierDrop[i] / simNum).toFixed(1);
 }
 
 function simulationStep() {
@@ -72,7 +58,6 @@ function simulationStep() {
     let dices = 0;
     let bonus = 0;
     while (collected < targetPoints) {
-        // let idx = binSearch(Math.random());
         let idx = fullProb[Math.floor(maxProb * Math.random())];
         collected += points[idx];
         dices += 1;
@@ -96,9 +81,7 @@ function simulationBlock() {
 			simulationStep();
 		}
 		setTimeout(simulationBlock, 1);
-	} else {
-		simRunning = false;
-	}
+	} else simRunning = false;
 	updateValues();
 }
 
@@ -129,20 +112,3 @@ function runSimulation(isRus = false) {
 		setTimeout(simulationBlock, 1);
 	} else { simRunning = false; }
 }
-
-function updateValues() {
-    let resLab = isRussian ? 'Необходимо звездных алмазов (среднее/мин/макс): ' : 'Starry gems needed (average/min/max): ';
-    let waitLab = isRussian ? 'Осталось симуляций: ' : 'Simulations left: ';
-    let runLab = isRussian ? 'Запуск симуляции' : 'Start simulation';
-    document.getElementById('startBtn').innerHTML = simRunning ? waitLab + (simulationCount - simNum) : runLab;
-    document.getElementById('lbSimResults').innerHTML = resLab +
-        100 * Math.round(totalPoints / simNum) + '/' + minPoints * 100 + '/' + maxPoints * 100;
-    for (let i = 0; i < elCount; i++) {
-        document.getElementById('avRes' + i).innerHTML = (tierDrop[i] / simNum).toFixed(1);
-    }
-}
-
-window.init = init;
-window.storeLocal = storeLocal;
-window.updateValues = updateValues;
-window.runSimulation = runSimulation;
