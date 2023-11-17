@@ -12,12 +12,20 @@ let minPoints;
 let maxPoints;
 const elCount = chances.length;
 const maxProb = 200000;
+const lsPrefix = 'sa_sim_';
 let intervals = new Array(elCount);
 let tierDrop = new Array(elCount);
-let fullProb = new Array(maxProb)
+let fullProb = new Array(maxProb);
 let isRussian = false;
 
-const lsPrefix = 'sa_sim_';
+let elSum = 0;
+let lastEl = 0;
+for (let i = 0; i < elCount; i++) {
+    elSum += chances[i];
+    intervals[i] = elSum / 100;
+    let fillCnt = Math.floor(elSum * maxProb / 100);
+    for (; lastEl < fillCnt; lastEl++) fullProb[lastEl] = i;
+}
 
 function esc(parts, ...params){
     return parts[0] + params.map((p, i) => 
@@ -53,33 +61,25 @@ function updateValues() {
     for (let i = 0; i < elCount; i++) document.getElementById('avRes' + i).innerHTML = (tierDrop[i] / simNum).toFixed(1);
 }
 
-function simulationStep() {
-    let collected = 0;
-    let dices = 0;
-    let bonus = 0;
-    while (collected < targetPoints) {
-        let idx = fullProb[Math.floor(maxProb * Math.random())];
-        collected += points[idx];
-        dices += 1;
-        tierDrop[idx] += 1;
-        if (idx < firstTier) {
-            bonus += gems[idx];
-        }
-    }
-
-    let needed = dices - Math.trunc(bonus / 100);
-    minPoints = minPoints < needed ? minPoints : needed;
-    maxPoints = maxPoints > needed ? maxPoints : needed;
-    totalPoints += needed;
-}
-
 function simulationBlock() {
 	if (simRunning && simNum < simulationCount) {
 	    // one block is 1000 simulation steps
-		for (let i = 0; i < 1000; i++) {
-			simNum++;
-			simulationStep();
-		}
+        const simLimit = Math.min(simNum + 1000, simulationCount);
+		for (; simNum < simLimit; simNum++) {
+            let collected = dices = bonus = 0;
+            while (collected < targetPoints) {
+                let idx = fullProb[Math.floor(maxProb * Math.random())];
+                collected += points[idx];
+                dices += 1;
+                tierDrop[idx] += 1;
+                if (idx < firstTier) bonus += gems[idx];
+            }
+        
+            let needed = dices - Math.trunc(bonus / 100);
+            if (needed < minPoints) minPoints = needed;
+            if (needed > maxPoints) maxPoints = needed;
+            totalPoints += needed;
+        }
 		setTimeout(simulationBlock, 1);
 	} else simRunning = false;
 	updateValues();
@@ -87,10 +87,10 @@ function simulationBlock() {
 
 function runSimulation(isRus = false) {
 	if (!simRunning) {
-		simRunning = true;
-		isRussian = isRus;
+        simRunning = true;
+        isRussian = isRus;
 
-		targetPoints = parseInt(document.getElementById('edTargetPoints').value);
+        targetPoints = parseInt(document.getElementById('edTargetPoints').value);
         firstTier = parseInt(document.getElementById('edFirstTier').value);
         simulationCount = parseInt(document.getElementById('edSimulationCount').value);
 
@@ -98,17 +98,8 @@ function runSimulation(isRus = false) {
         totalPoints = 0;
         minPoints = 100000;
         maxPoints = 0;
-
-        let elSum = 0;
-        let lastEl = 0;
-        for (let i = 0; i < elCount; i++) {
-            elSum += chances[i];
-            intervals[i] = elSum / 100;
-            tierDrop[i] = 0;
-            let fillCnt = Math.floor(elSum * maxProb / 100);
-            for (; lastEl < fillCnt; lastEl++) fullProb[lastEl] = i;
-        }
+        tierDrop.fill(0);
 
 		setTimeout(simulationBlock, 1);
-	} else { simRunning = false; }
+	} else simRunning = false;
 }
