@@ -10,6 +10,7 @@ let gems = [10, 15, 20, 30, 50, 70, 100, 150, 200, 300, 600, 1800, 8000, 15000, 
 let totalPoints;
 let minPoints;
 let maxPoints;
+let timeStart;
 const elCount = chances.length;
 const maxProb = 200000;
 const lsPrefix = 'sa_sim_';
@@ -52,9 +53,11 @@ function storeLocal(element) {
 }
 
 function updateValues() {
-    let runLab = isRussian ? 'Запуск симуляции' : 'Start simulation';
+    let runLab  = isRussian ? 'Запуск симуляции' : 'Start simulation';
     let waitLab = isRussian ? 'Осталось симуляций: ' : 'Simulations left: ';
-    let resLab = isRussian ? 'Необходимо звездных алмазов (среднее/мин/макс): ' : 'Starry gems needed (average/min/max): ';
+    let resLab  = isRussian ? 'Необходимо звездных алмазов (среднее/мин/макс): ' : 'Starry gems needed (average/min/max): ';
+    let curTime = ((Date.now() - timeStart) / 1000).toFixed(1);
+    document.getElementById('lbResHelp').innerHTML = isRussian ? 'Время расчёта: ' + curTime + ' сек' : 'Calculation time: ' + curTime + ' sec';
     document.getElementById('startBtn').innerHTML = simRunning ? waitLab + (simulationCount - simNum) : runLab;
     document.getElementById('lbSimRes').innerHTML = resLab +
         100 * Math.round(totalPoints / simNum) + '/' + minPoints * 100 + '/' + maxPoints * 100;
@@ -99,6 +102,7 @@ function runSimulation(isRus = false) {
         minPoints = 100000;
         maxPoints = 0;
         tierDrop.fill(0);
+        timeStart = Date.now();
 
 		setTimeout(simulationBlock, 1);
 	} else simRunning = false;
