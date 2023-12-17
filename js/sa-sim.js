@@ -50,11 +50,14 @@ function init() {
     let params = window.location.search.replace('?', '');
     params.split('&').forEach((param) => {
         let [name, value] = param.split('=');
-        if (name == 'target') {
-            document.getElementById('edTargetPoints').value = value;
-            runSimulation();
+        if (name == 'target') document.getElementById('edTargetPoints').value = value;
+        if (name == 'save') {
+            options = document.getElementById('edFirstTier').options;
+            for (let i = 0; i < options.length; i++) 
+                if (options[i].text == value) document.getElementById('edFirstTier').value = i;
         }
     })
+    if (params) runSimulation();
 }
 
 function storeLocal(element) {
