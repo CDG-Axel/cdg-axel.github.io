@@ -46,6 +46,15 @@ function init() {
 	    if (eft != null) { document.getElementById('edFirstTier').value = eft; }
 	    if (esc != null) { document.getElementById('edSimulationCount').value = esc; }
 	}
+
+    let params = window.location.search.replace('?', '');
+    params.split('&').forEach((param) => {
+        let [name, value] = param.split('=');
+        if (name == 'target') {
+            document.getElementById('edTargetPoints').value = value;
+            runSimulation();
+        }
+    })
 }
 
 function storeLocal(element) {
