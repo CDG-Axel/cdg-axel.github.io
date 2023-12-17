@@ -8,6 +8,7 @@ let chances = [4.3, 19.8, 28.8, 20, 9.2, 4.8, 4.4, 4.3, 2.13, 1.62, .55, .0745, 
 let points = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 let gems = [10, 15, 20, 30, 50, 70, 100, 150, 200, 300, 600, 1800, 8000, 15000, 25000, 50000];
 let totalPoints;
+let copiesNeeded;
 let minPoints;
 let maxPoints;
 let timeStart;
@@ -68,11 +69,13 @@ function updateValues() {
     let runLab  = isRussian ? 'Запуск симуляции' : 'Start simulation';
     let waitLab = isRussian ? 'Осталось симуляций: ' : 'Simulations left: ';
     let resLab  = isRussian ? 'Необходимо звездных алмазов (среднее/мин/макс): ' : 'Starry gems needed (average/min/max): ';
+    let resCopies = isRussian? 'Требуется копий: ' : 'Copies needed: ';
     let curTime = ((Date.now() - timeStart) / 1000).toFixed(1);
     document.getElementById('lbResHelp').innerHTML = isRussian ? 'Время расчёта: ' + curTime + ' сек' : 'Calculation time: ' + curTime + ' sec';
     document.getElementById('startBtn').innerHTML = simRunning ? waitLab + (simulationCount - simNum) : runLab;
     document.getElementById('lbSimRes').innerHTML = resLab +
         100 * Math.round(totalPoints / simNum) + '/' + minPoints * 100 + '/' + maxPoints * 100;
+    document.getElementById('lbResCopies').innerHTML = resCopies + Math.round(copiesNeeded / simNum);
     for (let i = 0; i < elCount; i++) document.getElementById('avRes' + i).innerHTML = (tierDrop[i] / simNum).toFixed(1);
 }
 
@@ -89,10 +92,11 @@ function simulationBlock() {
                 tierDrop[idx] += 1;
                 if (idx < firstTier) bonus += gems[idx];
             }
-        
+            
             let needed = dices - Math.trunc(bonus / 100);
             if (needed < minPoints) minPoints = needed;
             if (needed > maxPoints) maxPoints = needed;
+            copiesNeeded += dices;
             totalPoints += needed;
         }
 		setTimeout(simulationBlock, 1);
@@ -111,6 +115,7 @@ function runSimulation(isRus = false) {
 
         simNum = 0;
         totalPoints = 0;
+        copiesNeeded = 0;
         minPoints = 100000;
         maxPoints = 0;
         tierDrop.fill(0);
