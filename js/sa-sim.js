@@ -104,6 +104,10 @@ function simulationBlock() {
 	updateValues();
 }
 
+function copyClipboard() {
+    if (navigator.clipboard) navigator.clipboard.writeText(document.getElementById('lbCopyLink').href);
+}
+
 function runSimulation(isRus = false) {
 	if (!simRunning) {
         simRunning = true;
@@ -122,5 +126,8 @@ function runSimulation(isRus = false) {
         timeStart = Date.now();
 
 		setTimeout(simulationBlock, 1);
+        let text = window.location.href + "?target=" + targetPoints + "&save=" + tiers[firstTier];
+        document.getElementById('lbCopyLink').href = text;
+
 	} else simRunning = false;
 }
