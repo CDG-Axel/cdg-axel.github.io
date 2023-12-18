@@ -122,10 +122,10 @@
               </div>
               <div class="row">
                 <div class="col">
-                  <input type="number" class="form-control" id="edTargetPoints" placeholder="200" value=200 onchange="storeLocal(this);">
+                  <input type="number" class="form-control" id="edTargetPoints" placeholder="200" value=200 onchange="dataChanged(this);">
                 </div>
                 <div class="col">
-                  <select class="form-select" aria-label="Default select example" id="edFirstTier" onchange="storeLocal(this);">
+                  <select class="form-select" aria-label="Default select example" id="edFirstTier" onchange="dataChanged(this);">
                     <option value="0">E-</option>
                     <option value="1">E</option>
                     <option value="2">E+</option>
@@ -142,7 +142,7 @@
                   </select>
                 </div>
                 <div class="col">
-                  <input type="number" class="form-control" id="edSimulationCount" value=100000 placeholder="100000" onchange="storeLocal(this);">
+                  <input type="number" class="form-control" id="edSimulationCount" value=100000 placeholder="100000" onchange="dataChanged(this);">
                 </div>
               </div>
               <div class="row mt-5">

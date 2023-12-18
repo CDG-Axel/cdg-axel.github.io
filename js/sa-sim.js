@@ -58,11 +58,20 @@ function init() {
                 if (options[i].text == value) document.getElementById('edFirstTier').value = i;
         }
     })
+    updateLink();
     if (params) runSimulation();
 }
 
-function storeLocal(element) {
+function updateLink() {
+    targetPoints = parseInt(document.getElementById('edTargetPoints').value);
+    firstTier = parseInt(document.getElementById('edFirstTier').value);
+    let text = window.location.href.split('?')[0] + "?target=" + targetPoints + "&save=" + tiers[firstTier];
+    document.getElementById('lbCopyLink').href = text;
+}
+
+function dataChanged(element) {
 	if (typeof (Storage) !== 'undefined') localStorage.setItem(lsPrefix + element.id, element.value);
+    updateLink();
 }
 
 function updateValues() {
@@ -113,8 +122,6 @@ function runSimulation(isRus = false) {
         simRunning = true;
         isRussian = isRus;
 
-        targetPoints = parseInt(document.getElementById('edTargetPoints').value);
-        firstTier = parseInt(document.getElementById('edFirstTier').value);
         simulationCount = parseInt(document.getElementById('edSimulationCount').value);
 
         simNum = 0;
@@ -126,8 +133,5 @@ function runSimulation(isRus = false) {
         timeStart = Date.now();
 
 		setTimeout(simulationBlock, 1);
-        let text = window.location.href + "?target=" + targetPoints + "&save=" + tiers[firstTier];
-        document.getElementById('lbCopyLink').href = text;
-
 	} else simRunning = false;
 }
