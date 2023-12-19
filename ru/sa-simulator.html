@@ -10,6 +10,8 @@
       gtag('config', 'G-LV2D0G0PE9');
     </script>
     <script src="../js/color-modes.js"></script>
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <script src="../js/sa-sim.js"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Idle heroes - Сеанс пробуждения души</title>
@@ -17,9 +19,6 @@
     <link href="../css/theme.css" rel="stylesheet">
   </head>
   <body onload="init();">
-    <script src="../js/bootstrap.bundle.min.js"></script>
-    <script src="../js/sa-sim.js"></script>
-
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
       <symbol id="check2" viewBox="0 0 16 16">
         <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
@@ -76,7 +75,7 @@
       </ul>
     </div>
 
-    <div class="accordion" id="accordionExample">
+    <div class="accordion" id="accordionAwakening">
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button d-block text-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
@@ -128,15 +127,20 @@
                 </div>
               </div>
               <div class="row mt-3 text-center">
-                <h3>
-                  <small>
-                    <label id="lbSimRes" class="form-label" aria-describedby="lbResHelp">Необходимо звездных алмазов (среднее/мин/макс): -/-/-</label>
-                    <br>
-                    <label id="lbResCopies" class="form-label">Требуется копий: -</label>
-                  </small>
-                  <div id="lbResHelp" class="col-form-label-sm">Время расчёта: 0.0 сек</div>
-                  <div class="col-form-label-sm">Ссылка на эту симуляцию - <a href="#" id="lbCopyLink" target="_blank">клик</a></div>
-                </h3>
+                <h4>
+                  <label id="cSimRes" class="form-label">Необходимо звездных алмазов (среднее/мин/макс): </label>
+                  <label id="lbSimRes" class="form-label">-/-/-</label>
+                  <br>
+                  <label id="cResCopies" class="form-label">Требуется копий: </label>
+                  <label id="lbResCopies" class="form-label">-</label>
+                </h4>
+                <h6>
+                  <label id="cResHelp" class="form-label">Время расчёта: </label>
+                  <label id="lbResHelp" class="form-label">0.0 sec</label>
+                  <br>
+                  <label id="cSimLink" class="form-label">Ссылка на эту симуляцию - </label>
+                  <a href="#" id="lCopyLink" target="_blank">клик</a>
+                </h6>
               </div>
               <div class="row my-3 justify-content-center">
                 <div class="col-8">

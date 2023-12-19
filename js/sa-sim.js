@@ -1,3 +1,53 @@
+const esc = (parts, ...params) => {
+    return parts[0] + params.map((p, i) => 
+        String(p).replace(/(&|<|>|"|')/g, s=>({"<": "&lt;", ">": "&gt", '"':"&quot;","'":"&#039;"})[s]) + parts[i+1]).join('');
+}
+
+const langData = {
+    cMenuHome:  {'en': "Home", 'ru': "Главная"},
+    cMenuAwak:  {'en': "Awakening", 'ru': "Пробуждение"},
+    cMenuSe:    {'en': "Star Expedition", 'ru': "Звездная экспедиция"},
+    cMenuLang:  {'en': "Language", 'ru': "Язык"},
+    cMenuBrowserLang: {'en': "Browser language", 'ru': "Язык браузера"},
+    cSaHeader:  {'en': "Idle heroes Soul - Awakening simulator", 'ru': "Idle heroes - Сеанс пробуждения души"},
+    lTargetPoints: {'en': "Target points", 'ru': "Количество очков"},
+    lFirstTier: {'en': "Save copies from tier", 'ru': "Сохранять копии, начиная с"},
+    lSimulationCount: {'en': "Simulation count", 'ru': "Количество симуляций"},
+    startBtn: {'en': "Start simulation", 'ru': "Запуск симуляции"},
+    cSimRes: {'en': "Starry gems needed (average/min/max): ", 'ru': "Необходимо звездных алмазов (среднее/мин/макс): "},
+    cResCopies: {'en': "Copies needed: ", 'ru': "Требуется копий: "},
+    cResHelp: {'en': "Calculation time: ", 'ru': "Время расчёта:"},
+    cSimLink: {'en': "This simulation link - ", 'ru': "Ссылка на эту симуляцию - "},
+    lCopyLink: {'en': "click", 'ru': "клик"},
+    cTCol1: {'en': "Tier", 'ru': "Тир"},
+    cTCol2: {'en': "Chance", 'ru': "Шанс"},
+    cTCol3: {'en': "Points", 'ru': "Очков"},
+    cTCol4: {'en': "Average", 'ru': "Среднее"},
+    c: {'en': "", 'ru': ""},
+    cHowToUse:  {'en': "How to use it", 'ru': "Инструкция по использованию симулятора" },
+    cHowFullText: {
+        'en': esc`<ul><li>Simulate a soul awakening session 'Simulation count' times.
+            A minimum of 10,000 simulations is required for accurate results.</li>
+            <li>Each simulation continues until 'Target points' reached.
+            For instance, 200 points are needed for a guaranteed B-tier.</li>
+            <li>Any copies with a tier lower than 'Save copies from tier' are retired, and
+            the required number of starry gems is decreased by the value of the retired copies.</li>
+            <li>The average quantity of each tear dropped is displayed in the last column of the table.</li></ul>
+            During the simulation, you can view the results, and it becomes more accurate with more simulations.`,
+        'ru': esc`<ul>
+            <li>Симулирует пробуждение души 'Количество симуляций' раз.
+            Для более точных результатов желательно не менее 10,000 симуляций.</li>
+            <li>Каждая симуляция длится, пока не будет набрано требуемое 'Количество очков'.
+            Для примера, 200 очков требуется для получения гарантированного B- тира.
+            Если хотите узнать, сколько требуется алмазов, например, для топ-10, введите в поле 'Количество очков'
+            значение больше, чем у места 10 в рейтинге (лучше с запасом).</li>
+            <li>Все копии рангом ниже 'Сохранять копии, начиная с' будут считаться разобранным,
+            а требуемое количество звездных алмазов будет уменьшено на значение, полученное от их разбора.</li>
+            <li>Среднее количество копий каждого тира показано в последней колонке таблицы.</li></ul>
+            Вы можете смотреть результаты в процессе симуляции, но чем она дольше длится, тем точнее результат.`
+    },
+};
+
 let simNum;
 let simRunning = false;
 let targetPoints;
@@ -12,13 +62,13 @@ let copiesNeeded;
 let minPoints;
 let maxPoints;
 let timeStart;
+let language;
 const elCount = chances.length;
 const maxProb = 200000;
 const lsPrefix = 'sa_sim_';
 let intervals = new Array(elCount);
 let tierDrop = new Array(elCount);
 let fullProb = new Array(maxProb);
-let isRussian = false;
 
 let elSum = 0;
 let lastEl = 0;
@@ -29,24 +79,37 @@ for (let i = 0; i < elCount; i++) {
     for (; lastEl < fillCnt; lastEl++) fullProb[lastEl] = i;
 }
 
-function esc(parts, ...params){
-    return parts[0] + params.map((p, i) => 
-        String(p).replace(/(&|<|>|"|')/g, s=>({"<": "&lt;", ">": "&gt", '"':"&quot;","'":"&#039;"})[s]) + parts[i+1]).join('');
+function switchLanguage(lang) {
+	if (typeof (Storage) !== 'undefined') localStorage.setItem(lsPrefix + 'language', lang);
+    if (lang == '--') lang = navigator.language || navigator.userLanguage; 
+    language = lang.slice(0, 2);
+
+    for (let [id, val] of Object.entries(langData)) {
+        const ctrl = document.getElementById(id);
+        if (ctrl) ctrl.innerHTML = val[language] ?? val.en;
+    }
 }
 
+function getStorageItem(item) {
+    return typeof (Storage) !== 'undefined'? localStorage.getItem(item) : null;
+}
+
+
 function init() {
-    document.getElementById('resTableBody').innerHTML = tiers.map((tier, i) =>
+    language = getStorageItem(lsPrefix + 'language') ?? '--';
+    switchLanguage(language);
+
+    const table = document.getElementById('resTableBody');
+    if (table) table.innerHTML = tiers.map((tier, i) =>
         esc`<tr><th scope="row">${tier}</th><td>${chances[i]}</td><td>${points[i]}</td><td id="avRes${i}">-</td></tr>`
     ).join('')
 
-    if (typeof (Storage) !== 'undefined') {
-	    let etp = localStorage.getItem(lsPrefix + 'edTargetPoints');
-	    let eft = localStorage.getItem(lsPrefix + 'edFirstTier');
-	    let esc = localStorage.getItem(lsPrefix + 'edSimulationCount');
-	    if (etp != null) { document.getElementById('edTargetPoints').value = etp; }
-	    if (eft != null) { document.getElementById('edFirstTier').value = eft; }
-	    if (esc != null) { document.getElementById('edSimulationCount').value = esc; }
-	}
+    let etp = getStorageItem(lsPrefix + 'edTargetPoints');
+    let eft = getStorageItem(lsPrefix + 'edFirstTier');
+    let scn = getStorageItem(lsPrefix + 'edSimulationCount');
+    if (etp != null) { document.getElementById('edTargetPoints').value = etp; }
+    if (eft != null) { document.getElementById('edFirstTier').value = eft; }
+    if (scn != null) { document.getElementById('edSimulationCount').value = scn; }
 
     let params = window.location.search.replace('?', '');
     params.split('&').forEach((param) => {
@@ -59,14 +122,21 @@ function init() {
         }
     })
     updateLink();
-    if (params) runSimulation();
+    if (params) {
+        const el = document.getElementById('cMenuAwak');
+        if (el) {
+            const tab = new bootstrap.Tab(el);
+            tab?.show();
+        }
+        runSimulation();
+    }
 }
 
 function updateLink() {
     targetPoints = parseInt(document.getElementById('edTargetPoints').value);
     firstTier = parseInt(document.getElementById('edFirstTier').value);
     let text = window.location.href.split('?')[0] + "?target=" + targetPoints + "&save=" + tiers[firstTier];
-    document.getElementById('lbCopyLink').href = text;
+    document.getElementById('lCopyLink').href = text;
 }
 
 function dataChanged(element) {
@@ -75,16 +145,13 @@ function dataChanged(element) {
 }
 
 function updateValues() {
-    let runLab  = isRussian ? 'Запуск симуляции' : 'Start simulation';
-    let waitLab = isRussian ? 'Осталось симуляций: ' : 'Simulations left: ';
-    let resLab  = isRussian ? 'Необходимо звездных алмазов (среднее/мин/макс): ' : 'Starry gems needed (average/min/max): ';
-    let resCopies = isRussian? 'Требуется копий: ' : 'Copies needed: ';
+    let runLab  = language == 'ru' ? 'Запуск симуляции' : 'Start simulation';
+    let waitLab = language == 'ru' ? 'Осталось симуляций: ' : 'Simulations left: ';
     let curTime = ((Date.now() - timeStart) / 1000).toFixed(1);
-    document.getElementById('lbResHelp').innerHTML = isRussian ? 'Время расчёта: ' + curTime + ' сек' : 'Calculation time: ' + curTime + ' sec';
+    document.getElementById('lbResHelp').innerHTML = curTime;
     document.getElementById('startBtn').innerHTML = simRunning ? waitLab + (simulationCount - simNum) : runLab;
-    document.getElementById('lbSimRes').innerHTML = resLab +
-        100 * Math.round(totalPoints / simNum) + '/' + minPoints * 100 + '/' + maxPoints * 100;
-    document.getElementById('lbResCopies').innerHTML = resCopies + Math.round(copiesNeeded / simNum);
+    document.getElementById('lbSimRes').innerHTML = 100 * Math.round(totalPoints / simNum) + '/' + minPoints * 100 + '/' + maxPoints * 100;
+    document.getElementById('lbResCopies').innerHTML = Math.round(copiesNeeded / simNum);
     for (let i = 0; i < elCount; i++) document.getElementById('avRes' + i).innerHTML = (tierDrop[i] / simNum).toFixed(1);
 }
 
@@ -114,13 +181,13 @@ function simulationBlock() {
 }
 
 function copyClipboard() {
-    if (navigator.clipboard) navigator.clipboard.writeText(document.getElementById('lbCopyLink').href);
+    if (navigator.clipboard) navigator.clipboard.writeText(document.getElementById('lCopyLink').href);
 }
 
 function runSimulation(isRus = false) {
 	if (!simRunning) {
         simRunning = true;
-        isRussian = isRus;
+        if (isRus) language = 'ru';
 
         simulationCount = parseInt(document.getElementById('edSimulationCount').value);
 
