@@ -4,9 +4,9 @@ const esc = (parts, ...params) => {
 }
 
 const langData = {
-    cMenuHome:  {'en': "Home", 'ru': "Главная"},
+    cMenuHome:  {'en': "#", 'ru': "#"},
     cMenuAwak:  {'en': "Awakening", 'ru': "Пробуждение"},
-    cMenuSe:    {'en': "Star Expedition", 'ru': "Звездная экспедиция"},
+    cMenuSe:    {'en': "Star Exp", 'ru': "Экспедиция"},
     cMenuLang:  {'en': "Language", 'ru': "Язык"},
     cMenuBrowserLang: {'en': "Browser language", 'ru': "Язык браузера"},
     cSaHeader:  {'en': "Idle heroes Soul - Awakening simulator", 'ru': "Idle heroes - Сеанс пробуждения души"},
