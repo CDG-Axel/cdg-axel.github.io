@@ -30,8 +30,8 @@ const langData = {
     cTCol3: {'en': "Points", 'ru': "Очков"},
     cTCol4: {'en': "Average", 'ru': "Среднее"},
     c: {'en': "", 'ru': ""},
-    cHowToUse:  {'en': "How to use it", 'ru': "Инструкция по использованию симулятора" },
-    cHowFullText: {
+    cSaHowToUse:  {'en': "How to use it", 'ru': "Инструкция по использованию симулятора" },
+    cSaHowFull: {
         'en': esc`<ul><li>Simulate a soul awakening session 'Simulation count' times.
             A minimum of 10,000 simulations is required for accurate results.</li>
             <li>Each simulation continues until 'Target points' reached.
@@ -52,8 +52,27 @@ const langData = {
             <li>Среднее количество копий каждого тира показано в последней колонке таблицы.</li></ul>
             Вы можете смотреть результаты в процессе симуляции, но чем она дольше длится, тем точнее результат.`
     },
+    cSeHeader:    {'en': "Idle Heroes Star Expedition", 'ru': "Idle Heroes - Звездная экспедиция"},
+    cSeHowToUse:  {'en': "How to use it", 'ru': "Инструкция по использованию калькулятора" },
+    lbBossNumber: {'en': "Boss number", 'ru': "Босс номер"},
+    lbPercentHp:  {'en': "Percent HP", 'ru': "Процент ХП"},
+    lTotalHP:     {'en': "Total HP: ", 'ru': "Всего ХП: "},
+    lRemainingHP: {'en': "lRemainingHP", 'ru': "Осталось ХП: "},
+    l: {'en': "#", 'ru': "#"},
+    l: {'en': "#", 'ru': "#"},
+    l: {'en': "#", 'ru': "#"},
+    cSeHowFull: {
+        'en': esc`Used to calculate remaining boss HP.
+            <ul><li>Boss Number - number between 200 and 100</li>
+            <li>HP Percentage - current % of HP remaining</li></ul>`,
+        'ru': esc`Используется для расчёта оставшегося ХП у босса.
+            <ul><li>Номер босса - число от 200 до 100</li>
+            <li>Процент ХП - текущее ХП босса в процентах</li></ul>`
+    },
 };
 
+let language;
+// Soul-awakening simulation data
 let simNum;
 let simRunning = false;
 let targetPoints;
@@ -68,7 +87,6 @@ let copiesNeeded;
 let minPoints;
 let maxPoints;
 let timeStart;
-let language;
 const elCount = chances.length;
 const maxProb = 200000;
 const lsPrefix = 'sa_sim_';
@@ -102,6 +120,7 @@ function getStorageItem(item) {
 
 
 function init() {
+    let value;
     language = getStorageItem(lsPrefix + 'language') ?? '--';
     switchLanguage(language);
 
@@ -110,12 +129,12 @@ function init() {
         esc`<tr><th scope="row">${tier}</th><td>${chances[i]}</td><td>${points[i]}</td><td id="avRes${i}">-</td></tr>`
     ).join('')
 
-    let etp = getStorageItem(lsPrefix + 'edTargetPoints');
-    let eft = getStorageItem(lsPrefix + 'edFirstTier');
-    let scn = getStorageItem(lsPrefix + 'edSimulationCount');
-    if (etp != null) { document.getElementById('edTargetPoints').value = etp; }
-    if (eft != null) { document.getElementById('edFirstTier').value = eft; }
-    if (scn != null) { document.getElementById('edSimulationCount').value = scn; }
+    value = getStorageItem(lsPrefix + 'edTargetPoints');
+    if (value) document.getElementById('edTargetPoints').value = value;
+    value = getStorageItem(lsPrefix + 'edFirstTier');
+    if (value) document.getElementById('edFirstTier').value = value;
+    value = getStorageItem(lsPrefix + 'edSimulationCount');
+    if (value) document.getElementById('edSimulationCount').value = value;
 
     let params = window.location.search.replace('?', '');
     params.split('&').forEach((param) => {
@@ -146,11 +165,19 @@ function updateLink() {
 }
 
 function dataChanged(element) {
-	if (typeof (Storage) !== 'undefined') localStorage.setItem(lsPrefix + element.id, element.value);
-    updateLink();
+    // cross-change values
+    const value = element.value;
+    if (element.id == 'edBossNumber') document.getElementById('rnBossNumber').value = value;
+    if (element.id == 'edPercentHp')  document.getElementById('rnPercentHp').value = value;
+    if (element.id == 'rnBossNumber') (element = document.getElementById('edBossNumber')).value = value;
+    if (element.id == 'rnPercentHp')  (element = document.getElementById('edPercentHp')).value = value;
+    // store data and update link in changed
+	if (typeof (Storage) !== 'undefined') localStorage.setItem(lsPrefix + element.id, value);
+    if (element.id == "edTargetPoints" || element.id == "edFirstTier") updateLink();
+    if (element.id == "edBossNumber" || element.id == "edPercentHp") calcOctopus();
 }
 
-function updateValues() {
+function updateSaValues() {
     let runLab  = language == 'ru' ? 'Запуск симуляции' : 'Start simulation';
     let waitLab = language == 'ru' ? 'Осталось симуляций: ' : 'Simulations left: ';
     let curTime = ((Date.now() - timeStart) / 1000).toFixed(1);
@@ -183,7 +210,7 @@ function simulationBlock() {
         }
 		setTimeout(simulationBlock, 1);
 	} else simRunning = false;
-	updateValues();
+	updateSaValues();
 }
 
 function copyClipboard() {
@@ -207,4 +234,11 @@ function runSimulation(isRus = false) {
 
 		setTimeout(simulationBlock, 1);
 	} else simRunning = false;
+}
+
+function calcOctopus() {
+    const bossNum = document.getElementById('edBossNumber').value;
+    const percHp  = document.getElementById('edPercentHp').value;
+    document.getElementById('resTotalHP').innerHTML = bossNum;
+    document.getElementById('resRemainingHP').innerHTML = percHp;
 }
