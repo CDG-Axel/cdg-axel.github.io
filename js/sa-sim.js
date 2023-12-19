@@ -9,6 +9,12 @@ const langData = {
     cMenuSe:    {'en': "Star Exp", 'ru': "Экспедиция"},
     cMenuLang:  {'en': "Language", 'ru': "Язык"},
     cMenuBrowserLang: {'en': "Browser language", 'ru': "Язык браузера"},
+    cAbout:  {
+        'en': esc`<br>Performed by CDG.Axel (C)2023<br><br>Resourses:`, 
+        'ru': esc`<br>Разработка - CDG.Axel (C)2023<br><br>Полезные ресурсы:`
+    },
+    cCommunity: {'en': "Largest IH community", 'ru': "Крупнейшее русскоязычное комьюнити по игре"},
+    cYouTube:   {'en': "AkuDemon youtube channel", 'ru': "Ютюб-канал AkuDemon"},
     cSaHeader:  {'en': "Idle heroes Soul - Awakening simulator", 'ru': "Idle heroes - Сеанс пробуждения души"},
     lTargetPoints: {'en': "Target points", 'ru': "Количество очков"},
     lFirstTier: {'en': "Save copies from tier", 'ru': "Сохранять копии, начиная с"},
