@@ -57,19 +57,124 @@ const langData = {
     lbBossNumber: {'en': "Boss number", 'ru': "Босс номер"},
     lbPercentHp:  {'en': "Percent HP", 'ru': "Процент ХП"},
     lTotalHP:     {'en': "Total HP: ", 'ru': "Всего ХП: "},
-    lRemainingHP: {'en': "lRemainingHP", 'ru': "Осталось ХП: "},
-    l: {'en': "#", 'ru': "#"},
-    l: {'en': "#", 'ru': "#"},
+    lRemainingHP: {'en': "Remaining HP", 'ru': "Осталось ХП: "},
+    error: {'en': "error!", 'ru': "ошибка!"},
+    endBillion:   {'en': " B", 'ru': " Млрд"},
+    endTrillion:  {'en': " T", 'ru': " Т"},
     l: {'en': "#", 'ru': "#"},
     cSeHowFull: {
         'en': esc`Used to calculate remaining boss HP.
-            <ul><li>Boss Number - number between 200 and 100</li>
+            <ul><li>Boss Number - number between 200 and 101</li>
             <li>HP Percentage - current % of HP remaining</li></ul>`,
         'ru': esc`Используется для расчёта оставшегося ХП у босса.
-            <ul><li>Номер босса - число от 200 до 100</li>
+            <ul><li>Номер босса - число от 200 до 101</li>
             <li>Процент ХП - текущее ХП босса в процентах</li></ul>`
     },
 };
+
+const bossHp = {
+    200: 10.00,
+    199: 39.99,
+    198: 87.38,
+    197: 126.71,
+    196: 158.38,
+    195: 174.22,
+    194: 182.93,
+    193: 192.08,
+    192: 201.68,
+    191: 211.77,
+    190: 222.36,
+    189: 233.48,
+    188: 245.15,
+    187: 257.41,
+    186: 270.28,
+    185: 289.20,
+    184: 309.44,
+    183: 331.10,
+    182: 354.28,
+    181: 379.08,
+    180: 409.40,
+    179: 442.16,
+    178: 477.53,
+    177: 515.73,
+    176: 556.99,
+    175: 601.55,
+    174: 649.67,
+    173: 701.65,
+    172: 757.78,
+    171: 818.40,
+    170: 883.87,
+    169: 972.26,
+    168: 1069.49,
+    167: 1176.43,
+    166: 1294.08,
+    165: 1423.49,
+    164: 1565.83,
+    163: 1722.42,
+    162: 1894.66,
+    161: 2084.12,
+    160: 2188.33,
+    159: 2297.75,
+    158: 2412.63,
+    157: 2533.27,
+    156: 2659.93,
+    155: 2792.93,
+    154: 2932.57,
+    153: 3079.20,
+    152: 3233.16,
+    151: 3394.82,
+    150: 3564.56,
+    149: 3742.79,
+    148: 3929.93,
+    147: 4126.42,
+    146: 4332.75,
+    145: 4549.38,
+    144: 4776.85,
+    143: 5015.69,
+    142: 5266.48,
+    141: 5529.80,
+    140: 6082.78,
+    139: 6691.06,
+    138: 7360.17,
+    137: 8096.18,
+    136: 8905.80,
+    135: 10063.56,
+    134: 11371.82,
+    133: 12850.16,
+    132: 14520.68,
+    131: 16408.37,
+    130: 19690.04,
+    129: 23628.05,
+    128: 28353.65,
+    127: 34024.39,
+    126: 40829.26,
+    125: 48995.12,
+    124: 58794.14,
+    123: 70482.00,
+    122: 84578.40,
+    121: 101494.00,
+    120: 121793.00,
+    119: 182689.00,
+    118: 274034.00,
+    117: 411051.00,
+    116: 616577.00,
+    115: 924865.00,
+    114: 1387300.00,
+    113: 2080900.00,
+    112: 3121400.00,
+    111: 4682100.00,
+    110: 7023200.00,
+    109: 14046400.00,
+    108: 28092800.00,
+    107: 56185600.00,
+    106: 112371000.00,
+    105: 224742000.00,
+    104: 449485000.00,
+    103: 898969000.00,
+    102: 1797938000.00,
+    101: 3595876000.00
+}
+    
 
 let language;
 // Soul-awakening simulation data
@@ -103,15 +208,20 @@ for (let i = 0; i < elCount; i++) {
     for (; lastEl < fillCnt; lastEl++) fullProb[lastEl] = i;
 }
 
+function getLangString(type) {
+    return langData[type][language] ?? langData[type].en ?? type;
+}
+
 function switchLanguage(lang) {
 	if (typeof (Storage) !== 'undefined') localStorage.setItem(lsPrefix + 'language', lang);
     if (lang == '--') lang = navigator.language || navigator.userLanguage; 
     language = lang.slice(0, 2);
 
-    for (let [id, val] of Object.entries(langData)) {
+    for (id in langData) {
         const ctrl = document.getElementById(id);
-        if (ctrl) ctrl.innerHTML = val[language] ?? val.en;
+        if (ctrl) ctrl.innerHTML = getLangString(id);
     }
+    calcOctopus();
 }
 
 function getStorageItem(item) {
@@ -122,7 +232,6 @@ function getStorageItem(item) {
 function init() {
     let value;
     language = getStorageItem(lsPrefix + 'language') ?? '--';
-    switchLanguage(language);
 
     const table = document.getElementById('resTableBody');
     if (table) table.innerHTML = tiers.map((tier, i) =>
@@ -146,6 +255,7 @@ function init() {
                 if (options[i].text == value) document.getElementById('edFirstTier').value = i;
         }
     })
+    switchLanguage(language);
     updateLink();
     if (params) {
         const el = document.getElementById('cMenuAwak');
@@ -237,8 +347,17 @@ function runSimulation(isRus = false) {
 }
 
 function calcOctopus() {
-    const bossNum = document.getElementById('edBossNumber').value;
-    const percHp  = document.getElementById('edPercentHp').value;
-    document.getElementById('resTotalHP').innerHTML = bossNum;
-    document.getElementById('resRemainingHP').innerHTML = percHp;
+    const bossNum = Number(document.getElementById('rnBossNumber').value);
+    const percHp  = Number(document.getElementById('rnPercentHp').value);
+    let totHp, remHp;
+    if (bossNum && bossHp) {
+        totHp = bossHp[bossNum];
+        remHp = totHp * percHp / 100;
+        if (totHp > 1000) totHp = (totHp / 1000).toFixed(3) + getLangString('endTrillion');
+        else totHp = totHp.toFixed(3) + getLangString('endBillion')
+        if (remHp > 1000) remHp = (remHp / 1000).toFixed(3) + getLangString('endTrillion');
+        else remHp = remHp.toFixed(3) + getLangString('endBillion')
+    } else totHp = remHp = getLangString('error');
+    document.getElementById('resTotalHP').innerHTML = totHp;
+    document.getElementById('resRemainingHP').innerHTML = remHp;
 }
