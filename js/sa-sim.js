@@ -56,8 +56,9 @@ const langData = {
     cSeHowToUse:  {'en': "How to use it", 'ru': "Инструкция по использованию калькулятора" },
     lbBossNumber: {'en': "Boss number", 'ru': "Босс номер"},
     lbPercentHp:  {'en': "Percent HP", 'ru': "Процент ХП"},
-    lTotalHP:     {'en': "Total HP: ", 'ru': "Всего ХП: "},
-    lRemainingHP: {'en': "Remaining HP", 'ru': "Осталось ХП: "},
+    lTotalHP:     {'en': "Total HP:", 'ru': "Всего ХП:"},
+    lRemainingHP: {'en': "Remaining HP", 'ru': "Осталось ХП:"},
+    lGuildPoints: {'en': "Guild Points:", 'ru': "Очки гильдии:"},
     error: {'en': "error!", 'ru': "ошибка!"},
     endBillion:   {'en': " B", 'ru': " Млрд"},
     endTrillion:  {'en': " T", 'ru': " Т"},
@@ -174,7 +175,9 @@ const bossHp = {
     102: 1797938000.00,
     101: 3595876000.00
 }
-    
+let bossTotalHp = {}
+let sum = 0;
+for (let i = 200; i > 101; i--) bossTotalHp[i] = sum += bossHp[i]
 
 let language;
 // Soul-awakening simulation data
@@ -350,7 +353,8 @@ function runSimulation(isRus = false) {
 	} else simRunning = false;
 }
 
-function numToIh(value) {
+function numToIh(value, isPoints=false) {
+    if (isPoints) return value.toFixed(3);
     if (value > 1_000_000) {
         let exp = 9;
         while (value > 10 && exp++) value /= 10;
@@ -362,12 +366,15 @@ function numToIh(value) {
 function calcOctopus() {
     const bossNum = Number(document.getElementById('rnBossNumber').value);
     const percHp  = Number(document.getElementById('rnPercentHp').value);
-    let totHp, remHp;
+    let totHp, remHp, gPts;
     if (bossNum && bossHp) {
         totHp = bossHp[bossNum];
-        remHp = numToIh(totHp * percHp / 100);
+        remHp = totHp * percHp / 100;
+        gPts  = numToIh((bossTotalHp[bossNum] - remHp) * 0.00072);
+        remHp = numToIh(remHp);
         totHp = numToIh(totHp);
-    } else totHp = remHp = getLangString('error');
+    } else totHp = remHp = gPts = getLangString('error');
     document.getElementById('resTotalHP').innerHTML = totHp;
     document.getElementById('resRemainingHP').innerHTML = remHp;
+    document.getElementById('resGuildPoints').innerHTML = gPts;
 }
