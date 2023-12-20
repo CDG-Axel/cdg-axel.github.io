@@ -1,3 +1,3 @@
 RewriteEngine On
-RewriteCond %{HTTP_HOST} https://cdg-axel.github.io/sa-simulator.html
+RewriteCond %{HTTP_HOST} cdg-axel.github.io/sa-simulator.html
 RewriteRule (.*) https://cdg-axel.github.io/$1 [R=301,L]
