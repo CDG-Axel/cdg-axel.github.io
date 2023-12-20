@@ -1,4 +1,4 @@
-const esc = (parts, ...params) => {
+function esc(parts, ...params) {
     return parts[0] + params.map((p, i) => 
         String(p).replace(/(&|<|>|"|')/g, s=>({"<": "&lt;", ">": "&gt", '"':"&quot;","'":"&#039;"})[s]) + parts[i+1]).join('');
 }
@@ -174,10 +174,10 @@ const bossHp = {
     103: 898969000.00,
     102: 1797938000.00,
     101: 3595876000.00
-}
-let bossTotalHp = {}
+};
+let bossTotalHp = {};
 let sum = 0;
-for (let i = 200; i > 101; i--) bossTotalHp[i] = sum += bossHp[i]
+for (let i = 200; i > 101; i--) bossTotalHp[i] = sum += bossHp[i];
 
 let language;
 // Soul-awakening simulation data
