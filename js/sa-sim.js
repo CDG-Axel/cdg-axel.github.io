@@ -244,6 +244,10 @@ function init() {
     if (value) document.getElementById('edFirstTier').value = value;
     value = getStorageItem(lsPrefix + 'edSimulationCount');
     if (value) document.getElementById('edSimulationCount').value = value;
+    value = getStorageItem(lsPrefix + 'edBossNumber');
+    if (value) document.getElementById('edBossNumber').value = document.getElementById('rnBossNumber').value = value;
+    value = getStorageItem(lsPrefix + 'edPercentHp');
+    if (value) document.getElementById('edPercentHp').value = document.getElementById('rnPercentHp').value = value;
 
     let params = window.location.search.replace('?', '');
     params.split('&').forEach((param) => {
@@ -346,17 +350,23 @@ function runSimulation(isRus = false) {
 	} else simRunning = false;
 }
 
+function numToIh(value) {
+    if (value > 1_000_000) {
+        let exp = 9;
+        while (value > 10 && exp++) value /= 10;
+        return value.toFixed(3) + 'E+' + exp;
+    } else if (value > 1000) return (value / 1000).toFixed(3) + getLangString('endTrillion');
+    else return value.toFixed(3) + getLangString('endBillion');
+}
+
 function calcOctopus() {
     const bossNum = Number(document.getElementById('rnBossNumber').value);
     const percHp  = Number(document.getElementById('rnPercentHp').value);
     let totHp, remHp;
     if (bossNum && bossHp) {
         totHp = bossHp[bossNum];
-        remHp = totHp * percHp / 100;
-        if (totHp > 1000) totHp = (totHp / 1000).toFixed(3) + getLangString('endTrillion');
-        else totHp = totHp.toFixed(3) + getLangString('endBillion')
-        if (remHp > 1000) remHp = (remHp / 1000).toFixed(3) + getLangString('endTrillion');
-        else remHp = remHp.toFixed(3) + getLangString('endBillion')
+        remHp = numToIh(totHp * percHp / 100);
+        totHp = numToIh(totHp);
     } else totHp = remHp = getLangString('error');
     document.getElementById('resTotalHP').innerHTML = totHp;
     document.getElementById('resRemainingHP').innerHTML = remHp;
