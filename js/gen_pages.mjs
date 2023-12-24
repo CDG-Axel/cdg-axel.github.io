@@ -34,8 +34,8 @@ const pageMap = {
 }
 
 const langMap = {
-    en: "",
-    ru: "-ru"
+    en: ".html",
+    ru: "-ru.html"
 }
 
 // start generation
