@@ -29,7 +29,6 @@ const langData = {
     cTCol2: {'en': "Chance", 'ru': "Шанс"},
     cTCol3: {'en': "Points", 'ru': "Очков"},
     cTCol4: {'en': "Average", 'ru': "Среднее"},
-    c: {'en': "", 'ru': ""},
     cSaHowToUse:  {'en': "How to use it", 'ru': "Инструкция по использованию симулятора" },
     cSaHowFull: {
         'en': esc`<ul><li>Simulate a soul awakening session 'Simulation count' times.
@@ -62,7 +61,6 @@ const langData = {
     error: {'en': "error!", 'ru': "ошибка!"},
     endBillion:   {'en': " B", 'ru': " Млрд"},
     endTrillion:  {'en': " T", 'ru': " Т"},
-    l: {'en': "#", 'ru': "#"},
     cSeHowFull: {
         'en': esc`Used to calculate remaining boss HP.
             <ul><li>Boss Number - number between 200 and 101</li>
@@ -70,7 +68,7 @@ const langData = {
         'ru': esc`Используется для расчёта оставшегося ХП у босса.
             <ul><li>Номер босса - число от 200 до 101</li>
             <li>Процент ХП - текущее ХП босса в процентах</li></ul>`
-    },
+    }
 };
 
 const bossHp = {
@@ -216,7 +214,7 @@ function getLangString(type) {
 }
 
 function switchLanguage(lang) {
-	if (typeof (Storage) !== 'undefined') localStorage.setItem(lsPrefix + 'language', lang);
+	localStorage?.setItem?.(lsPrefix + 'language', lang);
     if (lang == '--') lang = navigator.language || navigator.userLanguage; 
     language = lang.slice(0, 2);
 
@@ -227,30 +225,29 @@ function switchLanguage(lang) {
     calcOctopus();
 }
 
-function getStorageItem(item) {
-    return typeof (Storage) !== 'undefined'? localStorage.getItem(item) : null;
+function loadCtrlValue(ctrlName) {
+    const ctrl = document.getElementById(ctrlName);
+    if (ctrl) {
+        const value = localStorage?.getItem?.(lsPrefix + ctrlName) ?? null;
+        if (value) ctrl.value = value;
+    }
 }
 
-
 function init() {
-    let value;
-    language = getStorageItem(lsPrefix + 'language') ?? '--';
+    language = localStorage?.getItem?.(lsPrefix + 'language') ?? '--';
 
     const table = document.getElementById('resTableBody');
     if (table) table.innerHTML = tiers.map((tier, i) =>
         esc`<tr><th scope="row">${tier}</th><td>${chances[i]}</td><td>${points[i]}</td><td id="avRes${i}">-</td></tr>`
     ).join('')
 
-    value = getStorageItem(lsPrefix + 'edTargetPoints');
-    if (value) document.getElementById('edTargetPoints').value = value;
-    value = getStorageItem(lsPrefix + 'edFirstTier');
-    if (value) document.getElementById('edFirstTier').value = value;
-    value = getStorageItem(lsPrefix + 'edSimulationCount');
-    if (value) document.getElementById('edSimulationCount').value = value;
-    value = getStorageItem(lsPrefix + 'edBossNumber');
-    if (value) document.getElementById('edBossNumber').value = document.getElementById('rnBossNumber').value = value;
-    value = getStorageItem(lsPrefix + 'edPercentHp');
-    if (value) document.getElementById('edPercentHp').value = document.getElementById('rnPercentHp').value = value;
+    loadCtrlValue('edTargetPoints');
+    loadCtrlValue('edFirstTier');
+    loadCtrlValue('edSimulationCount');
+    loadCtrlValue('edBossNumber');
+    loadCtrlValue('edPercentHp');
+    if (ctrl = document.getElementById('edBossNumber')) document.getElementById('rnBossNumber').value = ctrl.value;
+    if (ctrl = document.getElementById('edPercentHp')) document.getElementById('rnPercentHp').value = ctrl.value;
 
     let params = window.location.search.replace('?', '');
     params.split('&').forEach((param) => {
@@ -289,7 +286,7 @@ function dataChanged(element) {
     if (element.id == 'rnBossNumber') (element = document.getElementById('edBossNumber')).value = value;
     if (element.id == 'rnPercentHp')  (element = document.getElementById('edPercentHp')).value = value;
     // store data and update link in changed
-	if (typeof (Storage) !== 'undefined') localStorage.setItem(lsPrefix + element.id, value);
+	localStorage?.setItem?.(lsPrefix + element.id, value);
     if (element.id == "edTargetPoints" || element.id == "edFirstTier") updateLink();
     if (element.id == "edBossNumber" || element.id == "edPercentHp") calcOctopus();
 }

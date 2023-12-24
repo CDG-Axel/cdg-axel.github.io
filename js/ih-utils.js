@@ -155,7 +155,7 @@ function getLangString(type) {
 function loadCtrlValue(ctrlName) {
     const ctrl = document.getElementById(ctrlName);
     if (ctrl) {
-        const value = typeof (Storage) !== 'undefined'? localStorage.getItem(lsPrefix + ctrlName) : null;
+        const value = localStorage?.getItem?.(lsPrefix + ctrlName) ?? null;
         if (value) ctrl.value = value;
     }
 }
@@ -210,7 +210,7 @@ function dataChanged(element) {
     if (element.id == 'rnBossNumber') (element = document.getElementById('edBossNumber')).value = value;
     if (element.id == 'rnPercentHp')  (element = document.getElementById('edPercentHp')).value = value;
     // store data and update link in changed
-	if (typeof (Storage) !== 'undefined') localStorage.setItem(lsPrefix + element.id, value);
+	localStorage?.setItem?.(lsPrefix + element.id, value);
     if (element.id == "edTargetPoints" || element.id == "edFirstTier") updateLink();
     if (element.id == "edBossNumber" || element.id == "edPercentHp") calcOctopus();
 }

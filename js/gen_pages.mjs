@@ -104,7 +104,7 @@ const langMap = {
 }
 
 // start generation
-const MAIN_FN = 'main.html';
+const MAIN_FN = 'templates/main.html';
 let filePath = new URL('../' + MAIN_FN, import.meta.url);
 const mainTempl = await readFile(filePath, { encoding: 'utf8' });
 for (let page in pageData) 
