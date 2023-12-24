@@ -11,7 +11,7 @@ const pageMap = {
         'en': "<br>Performed by CDG.Axel (C)2023<br><br>Resourses:", 
         'ru': "<br>Разработка - CDG.Axel (C)2023<br><br>Полезные ресурсы:"
     },
-    cCommunity: {'en': "Largest IH community", 'ru': "Крупнейшее русскоязычное комьюнити по игре"},
+    cCommunity: {'en': "Largest Idle Heroes community", 'ru': "Крупнейшее русскоязычное комьюнити по игре Idle Heroes"},
     cYouTube:   {'en': "AkuDemon youtube channel", 'ru': "Ютюб-канал AkuDemon"},
     cSaHeader:  {'en': "Idle heroes Soul - Awakening simulator", 'ru': "Idle heroes - Сеанс пробуждения души"},
     lTargetPoints: {'en': "Target points", 'ru': "Количество очков"},
