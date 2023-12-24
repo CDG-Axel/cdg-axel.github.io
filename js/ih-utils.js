@@ -190,6 +190,7 @@ function init() {
     })
     
     updateLink();
+    calcOctopus();
     if (params) runSimulation();
 }
 
@@ -280,7 +281,9 @@ function numToIh(value, isPoints=false) {
 }
 
 function calcOctopus() {
-    const bossNum = Number(document.getElementById('rnBossNumber').value);
+    const ctrl = document.getElementById('rnBossNumber');
+    if (!ctrl) return;
+    const bossNum = Number(ctrl.value);
     const percHp  = Number(document.getElementById('rnPercentHp').value);
     let totHp, remHp, gPts;
     if (bossNum && bossHp) {
