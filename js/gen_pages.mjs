@@ -98,7 +98,7 @@ const pageData = {
     }
 };
 
-const langMap = { en: "", ru: "ru/" };
+const langMap = { en: "/", ru: "/ru/" };
 
 // start generation
 const MAIN_FN = 'templates/main.html';
@@ -130,6 +130,6 @@ for (let page in pageData)
 
         content = content.replace('%%tab-content%%', tabContent);
 
-        filePath = new URL('../' + fileName, import.meta.url);
+        filePath = new URL('..' + fileName, import.meta.url);
         await writeFile(filePath, content);
 }
