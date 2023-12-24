@@ -69,11 +69,11 @@ const pageMap = {
             <li>Процент ХП - текущее ХП босса в процентах</li></ul>`
     },
 
-}
+};
 
 const pageData = {
     home: { 
-        path: "home",
+        path: "home.html",
         template: "templates/home.html",
         menu: {'en': "#", 'ru': "#"},
         title: {'en': "Idle Heroes utilities by CDG.Axel", 'ru': "Утилиты для игры Idle Heroes от CDG.Axel"},
@@ -83,25 +83,22 @@ const pageData = {
         }
     },
     sawa: { 
-        path: "soul-awakening", 
+        path: "soul-awakening.html", 
         template: "templates/sawa.html",
         menu: {'en': "Awakening", 'ru': "Пробуждение"},
         title: {'en': "Soul-Awakening - Idle Heroes", 'ru': "Пробуждение души - Idle Heroes"},
         description: {'en': "Soul-Awakening simulation for Idle Heroes", 'ru': "Симулятор Пробуждения души для Idle Heroes"}
     },
     sexp: { 
-        path: "star-expedition", 
+        path: "star-expedition.html", 
         template: "templates/sexp.html",
         menu: {'en': "Star Exp", 'ru': "Экспедиция"},
         title: {'en': "Star Expedition - Idle Heroes", 'ru': "Звездная Экспедиция - Idle Heroes"},
         description: {'en': "Star Expedition calculator for Idle Heroes", 'ru': "Калькулятор Звездной Экспедиции для Idle Heroes"}
     }
-}
+};
 
-const langMap = {
-    en: ".html",
-    ru: "-ru.html"
-}
+const langMap = { en: "", ru: "ru/" };
 
 // start generation
 const MAIN_FN = 'templates/main.html';
@@ -109,7 +106,7 @@ let filePath = new URL('../' + MAIN_FN, import.meta.url);
 const mainTempl = await readFile(filePath, { encoding: 'utf8' });
 for (let page in pageData) 
     for (let lang in langMap) {
-        const fileName = pageData[page].path + langMap[lang];
+        const fileName = langMap[lang] + pageData[page].path;
         console.log('Generating', fileName + '...');
         let content = mainTempl;
         content = content.replace('%%title%%', pageData[page].title[lang]);
@@ -121,11 +118,11 @@ for (let page in pageData)
         for (let menu in pageData) {
             const current = menu == page? 'aria-current="page" ': '';
             const active = menu == page? ' active': '';
-            const link = pageData[menu].path + langMap[lang];
+            const link = langMap[lang] + pageData[menu].path;
             navpart += `<li class="nav-item"><a class="nav-link px-2${active}" ${current}href="${link}">${pageData[menu]['menu'][lang]}</a></li>\n`
         }
         content = content.replace('%%nav-part%%', navpart);
-        for (let ml in langMap) content = content.replace(`%%link-${ml}%%`, pageData[page].path + langMap[ml]);
+        for (let ml in langMap) content = content.replace(`%%link-${ml}%%`, langMap[ml] + pageData[page].path);
 
         filePath = new URL('../' + pageData[page].template, import.meta.url);
         let tabContent = await readFile(filePath, { encoding: 'utf8' });
