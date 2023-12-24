@@ -21,7 +21,10 @@ const menuData = {
     mSAwa: {'en': "Awakening", 'ru': "Пробуждение"},
     mSExp: {'en': "Star Exp", 'ru': "Экспедиция"},
     mLang: {'en': "Language", 'ru': "Язык"},
-    mBrowserLang: {'en': "Browser language", 'ru': "Язык браузера"}
+    mBrowserLang: {'en': "Browser language", 'ru': "Язык браузера"},
+    mLight: {'en': "Light", 'ru': "Светлая"},
+    mDark:  {'en': "Dark", 'ru': "Темная"},
+    mAuto:  {'en': "Auto", 'ru': "Авто"}
 }
 
 const pageMap = {
