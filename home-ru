@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Утилиты для игры Idle Heroes от CDG.Axel</title>
+    <meta name="description" content="Утилиты для игры Idle Heroes от CDG.Axel. Симулятор Пробуждения души и калькулятор Звездной Экспедиции" />
+    <meta name="robots" content="index, follow" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LV2D0G0PE9"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-LV2D0G0PE9');
+    </script>
+    <script src="js/color-modes.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/sa-sim.js"></script>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/theme.css" rel="stylesheet">
+    <link href="css/override.css" rel="stylesheet">
+  </head>
+  <body onload="init();">
+    <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+      <symbol id="check2" viewBox="0 0 16 16">
+        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+      </symbol>
+      <symbol id="circle-half" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+      </symbol>
+      <symbol id="moon-stars-fill" viewBox="0 0 16 16">
+        <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+        <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+      </symbol>
+      <symbol id="sun-fill" viewBox="0 0 16 16">
+        <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+      </symbol>
+      <symbol id="tlg-icon" viewBox="0 0 16 16">
+        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.287 5.906c-.778.324-2.334.994-4.666 2.01-.378.15-.577.298-.595.442-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.294.26.006.549-.1.868-.32 2.179-1.471 3.304-2.214 3.374-2.23.05-.012.12-.026.166.016.047.041.042.12.037.141-.03.129-1.227 1.241-1.846 1.817-.193.18-.33.307-.358.336a8.154 8.154 0 0 1-.188.186c-.38.366-.664.64.015 1.088.327.216.589.393.85.571.284.194.568.387.936.629.093.06.183.125.27.187.331.236.63.448.997.414.214-.02.435-.22.547-.82.265-1.417.786-4.486.906-5.751a1.426 1.426 0 0 0-.013-.315.337.337 0 0 0-.114-.217.526.526 0 0 0-.31-.093c-.3.005-.763.166-2.984 1.09z"/>
+      </symbol>
+    </svg>
+
+    <ul class="nav nav-pills" id="pills-tab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link px-1" id="cMenuHome" data-bs-toggle="pill" data-bs-target="#pills-home"
+         type="button" role="tab" aria-controls="pills-home" aria-selected="true">#</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link px-1 active" id="cMenuAwak" data-bs-toggle="pill" data-bs-target="#pills-awakening" 
+        type="button" role="tab" aria-controls="pills-awakening" aria-selected="false">Пробуждение</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link px-1" id="cMenuSe" data-bs-toggle="pill" data-bs-target="#pills-starexp" 
+        type="button" role="tab" aria-controls="pills-starexp" aria-selected="false">Экспедиция</button>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link px-2 dropdown-toggle" id="cMenuLang" role="button" data-bs-toggle="dropdown" aria-expanded="false">Язык</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" onclick="switchLanguage('en');">English</a></li>
+          <li><a class="dropdown-item" onclick="switchLanguage('ru');">Русский</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" id="cMenuBrowserLang" onclick="switchLanguage('--');">Язык браузера</a></li>
+        </ul>
+      </li>
+      <li class="nav-item dropdown bd-mode-toggle">
+        <button class="btn btn-link nav-link px-2 py-2 dropdown-toggle d-flex align-items-center"
+                id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown" data-bs-display="static"
+                aria-label="Toggle theme (auto)">
+          <svg class="bi my-1 theme-icon-active" width="1em" height="1em"><use href="#circle-half"></use></svg>
+          <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme-text">
+          <li>
+            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+              <svg class="bi me-2 opacity-50 theme-icon" width="1em" height="1em"><use href="#sun-fill"></use></svg>
+              Light
+              <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
+              <svg class="bi me-2 opacity-50 theme-icon" width="1em" height="1em"><use href="#moon-stars-fill"></use></svg>
+              Dark
+              <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
+              <svg class="bi me-2 opacity-50 theme-icon" width="1em" height="1em"><use href="#circle-half"></use></svg>
+              Auto
+              <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+            </button>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+      <div class="tab-pane fade" id="pills-home" role="tabpanel" aria-labelledby="cMenuHome" tabindex="0">
+        <div class="container-fluid border rounded">
+          <div id="cAbout">
+            <br>Performed by CDG.Axel (C)2023<br><br>Resourses:
+          </div>
+          <ul>
+            <li><a href="https://t.me/IHSAS_bot" target="_blank">
+              <svg class="bi me-1" width="1em" height="1em"><use href="#tlg-icon"></use></svg>Soul awakening bot
+            </a></li>
+            <li><a id="cCommunity" href="https://vk.com/idleheroes" target="_blank">Largest IH community</a></li>
+            <li><a id="cYouTube" href="https://youtube.com/@AkuDemon" target="_blank">AkuDemon youtube channel</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="tab-pane fade show active" id="pills-awakening" role="tabpanel" aria-labelledby="cMenuAwak" tabindex="1">
+        <div class="accordion" id="accordionAwakening">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button d-block text-center" id="cSaHeader" type="button" data-bs-toggle="collapse" data-bs-target="#accAwakCollapse1" aria-expanded="true" aria-controls="accAwakCollapse1">
+                Idle heroes Soul-Awakening simulator
+              </button>
+            </h2>
+            <div id="accAwakCollapse1" class="accordion-collapse collapse show">
+              <div class="accordion-body">
+                <div class="row">
+                  <div class="col"><label for="edTargetPoints" class="form-label" id="lTargetPoints">Target points</label></div>
+                  <div class="col"><label for="edFirstTier" class="form-label" id="lFirstTier">Save copies from tier</label></div>
+                  <div class="col"><label for="edSimulationCount" class="form-label" id="lSimulationCount">Simulation count</label></div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <input type="number" class="form-control" id="edTargetPoints" value=200 placeholder="200" onchange="dataChanged(this);">
+                  </div>
+                  <div class="col">
+                    <select class="form-select" aria-label="Default select example" id="edFirstTier" onchange="dataChanged(this);">
+                      <option value="0">E-</option>
+                      <option value="1">E</option>
+                      <option value="2">E+</option>
+                      <option value="3">D-</option>
+                      <option value="4">D</option>
+                      <option value="5">D+</option>
+                      <option value="6">C-</option>
+                      <option value="7">C</option>
+                      <option value="8">C+</option>
+                      <option selected="selected" value="9">B-</option>
+                      <option value="10">B</option>
+                      <option value="11">B+</option>
+                      <option value="12">A-</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <input type="number" class="form-control" id="edSimulationCount" value=100000 placeholder="100000" onchange="dataChanged(this);">
+                  </div>
+                </div>
+                <div class="row mt-3">
+                  <div class="d-grid gap-2 col-6 mx-auto">
+                    <button type="button" id="startBtn" class="btn btn-primary" onclick="runSimulation();">Start simulation</button>
+                  </div>
+                </div>
+                <div class="row mt-3 text-center">
+                  <h4>
+                    <label id="cSimRes" class="form-label">Starry gems needed (average/min/max): </label>
+                    <label id="lbSimRes" class="form-label">-/-/-</label>
+                    <br>
+                    <label id="cResCopies" class="form-label">Copies needed: </label>
+                    <label id="lbResCopies" class="form-label">-</label>
+                  </h4>
+                  <h6>
+                    <label id="cResHelp" class="form-label">Calculation time: </label>
+                    <label id="lbResHelp" class="form-label">0.0 sec</label>
+                    <br>
+                    <label id="cSimLink" class="form-label">This simulation link -</label>
+                    <a href="#" id="lCopyLink" target="_blank">click</a>
+                  </h6>
+                </div>
+                <div class="row my-3 justify-content-center">
+                  <div class="col-8">
+                    <table id="resTable" class="table table-sm table-striped">
+                      <thead>
+                        <tr>
+                          <th id="cTCol1" scope="col">Tier</th>
+                          <th id="cTCol2" scope="col">Chance</th>
+                          <th id="cTCol3" scope="col">Points</th>
+                          <th id="cTCol4" scope="col">Average</th>
+                        </tr>
+                      </thead>
+                      <tbody id="resTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button d-block text-center collapsed" id="cSaHowToUse" type="button" data-bs-toggle="collapse" data-bs-target="#accAwakCollapse2" aria-expanded="false" aria-controls="accAwakCollapse2">
+                How to use it
+              </button>
+            </h2>
+            <div id="accAwakCollapse2" class="accordion-collapse collapse">
+              <div class="accordion-body" id="cSaHowFull">Soul Awakening how to use full text</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="pills-starexp" role="tabpanel" aria-labelledby="cMenuSe" tabindex="2">
+        <div class="accordion" id="accordionStarExp">
+          <div class="accordion-item">  
+            <h2 class="accordion-header">
+              <button class="accordion-button d-block text-center" id="cSeHeader" type="button" data-bs-toggle="collapse" data-bs-target="#accSECollapse1" aria-expanded="true" aria-controls="accSECollapse1">
+                Idle Heroes Star Expedition
+              </button>
+            </h2>
+            <div id="accSECollapse1" class="accordion-collapse collapse show">
+              <div class="accordion-body">
+                <div class="container-fluid border rounded">
+                  <div class="row">
+                    <label id="lbBossNumber" for="edBossNumber" class="form-label pt-3 ps-3" id="lTargetPoints">Boss number</label>
+                    <input id="edBossNumber" type="number" class="form-control text-center border-0" min="101" max="200" value=200 placeholder="200" onchange="dataChanged(this);">
+                    <input id="rnBossNumber" type="range" class="form-range p-3" min="101" max="200" value=200 oninput="dataChanged(this);">
+                  </div>
+                </div>
+                <div class="container-fluid border rounded mt-2">
+                  <div class="row">
+                    <label id="lbPercentHp" for="edPercentHp" class="form-label pt-3" id="lTargetPoints">Percent HP</label>
+                    <input id="edPercentHp" type="number" class="form-control text-center border-0" min="0" max="100" value=100 placeholder="200" onchange="dataChanged(this);">
+                    <input id="rnPercentHp" type="range" class="form-range p-3" min="0" max="100" value=100 oninput="dataChanged(this);">
+                  </div>
+                </div>
+                <div class="row text-center mt-3">
+                  <h5>
+                    <label class="form-label" id="lTotalHP">Total HP:</label>
+                    <label class="form-label" id="resTotalHP">0</label>
+                  </h5>
+                </div>
+                <div class="row text-center">
+                  <h5>
+                    <label class="form-label" id="lRemainingHP">Remaining HP:</label>
+                    <label class="form-label" id="resRemainingHP">0</label>
+                  </h5>
+                </div>
+                <div class="row text-center d-none">
+                  <h5>
+                    <label class="form-label" id="lGuildPoints">Guild Points:</label>
+                    <label class="form-label" id="resGuildPoints">0</label>
+                  </h5>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button d-block text-center collapsed" id="cSeHowToUse" type="button" data-bs-toggle="collapse" data-bs-target="#accSECollapse2" aria-expanded="false" aria-controls="accSECollapse2">
+                How to use it
+              </button>
+            </h2>
+            <div id="accSECollapse2" class="accordion-collapse collapse">
+              <div class="accordion-body" id="cSeHowFull">Star Exp how to use full text</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
