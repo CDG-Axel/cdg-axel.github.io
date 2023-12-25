@@ -4,9 +4,11 @@ function esc(parts, ...params) {
 }
 
 const langData = {
-    error: {'en': "error!", 'ru': "ошибка!"},
-    endBillion:   {'en': " B", 'ru': " Млрд"},
-    endTrillion:  {'en': " T", 'ru': " Т"},
+    simStart:    {en: "Start simulation", ru: "Запуск симуляции", de: "Simulation starten"},
+    simLeft:     {en: "Simulations left: ", ru: "Осталось симуляций: ", de: "Simulationen übrig: "},
+    error:       {en: "Error!", ru: "Ошибка!", de: "Fehler!"},
+    endBillion:  {en: " B", ru: " Млрд", de: " Mrd"},
+    endTrillion: {en: " T", ru: " Т", de: " B"}
 };
 
 
@@ -217,11 +219,9 @@ function dataChanged(element) {
 }
 
 function updateSaValues() {
-    let runLab  = language == 'ru' ? 'Запуск симуляции' : 'Start simulation';
-    let waitLab = language == 'ru' ? 'Осталось симуляций: ' : 'Simulations left: ';
     let curTime = ((Date.now() - timeStart) / 1000).toFixed(1);
     document.getElementById('lbResHelp').innerHTML = curTime;
-    document.getElementById('startBtn').innerHTML = simRunning ? waitLab + (simulationCount - simNum) : runLab;
+    document.getElementById('startBtn').innerHTML = simRunning ? getLangString('simLeft') + (simulationCount - simNum) : getLangString('simStart');
     document.getElementById('lbSimRes').innerHTML = 100 * Math.round(totalPoints / simNum) + '/' + minPoints * 100 + '/' + maxPoints * 100;
     document.getElementById('lbResCopies').innerHTML = Math.round(copiesNeeded / simNum);
     for (let i = 0; i < elCount; i++) document.getElementById('avRes' + i).innerHTML = (tierDrop[i] / simNum).toFixed(1);

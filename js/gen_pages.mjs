@@ -18,7 +18,7 @@ const pageMap = {
     lTargetPoints: {en: "Target points", ru: "Количество очков"},
     lFirstTier: {en: "Save copies from tier", ru: "Сохранять копии, начиная с"},
     lSimulationCount: {en: "Simulation count", ru: "Количество симуляций"},
-    startBtn: {en: "Start simulation", ru: "Запуск симуляции"},
+    startBtn: {en: "Start simulation", ru: "Запуск симуляции", de: "Simulation starten"},
     cSimRes: {en: "Starry gems needed (average/min/max): ", ru: "Необходимо звездных алмазов (среднее/мин/макс): "},
     cResCopies: {en: "Copies needed: ", ru: "Требуется копий: "},
     cResHelp: {en: "Calculation time: ", ru: "Время расчёта:"},
@@ -57,7 +57,7 @@ const pageMap = {
     lTotalHP:     {en: "Total HP:", ru: "Всего ХП:", de: "Gesamt-TP:"},
     lRemainingHP: {en: "Remaining HP", ru: "Осталось ХП:", de: "Verbleibende TP"},
     lGuildPoints: {en: "Guild Points:", ru: "Очки гильдии:", de: "Gildenpunkte: "},
-    error: {en: "Error!", ru: "Ошибка!", de: "Fehler!"},
+    error:        {en: "Error!", ru: "Ошибка!", de: "Fehler!"},
     endBillion:   {en: " B", ru: " Млрд", de: " Mrd"},
     endTrillion:  {en: " T", ru: " Т", de: " B"},
     cSeHowFull: {
