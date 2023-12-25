@@ -13,6 +13,17 @@ const pageMap = {
         ru: "<br>Разработка - CDG.Axel (C)2023<br><br>Полезные ресурсы:",
         de: "<br>Erstellt von CDG.Axel (C)2023<br><br>Nützliche Links:"
     },
+    cHomeFooter:{
+        en: `You can <a href="https://github.com/CDG-Axel/cdg-axel.github.io" target="_blank">contribute to this project</a>
+            by adding or fixing translations.<br> It would be helpful if you understand how Star Expedition guild points are counted;
+            I currently have to hide the panel with these numbers due to inaccuracies.`,
+        ru: `Вы можете <a href="https://github.com/CDG-Axel/cdg-axel.github.io" target="_blank">помочь проекту</a>
+            с переводом на другие языки или исправлением ошибок перевода.<br>Очень круто, если вы понимаете как считаются очки гильдии 
+            в Звезной Экспедиции. На текущий момент панельку с расчётом этих очков пришлось скрыть, так как расчёт получается очень неточным.`,
+        de: `Sie können <a href="https://github.com/CDG-Axel/cdg-axel.github.io" target="_blank">zu diesem Projekt beitragen</a>
+            indem Sie Übersetzungen hinzufügen oder korrigieren.<br>Es wäre hilfreich, wenn Sie verstehen, wie die Gildenpunkte für 
+            die Sternexpedition berechnet werden; derzeit muss ich das Panel mit diesen Zahlen ausblenden, da sie ungenau sind.`
+    },
     cBotName:   {en: "Soul-Awakening telegram bot", ru: "Телеграм-бот пробуждения души", de: "Telegram-Bot für Glorreiche Erweckungssaison"},
     cCommunity: {en: "The largest Idle Heroes community", ru: "Крупнейшее русскоязычное комьюнити по игре Idle Heroes", de: "Die größte Idle Heroes-Community"},
     cYouTube:   {en: "AkuDemon's youtube channel", ru: "Ютюб-канал AkuDemon", de: "AkuDemon's YouTube-Kanal"},
