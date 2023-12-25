@@ -28,8 +28,7 @@ const pageMap = {
     cTCol2: {en: "Chance", ru: "Шанс"},
     cTCol3: {en: "Points", ru: "Очков"},
     cTCol4: {en: "Average", ru: "Среднее"},
-    c: {en: "", ru: ""},
-    cSaHowToUse:  {en: "How to use it", ru: "Инструкция по использованию симулятора" },
+    cSaHowToUse:  {en: "How to use it", ru: "Инструкция по использованию симулятора", de: "Anweisungen zur Verwendung des Simulators" },
     cSaHowFull: {
         en: `<ul><li>Simulate a soul awakening session 'Simulation count' times.
             A minimum of 10,000 simulations is required for accurate results.</li>
@@ -52,7 +51,7 @@ const pageMap = {
             Вы можете смотреть результаты в процессе симуляции, но чем она дольше длится, тем точнее результат.`
     },
     cSeHeader:    {en: "Idle Heroes Star Expedition", ru: "Idle Heroes - Звездная экспедиция"},
-    cSeHowToUse:  {en: "How to use it", ru: "Инструкция по использованию калькулятора" },
+    cSeHowToUse:  {en: "How to use it", ru: "Инструкция по использованию калькулятора", de: "Anleitung zur Verwendung des Rechners"},
     lbBossNumber: {en: "Boss number", ru: "Босс номер"},
     lbPercentHp:  {en: "Percent HP", ru: "Процент ХП"},
     lTotalHP:     {en: "Total HP:", ru: "Всего ХП:"},
@@ -79,31 +78,31 @@ const pageData = {
         menu: { en: "#" },
         title: {en: "Idle Heroes utilities by CDG.Axel", ru: "Утилиты для игры Idle Heroes от CDG.Axel", de: "Idle Heroes-Dienstprogramme von CDG.Axel"},
         description: {
-            en: "Idle Heroes utilities by CDG.Axel. Soul-Awakening simulation and Star Expedition calculator", 
-            ru: "Утилиты для игры Idle Heroes от CDG.Axel. Симулятор Пробуждения души и калькулятор Звездной Экспедиции",
-            de: "Idle Heroes-Dienstprogramme von CDG.Axel. Seelenerweckungssimulation und Sternenexpeditionsrechner"
+            en: "Idle Heroes utilities by CDG.Axel. Soul-Awakening Session simulation and Star Expedition calculator", 
+            ru: "Утилиты для игры Idle Heroes от CDG.Axel. Симулятор Сеанса пробуждения души и калькулятор Звездной Экспедиции",
+            de: "Idle Heroes-Dienstprogramme von CDG.Axel. Glorreiche Erweckungssaison simulation und Sternexpeditionsrechner"
         }
     },
     sawa: { 
         path: "soul-awakening.html", 
         template: "templates/sawa.html",
         menu: {en: "Awakening", ru: "Пробуждение", de: "Erwachen"},
-        title: {en: "Soul-Awakening - Idle Heroes", ru: "Пробуждение души - Idle Heroes", de: "Seelenerwachen – Idle Heroes"},
+        title: {en: "Soul-Awakening - Idle Heroes", ru: "Пробуждение души - Idle Heroes", de: "Erweckungssaison – Idle Heroes"},
         description: {
             en: "Soul-Awakening simulation for Idle Heroes", 
             ru: "Симулятор Пробуждения души для Idle Heroes", 
-            de: "Seelenerweckungssimulation für Idle Heroes"
+            de: "Glorreiche Erweckungssaison für Idle Heroes"
         }
     },
     sexp: { 
         path: "star-expedition.html", 
         template: "templates/sexp.html",
         menu: {en: "Star Exp", ru: "Экспедиция", "de": "Expedition"},
-        title: {en: "Star Expedition - Idle Heroes", ru: "Звездная Экспедиция - Idle Heroes", de: "Sternenexpedition – Idle Heroes"},
+        title: {en: "Star Expedition - Idle Heroes", ru: "Звездная Экспедиция - Idle Heroes", de: "Sternexpedition – Idle Heroes"},
         description: {
             en: "Star Expedition calculator for Idle Heroes", 
             ru: "Калькулятор Звездной Экспедиции для Idle Heroes", 
-            de: "Star Expedition-Rechner für Idle Heroes"}
+            de: "Sternexpedition Rechner für Idle Heroes"}
     }
 };
 
