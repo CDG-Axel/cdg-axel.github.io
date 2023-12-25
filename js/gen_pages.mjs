@@ -13,6 +13,7 @@ const pageMap = {
         ru: "<br>Разработка - CDG.Axel (C)2023<br><br>Полезные ресурсы:",
         de: "<br>Erstellt von CDG.Axel (C)2023<br><br>Nützliche Links:"
     },
+    cBotName:   {en: "Soul-Awakening telegram bot", ru: "Телеграм-бот пробуждения души", de: "Telegram-Bot für Glorreiche Erweckungssaison"},
     cCommunity: {en: "The largest Idle Heroes community", ru: "Крупнейшее русскоязычное комьюнити по игре Idle Heroes", de: "Die größte Idle Heroes-Community"},
     cYouTube:   {en: "AkuDemon's youtube channel", ru: "Ютюб-канал AkuDemon", de: "AkuDemon's YouTube-Kanal"},
     cSaHeader:  {en: "Idle Heroes Soul-Awakening simulator", ru: "Idle heroes - Сеанс пробуждения души", de: "Idle heroes - Glorreiche Erweckungssaison simulation"},
