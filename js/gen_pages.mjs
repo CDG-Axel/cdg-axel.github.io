@@ -50,16 +50,16 @@ const pageMap = {
             <li>Среднее количество копий каждого тира показано в последней колонке таблицы.</li></ul>
             Вы можете смотреть результаты в процессе симуляции, но чем она дольше длится, тем точнее результат.`
     },
-    cSeHeader:    {en: "Idle Heroes Star Expedition", ru: "Idle Heroes - Звездная экспедиция"},
+    cSeHeader:    {en: "Idle Heroes - Star Expedition calculator", ru: "Idle Heroes - Калькулятор Звездной экспедиции", de: "Idle Heroes - Sternexpedition Rechner"},
     cSeHowToUse:  {en: "How to use it", ru: "Инструкция по использованию калькулятора", de: "Anleitung zur Verwendung des Rechners"},
-    lbBossNumber: {en: "Boss number", ru: "Босс номер"},
-    lbPercentHp:  {en: "Percent HP", ru: "Процент ХП"},
-    lTotalHP:     {en: "Total HP:", ru: "Всего ХП:"},
-    lRemainingHP: {en: "Remaining HP", ru: "Осталось ХП:"},
-    lGuildPoints: {en: "Guild Points:", ru: "Очки гильдии:"},
-    error: {en: "error!", ru: "ошибка!"},
-    endBillion:   {en: " B", ru: " Млрд"},
-    endTrillion:  {en: " T", ru: " Т"},
+    lbBossNumber: {en: "Boss number", ru: "Босс номер", de: "Boss Nummer"},
+    lbPercentHp:  {en: "Percent HP", ru: "Процент ХП", de: "Prozent TP"},
+    lTotalHP:     {en: "Total HP:", ru: "Всего ХП:", de: "Gesamt-TP:"},
+    lRemainingHP: {en: "Remaining HP", ru: "Осталось ХП:", de: "Verbleibende TP"},
+    lGuildPoints: {en: "Guild Points:", ru: "Очки гильдии:", de: "Gildenpunkte: "},
+    error: {en: "Error!", ru: "Ошибка!", de: "Fehler!"},
+    endBillion:   {en: " B", ru: " Млрд", de: " Mrd"},
+    endTrillion:  {en: " T", ru: " Т", de: " B"},
     cSeHowFull: {
         en: `Used to calculate remaining boss HP.
             <ul><li>Boss Number - number between 200 and 101</li>
@@ -86,7 +86,7 @@ const pageData = {
     sawa: { 
         path: "soul-awakening.html", 
         template: "templates/sawa.html",
-        menu: {en: "Awakening", ru: "Пробуждение", de: "Erwachen"},
+        menu: {en: "Awakening", ru: "Пробуждение", de: "Erweckung"},
         title: {en: "Soul-Awakening - Idle Heroes", ru: "Пробуждение души - Idle Heroes", de: "Erweckungssaison – Idle Heroes"},
         description: {
             en: "Soul-Awakening simulation for Idle Heroes", 

@@ -44,7 +44,7 @@
     <ul class="nav nav-pills" id="pills-tab" role="tablist">
 
 <li class="nav-item"><a class="nav-link px-2" href="/de/home.html">#</a></li>
-<li class="nav-item"><a class="nav-link px-2" href="/de/soul-awakening.html">Erwachen</a></li>
+<li class="nav-item"><a class="nav-link px-2" href="/de/soul-awakening.html">Erweckung</a></li>
 <li class="nav-item"><a class="nav-link px-2 active" aria-current="page" href="/de/star-expedition.html">Expedition</a></li>
 
       <li class="nav-item dropdown">
@@ -93,40 +93,40 @@
     <div class="accordion-item">  
         <h2 class="accordion-header">
             <button class="accordion-button d-block text-center" type="button" data-bs-toggle="collapse" data-bs-target="#accSECollapse1" 
-                aria-expanded="true" aria-controls="accSECollapse1">Idle Heroes Star Expedition
+                aria-expanded="true" aria-controls="accSECollapse1">Idle Heroes - Sternexpedition Rechner
             </button>
         </h2>
     <div id="accSECollapse1" class="accordion-collapse collapse show">
         <div class="accordion-body">
           <div class="container-fluid border rounded">
             <div class="row">
-              <label for="edBossNumber" class="form-label pt-3 ps-3">Boss number</label>
+              <label for="edBossNumber" class="form-label pt-3 ps-3">Boss Nummer</label>
               <input id="edBossNumber" type="number" class="form-control text-center border-0" min="101" max="200" value=200 placeholder="200" onchange="dataChanged(this);">
               <input id="rnBossNumber" type="range" class="form-range p-3" min="101" max="200" value=200 oninput="dataChanged(this);">
             </div>
           </div>
           <div class="container-fluid border rounded mt-2">
             <div class="row">
-              <label for="edPercentHp" class="form-label pt-3">Percent HP</label>
+              <label for="edPercentHp" class="form-label pt-3">Prozent TP</label>
               <input id="edPercentHp" type="number" class="form-control text-center border-0" min="0" max="100" value=100 placeholder="200" onchange="dataChanged(this);">
               <input id="rnPercentHp" type="range" class="form-range p-3" min="0" max="100" value=100 oninput="dataChanged(this);">
             </div>
           </div>
           <div class="row text-center mt-3">
             <h5>
-              <label class="form-label">Total HP:</label>
+              <label class="form-label">Gesamt-TP:</label>
               <label class="form-label" id="resTotalHP">0</label>
             </h5>
           </div>
           <div class="row text-center">
             <h5>
-              <label class="form-label">Remaining HP</label>
+              <label class="form-label">Verbleibende TP</label>
               <label class="form-label" id="resRemainingHP">0</label>
             </h5>
           </div>
           <div class="row text-center d-none">
             <h5>
-              <label class="form-label">Guild Points:</label>
+              <label class="form-label">Gildenpunkte: </label>
               <label class="form-label" id="resGuildPoints">0</label>
             </h5>
           </div>
