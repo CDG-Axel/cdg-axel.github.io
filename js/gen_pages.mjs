@@ -20,7 +20,7 @@ const pageMap = {
     lFirstTier: {en: "Save copies from tier", ru: "Сохранять копии, начиная с", de: "Kopien ab Stufe speichern"},
     lSimulationCount: {en: "Simulation count", ru: "Количество симуляций", de: "Simulationsanzahl"},
     startBtn: {en: "Start simulation", ru: "Запуск симуляции", de: "Simulation starten"},
-    cSimRes: {en: "Starry gems needed (average/min/max):", ru: "Необходимо звездных алмазов (среднее/мин/макс):"},
+    cSimRes: {en: "Starry gems needed (Average/Min/Max):", ru: "Необходимо звездных алмазов (среднее/мин/макс):", de: "Sterndiamanten benötigt (Ø/Min/Max): "},
     cResCopies: {en: "Copies needed:", ru: "Требуется копий:", de: "Benötigte Kopien:"},
     cResHelp: {en: "Calculation time:", ru: "Время расчёта:", de: "Berechnungszeit:"},
     cSimLink: {en: "This simulation link - ", ru: "Ссылка на эту симуляцию - ", de: "Dieser Simulationslink - "},
@@ -49,7 +49,15 @@ const pageMap = {
             <li>Все копии рангом ниже 'Сохранять копии, начиная с' будут считаться разобранным,
             а требуемое количество звездных алмазов будет уменьшено на значение, полученное от их разбора.</li>
             <li>Среднее количество копий каждого тира показано в последней колонке таблицы.</li></ul>
-            Вы можете смотреть результаты в процессе симуляции, но чем она дольше длится, тем точнее результат.`
+            Вы можете смотреть результаты в процессе симуляции, но чем она дольше длится, тем точнее результат.`,
+        de: `<ul><li>Simulieren Sie eine Glorreiche Erweckungssaison 'Simulationsanzahl'-mal.
+            Für genaue Ergebnisse sind mindestens 10.000 Simulationen erforderlich.</li>
+            <li>Jede Simulation läuft weiter, bis 'Zielpunkte' erreicht sind. 
+            Zum Beispiel sind 200 Punkte für eine garantierte B-Stufe erforderlich</li>
+            <li>Alle Kopien mit einer Stufe niedriger als 'Kopien ab Stufe speichern' werden ausgemustert, 
+            und die benötigte Anzahl an Sterndiamant wird um den Wert der ausgemusterten Kopien verringert</li>
+            <li>Die durchschnittliche Menge jeder Träne, die fallengelassen wird, wird in der letzten Spalte der Tabelle angezeigt.</li></ul>
+            Während der Simulation können Sie die Ergebnisse anzeigen, und sie werden genauer, je mehr Simulationen durchgeführt werden.`
     },
     cSeHeader:    {en: "Idle Heroes - Star Expedition calculator", ru: "Idle Heroes - Калькулятор Звездной экспедиции", de: "Idle Heroes - Sternexpedition Rechner"},
     cSeHowToUse:  {en: "How to use it", ru: "Инструкция по использованию калькулятора", de: "Anleitung zur Verwendung des Rechners"},
@@ -63,11 +71,14 @@ const pageMap = {
     endTrillion:  {en: " T", ru: " Т", de: " B"},
     cSeHowFull: {
         en: `Used to calculate remaining boss HP.
-            <ul><li>Boss Number - number between 200 and 101</li>
-            <li>HP Percentage - current % of HP remaining</li></ul>`,
+            <ul><li>Boss Number - number between 200 and 101.</li>
+            <li>HP Percentage - current % of HP remaining.</li></ul>`,
         ru: `Используется для расчёта оставшегося ХП у босса.
-            <ul><li>Номер босса - число от 200 до 101</li>
-            <li>Процент ХП - текущее ХП босса в процентах</li></ul>`
+            <ul><li>Номер босса - число от 200 до 101.</li>
+            <li>Процент ХП - текущее ХП босса в процентах.</li></ul>`,
+        de: `Verwendet, um verbleibende Boss-TP zu berechnen.
+            <ul><li>Bossnummer - eine Zahl zwischen 200 und 101.</li>
+            <li>TP-Prozentsatz - aktueller Prozentsatz der verbleibenden TP.</li></ul>`
     },
 
 };
