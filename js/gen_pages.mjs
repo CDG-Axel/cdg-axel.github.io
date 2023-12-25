@@ -1,14 +1,13 @@
 import { readFile, writeFile } from 'node:fs/promises'
 
 const pageMap = {
-    html_lang: {en: "en", ru: "ru", de: "de"},
-    mLang:     {en: "Language", ru: "Язык", de: "Sprache"},
-    langName:    {en: "English", ru: "Русский", de: "Deutsch"},
-    mBrowserLang: {en: "Browser language", ru: "Язык браузера", de: "Browsersprache"},
-    mLight:    {en: "Light", ru: "Светлая", de: "Hell"},
-    mDark:     {en: "Dark", ru: "Темная", de: "Dunkel"},
-    mAuto:     {en: "Auto", ru: "Авто", de: "Automatisch"},
-    cAbout:  {
+    html_lang:  {en: "en", ru: "ru", de: "de"},
+    mLang:      {en: "Language", ru: "Язык", de: "Sprache"},
+    langName:   {en: "English", ru: "Русский", de: "Deutsch"},
+    mLight:     {en: "Light", ru: "Светлая", de: "Hell"},
+    mDark:      {en: "Dark", ru: "Темная", de: "Dunkel"},
+    mAuto:      {en: "Auto", ru: "Авто", de: "Automatisch"},
+    cHomeHeader:{
         en: "<br>Created by CDG.Axel (C)2023<br><br>Resourses:", 
         ru: "<br>Разработка - CDG.Axel (C)2023<br><br>Полезные ресурсы:",
         de: "<br>Erstellt von CDG.Axel (C)2023<br><br>Nützliche Links:"
@@ -28,20 +27,20 @@ const pageMap = {
     cCommunity: {en: "The largest Idle Heroes community", ru: "Крупнейшее русскоязычное комьюнити по игре Idle Heroes", de: "Die größte Idle Heroes-Community"},
     cYouTube:   {en: "AkuDemon's youtube channel", ru: "Ютюб-канал AkuDemon", de: "AkuDemon's YouTube-Kanal"},
     cSaHeader:  {en: "Idle Heroes Soul-Awakening simulator", ru: "Idle heroes - Сеанс пробуждения души", de: "Idle heroes - Glorreiche Erweckungssaison simulation"},
-    lTargetPoints: {en: "Target points", ru: "Количество очков", de: "Zielpunkte"},
+    lTargetPts: {en: "Target points", ru: "Количество очков", de: "Zielpunkte"},
     lFirstTier: {en: "Save copies", ru: "Сохранять копии", de: "Kopien speichern"},
-    lSimulationCount: {en: "Simulation count", ru: "Количество симуляций", de: "Anzahl der Simulationen"},
-    startBtn: {en: "Start simulation", ru: "Запуск симуляции", de: "Simulation starten"},
-    cSimRes: {en: "Starry gems (Avg/Min/Max):", ru: "Звездные алмазы (средн/мин/макс):", de: "Sterndiamant (Ø/Min/Max):"},
+    lSimCount:  {en: "Simulation count", ru: "Количество симуляций", de: "Anzahl der Simulationen"},
+    startBtn:   {en: "Start simulation", ru: "Запуск симуляции", de: "Simulation starten"},
+    cSimRes:    {en: "Starry gems (Avg/Min/Max):", ru: "Звездные алмазы (средн/мин/макс):", de: "Sterndiamant (Ø/Min/Max):"},
     cResCopies: {en: "Copies needed:", ru: "Требуется копий:", de: "Benötigte Kopien:"},
-    cResHelp: {en: "Calculation time:", ru: "Время расчёта:", de: "Berechnungszeit:"},
-    cSimLink: {en: "This simulation link - ", ru: "Ссылка на эту симуляцию - ", de: "Dieser Simulationslink - "},
-    lCopyLink: {en: "click", ru: "клик", de: "klick"},
-    cTCol1: {en: "Tier", ru: "Тир", de: "Rang"},
-    cTCol2: {en: "Chance", ru: "Шанс", de: "Chance"},
-    cTCol3: {en: "Points", ru: "Очков", de: "Punkte"},
-    cTCol4: {en: "Average", ru: "Среднее", de: "Durchschnitt"},
-    cSaHowToUse:  {en: "How to use it", ru: "Инструкция по использованию симулятора", de: "Anweisungen zur Verwendung des Simulators" },
+    cResHelp:   {en: "Calculation time:", ru: "Время расчёта:", de: "Berechnungszeit:"},
+    cSimLink:   {en: "This simulation link - ", ru: "Ссылка на эту симуляцию - ", de: "Dieser Simulationslink - "},
+    lCopyLink:  {en: "click", ru: "клик", de: "klick"},
+    cTCol1:     {en: "Tier", ru: "Тир", de: "Rang"},
+    cTCol2:     {en: "Chance", ru: "Шанс", de: "Chance"},
+    cTCol3:     {en: "Points", ru: "Очков", de: "Punkte"},
+    cTCol4:     {en: "Average", ru: "Среднее", de: "Durchschnitt"},
+    cSaHowToUse:{en: "How to use it", ru: "Инструкция по использованию симулятора", de: "Anweisungen zur Verwendung des Simulators" },
     cSaHowFull: {
         en: `<ul><li>Simulate a soul awakening session 'Simulation count' times.
             A minimum of 10,000 simulations is required for accurate results.</li>
@@ -95,12 +94,12 @@ const pageMap = {
 
 };
 
-const pageData = {
+const tabData = {
     home: { 
         path: "home.html",
         template: "templates/home.html",
         menu: { en: "#" },
-        title: {en: "Idle Heroes utilities by CDG.Axel", ru: "Утилиты для игры Idle Heroes от CDG.Axel", de: "Idle Heroes-Dienstprogramme von CDG.Axel"},
+        title: { en: "Idle Heroes utilities by CDG.Axel", ru: "Утилиты для игры Idle Heroes от CDG.Axel", de: "Idle Heroes-Dienstprogramme von CDG.Axel" },
         description: {
             en: "Idle Heroes utilities by CDG.Axel. Soul-Awakening Session simulation and Star Expedition calculator", 
             ru: "Утилиты для игры Idle Heroes от CDG.Axel. Симулятор Сеанса пробуждения души и калькулятор Звездной Экспедиции",
@@ -110,8 +109,8 @@ const pageData = {
     sawa: { 
         path: "soul-awakening.html", 
         template: "templates/sawa.html",
-        menu: {en: "Awakening", ru: "Пробуждение", de: "Erweckung"},
-        title: {en: "Soul-Awakening - Idle Heroes", ru: "Пробуждение души - Idle Heroes", de: "Erweckungssaison – Idle Heroes"},
+        menu: { en: "Awakening", ru: "Пробуждение", de: "Erweckung" },
+        title: { en: "Soul-Awakening - Idle Heroes", ru: "Пробуждение души - Idle Heroes", de: "Erweckungssaison – Idle Heroes" },
         description: {
             en: "Soul-Awakening simulation for Idle Heroes", 
             ru: "Симулятор Пробуждения души для Idle Heroes", 
@@ -121,12 +120,13 @@ const pageData = {
     sexp: { 
         path: "star-expedition.html", 
         template: "templates/sexp.html",
-        menu: {en: "Star Exp", ru: "Экспедиция", "de": "Expedition"},
-        title: {en: "Star Expedition - Idle Heroes", ru: "Звездная Экспедиция - Idle Heroes", de: "Sternexpedition – Idle Heroes"},
+        menu: { en: "Star Exp", ru: "Экспедиция", "de": "Expedition" },
+        title: { en: "Star Expedition - Idle Heroes", ru: "Звездная Экспедиция - Idle Heroes", de: "Sternexpedition – Idle Heroes" },
         description: {
             en: "Star Expedition calculator for Idle Heroes", 
             ru: "Калькулятор Звездной Экспедиции для Idle Heroes", 
-            de: "Sternexpedition Rechner für Idle Heroes"}
+            de: "Sternexpedition Rechner für Idle Heroes"
+        }
     }
 };
 
@@ -140,34 +140,34 @@ function getLangString(node, lang) {
 const MAIN_FN = 'templates/main_template.html';
 let filePath = new URL('../' + MAIN_FN, import.meta.url);
 const mainTempl = await readFile(filePath, { encoding: 'utf8' });
-for (let page in pageData) 
+for (let page in tabData) 
     for (let lang in langMap) {
-        const fileName = langMap[lang] + pageData[page].path;
+        const fileName = langMap[lang] + tabData[page].path;
         console.log('Generating', fileName + '...');
         let content = mainTempl;
-        content = content.replace('%%title%%', getLangString(pageData[page].title, lang));
-        content = content.replace('%%description%%', getLangString(pageData[page].description, lang));
+        content = content.replace('%%title%%', getLangString(tabData[page].title, lang));
+        content = content.replace('%%description%%', getLangString(tabData[page].description, lang));
         // replace menu data
         for (let item in pageMap) content = content.replace('%%' + item + '%%', getLangString(pageMap[item], lang));
         // form navigation
         let navpart = "";
-        for (let menu in pageData) {
+        for (let menu in tabData) {
             const current = menu == page? 'aria-current="page" ': '';
             const active = menu == page? ' active': '';
-            const link = langMap[lang] + pageData[menu].path;
-            const text = getLangString(pageData[menu]['menu'], lang);
+            const link = langMap[lang] + tabData[menu].path;
+            const text = getLangString(tabData[menu]['menu'], lang);
             navpart += `<li class="nav-item"><a class="nav-link px-2${active}" ${current}href="${link}">${text}</a></li>\n`
         }
         content = content.replace('%%nav-part%%', navpart);
         navpart = "";
         for (let ml in langMap) {
-            const ref = langMap[ml] + pageData[page].path;
+            const ref = langMap[ml] + tabData[page].path;
             const langText = getLangString(pageMap['langName'], ml);
             navpart += `<li><a class="dropdown-item" href="${ref}">${langText}</a></li>\n`
         }
         content = content.replace('%%lang-nav%%', navpart);
 
-        filePath = new URL('../' + pageData[page].template, import.meta.url);
+        filePath = new URL('../' + tabData[page].template, import.meta.url);
         let tabContent = await readFile(filePath, { encoding: 'utf8' });
         for (let item in pageMap) tabContent = tabContent.replace('%%' + item + '%%', getLangString(pageMap[item], lang));
 
