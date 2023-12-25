@@ -18,7 +18,7 @@ const pageMap = {
     cSaHeader:  {en: "Idle Heroes Soul-Awakening simulator", ru: "Idle heroes - Сеанс пробуждения души", de: "Idle heroes - Glorreiche Erweckungssaison simulation"},
     lTargetPoints: {en: "Target points", ru: "Количество очков", de: "Zielpunkte"},
     lFirstTier: {en: "Save copies from tier", ru: "Сохранять копии, начиная с", de: "Kopien ab Stufe speichern"},
-    lSimulationCount: {en: "Simulation count", ru: "Количество симуляций", de: "Simulationsanzahl"},
+    lSimulationCount: {en: "Simulation count", ru: "Количество симуляций", de: "Anzahl der Simulationen"},
     startBtn: {en: "Start simulation", ru: "Запуск симуляции", de: "Simulation starten"},
     cSimRes: {en: "Starry gems needed (Average/Min/Max):", ru: "Необходимо звездных алмазов (среднее/мин/макс):", de: "Sterndiamanten benötigt (Ø/Min/Max): "},
     cResCopies: {en: "Copies needed:", ru: "Требуется копий:", de: "Benötigte Kopien:"},
