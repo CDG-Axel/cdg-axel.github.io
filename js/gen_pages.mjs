@@ -20,7 +20,7 @@ const pageMap = {
     lFirstTier: {en: "Save copies from tier", ru: "Сохранять копии, начиная с", de: "Kopien ab Stufe speichern"},
     lSimulationCount: {en: "Simulation count", ru: "Количество симуляций", de: "Anzahl der Simulationen"},
     startBtn: {en: "Start simulation", ru: "Запуск симуляции", de: "Simulation starten"},
-    cSimRes: {en: "Starry gems needed (Average/Min/Max):", ru: "Необходимо звездных алмазов (среднее/мин/макс):", de: "Sterndiamanten benötigt (Ø/Min/Max): "},
+    cSimRes: {en: "Starry gems (Avg/Min/Max):", ru: "Звездные алмазы (средн/мин/макс):", de: "Sterndiamanten benötigt (Ø/Min/Max):"},
     cResCopies: {en: "Copies needed:", ru: "Требуется копий:", de: "Benötigte Kopien:"},
     cResHelp: {en: "Calculation time:", ru: "Время расчёта:", de: "Berechnungszeit:"},
     cSimLink: {en: "This simulation link - ", ru: "Ссылка на эту симуляцию - ", de: "Dieser Simulationslink - "},
