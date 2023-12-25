@@ -17,7 +17,7 @@ const pageMap = {
     cYouTube:   {en: "AkuDemon's youtube channel", ru: "Ютюб-канал AkuDemon", de: "AkuDemon's YouTube-Kanal"},
     cSaHeader:  {en: "Idle Heroes Soul-Awakening simulator", ru: "Idle heroes - Сеанс пробуждения души", de: "Idle heroes - Glorreiche Erweckungssaison simulation"},
     lTargetPoints: {en: "Target points", ru: "Количество очков", de: "Zielpunkte"},
-    lFirstTier: {en: "Save copies from tier", ru: "Сохранять копии, начиная с", de: "Kopien ab Stufe speichern"},
+    lFirstTier: {en: "Save copies", ru: "Сохранять копии", de: "Kopien speichern"},
     lSimulationCount: {en: "Simulation count", ru: "Количество симуляций", de: "Anzahl der Simulationen"},
     startBtn: {en: "Start simulation", ru: "Запуск симуляции", de: "Simulation starten"},
     cSimRes: {en: "Starry gems (Avg/Min/Max):", ru: "Звездные алмазы (средн/мин/макс):", de: "Sterndiamant (Ø/Min/Max):"},
@@ -35,7 +35,7 @@ const pageMap = {
             A minimum of 10,000 simulations is required for accurate results.</li>
             <li>Each simulation continues until 'Target points' reached.
             For instance, 200 points are needed for a guaranteed B-tier.</li>
-            <li>Any copies with a tier lower than 'Save copies from tier' are retired, and
+            <li>Any copies with a tier lower than 'Save copies' are retired, and
             the required number of starry gems is decreased by the value of the retired copies.</li>
             <li>The average quantity of each tear dropped is displayed in the last column of the table.</li></ul>
             During the simulation, you can view the results, and it becomes more accurate with more simulations.`,
@@ -46,7 +46,7 @@ const pageMap = {
             Для примера, 200 очков требуется для получения гарантированного B- тира.
             Если хотите узнать, сколько требуется алмазов, например, для топ-10, введите в поле 'Количество очков'
             значение больше, чем у места 10 в рейтинге (лучше с запасом).</li>
-            <li>Все копии рангом ниже 'Сохранять копии, начиная с' будут считаться разобранным,
+            <li>Все копии рангом ниже 'Сохранять копии' будут считаться разобранным,
             а требуемое количество звездных алмазов будет уменьшено на значение, полученное от их разбора.</li>
             <li>Среднее количество копий каждого тира показано в последней колонке таблицы.</li></ul>
             Вы можете смотреть результаты в процессе симуляции, но чем она дольше длится, тем точнее результат.`,
@@ -54,7 +54,7 @@ const pageMap = {
             Für genaue Ergebnisse sind mindestens 10.000 Simulationen erforderlich.</li>
             <li>Jede Simulation läuft weiter, bis 'Zielpunkte' erreicht sind. 
             Zum Beispiel sind 200 Punkte für eine garantierte B-Stufe erforderlich</li>
-            <li>Alle Kopien mit einer Stufe niedriger als 'Kopien ab Stufe speichern' werden ausgemustert, 
+            <li>Alle Kopien mit einer Stufe niedriger als 'Kopien speichern' werden ausgemustert, 
             und die benötigte Anzahl an Sterndiamant wird um den Wert der ausgemusterten Kopien verringert</li>
             <li>Die durchschnittliche Menge jeder Träne, die fallengelassen wird, wird in der letzten Spalte der Tabelle angezeigt.</li></ul>
             Während der Simulation können Sie die Ergebnisse anzeigen, und sie werden genauer, je mehr Simulationen durchgeführt werden.`
