@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Soul-Awakening simulation & Star Expedition calculator for Idle Heroes" />
+    <meta name="keywords" content="Soul Awakening, Star Expedition, Пробуждение души, Звездная экспедиция" />
+    <meta name="robots" content="index, follow" />
+    <title>Soul awakening & Star Expedition - Idle Heroes</title>
+    <script>
+      let autoLang = navigator.language || navigator.userLanguage; 
+      autoMsg = {
+        en: {prefix: "Oops, this page doesn't exist.<br>But you probably meant to go here", postfix: "click"}, 
+        ru: {prefix: "Упс, такой страницы нет.<br>Но вам скорее всего сюда", postfix: "клик"}, 
+        de: {prefix: "Hoppla, diese Seite existiert nicht.<br>Aber Sie wollten wahrscheinlich hierhin", postfix: "klick"}
+      };
+      autoLang = autoLang.slice(0, 2);
+      const linkPref = ['ru', 'de'].indexOf(autoLang) >= 0 ? '/' + autoLang: '';
+      const autoLink = new URL(linkPref + '/home.html', window.location.href);
+      const autoPart = autoMsg[autoLang] ?? autoMsg.en;
+      const autoText = autoPart.prefix + ` - <a href="${autoLink}">${autoPart.postfix}</a>`
+      function redirectTo() { window.location.assign(autoLink.href); }
+      setTimeout(redirectTo, 2500);
+    </script>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/color-modes.js"></script>
+  </head>
+  <body>
+    <div class="container-fluid border rounded text-center"><table class="container-fluid" style="min-height: 100px"><tbody><tr>
+        <td id="noSuchPage" class="align-middle">Oops, this page doesn't exist. <br>
+          But you probably meant to go here - <a href="/home.html">click</a></td>
+    </tr></tbody></table></div>
+    <script>
+      document.getElementById('noSuchPage').innerHTML = autoText;
+    </script>
+  </body>
+</html>

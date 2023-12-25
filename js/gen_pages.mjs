@@ -140,34 +140,34 @@ function getLangString(node, lang) {
 const MAIN_FN = 'templates/main_template.html';
 let filePath = new URL('../' + MAIN_FN, import.meta.url);
 const mainTempl = await readFile(filePath, { encoding: 'utf8' });
-for (let page in tabData) 
+for (let tab in tabData) 
     for (let lang in langMap) {
-        const fileName = langMap[lang] + tabData[page].path;
+        const fileName = langMap[lang] + tabData[tab].path;
         console.log('Generating', fileName + '...');
         let content = mainTempl;
-        content = content.replace('%%title%%', getLangString(tabData[page].title, lang));
-        content = content.replace('%%description%%', getLangString(tabData[page].description, lang));
+        content = content.replace('%%title%%', getLangString(tabData[tab].title, lang));
+        content = content.replace('%%description%%', getLangString(tabData[tab].description, lang));
         // replace menu data
         for (let item in pageMap) content = content.replace('%%' + item + '%%', getLangString(pageMap[item], lang));
         // form navigation
         let navpart = "";
-        for (let menu in tabData) {
-            const current = menu == page? 'aria-current="page" ': '';
-            const active = menu == page? ' active': '';
-            const link = langMap[lang] + tabData[menu].path;
-            const text = getLangString(tabData[menu]['menu'], lang);
+        for (let item in tabData) {
+            const current = item == tab? 'aria-current="page" ': '';
+            const active = item == tab? ' active': '';
+            const link = langMap[lang] + tabData[item].path;
+            const text = getLangString(tabData[item].menu, lang);
             navpart += `<li class="nav-item"><a class="nav-link px-2${active}" ${current}href="${link}">${text}</a></li>\n`
         }
         content = content.replace('%%nav-part%%', navpart);
         navpart = "";
         for (let ml in langMap) {
-            const ref = langMap[ml] + tabData[page].path;
+            const ref = langMap[ml] + tabData[tab].path;
             const langText = getLangString(pageMap['langName'], ml);
             navpart += `<li><a class="dropdown-item" href="${ref}">${langText}</a></li>\n`
         }
         content = content.replace('%%lang-nav%%', navpart);
 
-        filePath = new URL('../' + tabData[page].template, import.meta.url);
+        filePath = new URL('../' + tabData[tab].template, import.meta.url);
         let tabContent = await readFile(filePath, { encoding: 'utf8' });
         for (let item in pageMap) tabContent = tabContent.replace('%%' + item + '%%', getLangString(pageMap[item], lang));
 
