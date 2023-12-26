@@ -80,7 +80,7 @@ const pageMap = {
     error:        {en: "Error!", ru: "Ошибка!", de: "Fehler!"},
     endBillion:   {en: " B", ru: " Млрд", de: " Mrd"},
     endTrillion:  {en: " T", ru: " Т", de: " B"},
-    cSeHowFull: {
+    cSeHowFull:   {
         en: `Used to calculate remaining boss HP.
             <ul><li>Boss Number - number between 200 and 101.</li>
             <li>HP Percentage - current % of HP remaining.</li></ul>`,
