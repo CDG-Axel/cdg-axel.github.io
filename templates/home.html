@@ -18,6 +18,6 @@
       de: 'Vielleicht ist Deutsch deine Muttersprache? <a href="/de/home.html">Wechseln!</a>'
     };
     let documentLang = document.documentElement.lang;
-    if (autoLang !== documentLang && autoMsg[documentLang]) document.getElementById('switchLang').innerHTML = autoMsg[documentLang];
+    if (autoLang !== documentLang && autoMsg[autoLang]) document.getElementById('switchLang').innerHTML = autoMsg[documentLang];
   </script>
 </div>
