@@ -91,7 +91,6 @@ const pageMap = {
             <ul><li>Bossnummer - eine Zahl zwischen 200 und 101.</li>
             <li>TP-Prozentsatz - aktueller Prozentsatz der verbleibenden TP.</li></ul>`
     },
-
 };
 
 const tabData = {
@@ -131,14 +130,10 @@ const tabData = {
 };
 
 const langMap = { en: "/", ru: "/ru/", de: "/de/" };
-
-function getLangString(node, lang) {
-    return node[lang] ?? node['en'];
-}
+const getLangString = (node, lang) => node[lang] ?? node['en'];
 
 // start generation
-const MAIN_FN = 'templates/main_template.html';
-let filePath = new URL('../' + MAIN_FN, import.meta.url);
+let filePath = new URL('../templates/main_template.html', import.meta.url);
 const mainTempl = await readFile(filePath, { encoding: 'utf8' });
 for (let tab in tabData) 
     for (let lang in langMap) {

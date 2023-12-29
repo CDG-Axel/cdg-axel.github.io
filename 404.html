@@ -8,12 +8,12 @@
     <meta name="robots" content="index, follow" />
     <title>Soul awakening & Star Expedition - Idle Heroes</title>
     <script>
-      let autoLang = navigator.language || navigator.userLanguage; 
-      autoMsg = {
+      const autoMsg = {
         en: {prefix: "Oops, this page doesn't exist.<br>But you probably meant to go here", postfix: "click"}, 
         ru: {prefix: "Упс, такой страницы нет.<br>Но вам скорее всего сюда", postfix: "клик"}, 
         de: {prefix: "Hoppla, diese Seite existiert nicht.<br>Aber Sie wollten wahrscheinlich hierhin", postfix: "klick"}
       };
+      let autoLang = navigator.language || navigator.userLanguage; 
       autoLang = autoLang.slice(0, 2);
       const linkPref = ['ru', 'de'].indexOf(autoLang) >= 0 ? '/' + autoLang: '';
       const autoLink = new URL(linkPref + '/home.html', window.location.href);
