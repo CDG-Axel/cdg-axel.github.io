@@ -8,7 +8,12 @@ const langData = {
     simLeft:     {en: "Simulations left: ", ru: "Осталось симуляций: ", de: "Simulationen übrig: "},
     error:       {en: "Error!", ru: "Ошибка!", de: "Fehler!"},
     endBillion:  {en: " B", ru: " Млрд", de: " Mrd"},
-    endTrillion: {en: " T", ru: " Т", de: " B"}
+    endTrillion: {en: " T", ru: " Т", de: " B"},
+    autoLang:    {
+        en: 'Is your native language English, perhaps? <a href="/home.html">Switch!</a>',
+        ru: 'Возможно ваш родной язык русский? <a href="/ru/home.html">Переключить!</a>', 
+        de: 'Vielleicht ist Deutsch deine Muttersprache? <a href="/de/home.html">Wechseln!</a>'
+    }
 };
 
 
@@ -163,14 +168,9 @@ function loadCtrlValue(ctrlName) {
 }
 
 function nativeLang() {
-    const autoMsg = {
-        en: 'Is your native language English, perhaps? <a href="/home.html">Switch!</a>',
-        ru: 'Возможно ваш родной язык русский? <a href="/ru/home.html">Переключить!</a>', 
-        de: 'Vielleicht ist Deutsch deine Muttersprache? <a href="/de/home.html">Wechseln!</a>'
-    };
-    let autoLang = (navigator.language || navigator.userLanguage)?.slice(0, 2);
-    let documentLang = document.documentElement.lang;
-    if (autoLang !== documentLang && autoMsg[autoLang]) document.getElementById('eNativeLang').innerHTML = autoMsg[autoLang];
+    const autoLang = (navigator.language || navigator.userLanguage)?.slice(0, 2);
+    const autoText = langData.autoLang[autoLang];
+    if (autoLang !== document.documentElement.lang && autoText) document.getElementById('eNativeLang').innerHTML = autoText;
 }
 
 function init() {
