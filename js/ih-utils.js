@@ -162,6 +162,17 @@ function loadCtrlValue(ctrlName) {
     }
 }
 
+function nativeLang() {
+    const autoMsg = {
+        en: 'Is your native language English, perhaps? <a href="/home.html">Switch!</a>',
+        ru: 'Возможно ваш родной язык русский? <a href="/ru/home.html">Переключить!</a>', 
+        de: 'Vielleicht ist Deutsch deine Muttersprache? <a href="/de/home.html">Wechseln!</a>'
+    };
+    let autoLang = (navigator.language || navigator.userLanguage)?.slice(0, 2);
+    let documentLang = document.documentElement.lang;
+    if (autoLang !== documentLang && autoMsg[autoLang]) document.getElementById('eNativeLang').innerHTML = autoMsg[autoLang];
+}
+
 function init() {
     language = document.documentElement.lang;
 
