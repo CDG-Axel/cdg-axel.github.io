@@ -151,7 +151,7 @@ for (let tab in tabData)
             const active = item == tab? ' active': '';
             const link = langMap[lang] + tabData[item].path;
             const text = getLangString(tabData[item].menu, lang);
-            navpart += `<li class="nav-item"><a class="nav-link px-2${active}" ${current}href="${link}">${text}</a></li>\n`
+            navpart += `<li class="nav-item"><a class="nav-link${active}" ${current}href="${link}">${text}</a></li>\n`
         }
         content = content.replace('%%nav-part%%', navpart);
         navpart = "";
