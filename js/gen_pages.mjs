@@ -76,7 +76,7 @@ const pageMap = {
     lbPercentHp:  {en: "Percent HP", ru: "Процент ХП", de: "Prozent TP"},
     lTotalHP:     {en: "Total HP:", ru: "Всего ХП:", de: "Gesamt-TP:"},
     lRemainingHP: {en: "Remaining HP", ru: "Осталось ХП:", de: "Verbleibende TP"},
-    lGuildPoints: {en: "Killed Bosses HP/Guild Points:", ru: "Суммарное ХП убитых боссов/Очки гильдии:", de: "Erschlagene Bosse HP/Gildenpunkte: "},
+    lGuildPoints: {en: "Killed Bosses HP / Guild Points:", ru: "Суммарное ХП убитых боссов / Очки гильдии:", de: "Erschlagene Bosse HP / Gildenpunkte: "},
     error:        {en: "Error!", ru: "Ошибка!", de: "Fehler!"},
     endBillion:   {en: " B", ru: " Млрд", de: " Mrd"},
     endTrillion:  {en: " T", ru: " Т", de: " B"},

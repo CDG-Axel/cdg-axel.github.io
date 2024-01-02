@@ -7,6 +7,7 @@ const langData = {
     simStart:    {en: "Start simulation", ru: "Запуск симуляции", de: "Simulation starten"},
     simLeft:     {en: "Simulations left: ", ru: "Осталось симуляций: ", de: "Simulationen übrig: "},
     error:       {en: "Error!", ru: "Ошибка!", de: "Fehler!"},
+    endMillion:  {en: " M", ru: " Млн", de: " Mio"},
     endBillion:  {en: " B", ru: " Млрд", de: " Mrd"},
     endTrillion: {en: " T", ru: " Т", de: " B"},
     autoLang:    {
@@ -288,6 +289,7 @@ function numToIh(value, isPoints=false) {
         while (value > 10 && exp++) value /= 10;
         return value.toFixed(3) + 'E+' + exp;
     } else if (value > 1000) return (value / 1000).toFixed(3) + getLangString('endTrillion');
+    else if (value < 1) return (value * 1000).toFixed(3) + getLangString('endMillion');
     else return value.toFixed(3) + getLangString('endBillion');
 }
 
