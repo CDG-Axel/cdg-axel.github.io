@@ -300,7 +300,7 @@ function calcOctopus() {
     if (bossNum && bossHp) {
         totHp = bossHp[bossNum];
         remHp = totHp * percHp / 100;
-        gPts  = numToIh((bossTotalHp[bossNum] - remHp) * 0.00072);
+        gPts  = numToIh((bossTotalHp[bossNum] - remHp) * 0.001); // was 0.00072
         remHp = numToIh(remHp);
         totHp = numToIh(totHp);
     } else totHp = remHp = gPts = getLangString('error');
