@@ -296,15 +296,16 @@ function calcOctopus() {
     if (!ctrl) return;
     const bossNum = Number(ctrl.value);
     const percHp  = Number(document.getElementById('rnPercentHp').value);
-    let totHp, remHp, gPts;
+    let totHp, remHp, sumHp;
     if (bossNum && bossHp) {
         totHp = bossHp[bossNum];
         remHp = totHp * percHp / 100;
-        gPts  = numToIh((bossTotalHp[bossNum] - remHp) * 0.001); // was 0.00072
+        sumHp  = bossTotalHp[bossNum] - remHp;
+        sumHp  = numToIh(sumHp) + '/' + numToIh(sumHp / 177000); // was 0.00072
         remHp = numToIh(remHp);
         totHp = numToIh(totHp);
-    } else totHp = remHp = gPts = getLangString('error');
+    } else totHp = remHp = sumHp = getLangString('error');
     document.getElementById('resTotalHP').innerHTML = totHp;
     document.getElementById('resRemainingHP').innerHTML = remHp;
-    document.getElementById('resGuildPoints').innerHTML = gPts;
+    document.getElementById('resGuildPoints').innerHTML = sumHp;
 }
