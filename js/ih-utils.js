@@ -303,7 +303,7 @@ function calcOctopus() {
         totHp = bossHp[bossNum];
         remHp = totHp * percHp / 100;
         sumHp  = bossTotalHp[bossNum] - remHp;
-        sumHp  = numToIh(sumHp) + ' / ' + numToIh(sumHp / 177000); // was 0.00072
+        sumHp  = numToIh(sumHp) + ' / ' + numToIh(sumHp / 180000); // was 0.00072
         remHp = numToIh(remHp);
         totHp = numToIh(totHp);
     } else totHp = remHp = sumHp = getLangString('error');
