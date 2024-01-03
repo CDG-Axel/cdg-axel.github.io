@@ -14,14 +14,14 @@ const pageMap = {
     },
     cHomeFooter:{
         en: `You can <a href="https://github.com/CDG-Axel/cdg-axel.github.io" target="_blank">contribute to this project</a>
-            by adding or fixing translations.<br> It would be helpful if you understand how Star Expedition guild points are counted;
-            I currently have to hide the panel with these numbers due to inaccuracies.`,
+            by adding or fixing translations.<br>It would be very cool if you could explain how guild points are calculated 
+            in Star Expedition. At the moment, the calculation of these points is quite approximate, especially for bosses 200-160.`,
         ru: `Вы можете <a href="https://github.com/CDG-Axel/cdg-axel.github.io" target="_blank">помочь проекту</a>
-            с переводом на другие языки или исправлением ошибок перевода.<br>Очень круто, если вы понимаете, как считаются очки гильдии 
-            в Звезной Экспедиции. На текущий момент панельку с расчётом этих очков пришлось скрыть, так как расчёт получается очень неточным.`,
+            с переводом на другие языки или исправлением ошибок перевода.<br>Очень круто, если вы объясните, как считаются очки гильдии 
+            в Звезной Экспедиции. На текущий момент расчет этих очков весьма приблизительный, особенно на боссах 200-160.`,
         de: `Sie können <a href="https://github.com/CDG-Axel/cdg-axel.github.io" target="_blank">zu diesem Projekt beitragen</a>
-            indem Sie Übersetzungen hinzufügen oder korrigieren.<br>Es wäre hilfreich, wenn Sie verstehen, wie die Gildenpunkte für 
-            die Sternexpedition berechnet werden; derzeit muss ich das Panel mit diesen Zahlen ausblenden, da sie ungenau sind.`
+            indem Sie Übersetzungen hinzufügen oder korrigieren.<br>Es wäre sehr hilfreich, wenn Sie erklären könnten, wie die Gildenpunkte
+            in der Sternexpedition berechnet werden. Derzeit ist die Berechnung dieser Punkte ziemlich ungefähr, insbesondere bei Bossen von 200-160.`
     },
     cBotName:   {en: "Soul-Awakening telegram bot", ru: "Телеграм-бот пробуждения души", de: "Telegram-Bot für Glorreiche Erweckungssaison"},
     cCommunity: {en: "The largest Idle Heroes community", ru: "Крупнейшее русскоязычное комьюнити по игре Idle Heroes", de: "Die größte Idle Heroes-Community"},
@@ -76,20 +76,26 @@ const pageMap = {
     lbPercentHp:  {en: "Percent HP", ru: "Процент ХП", de: "Prozent TP"},
     lTotalHP:     {en: "Total HP:", ru: "Всего ХП:", de: "Gesamt-TP:"},
     lRemainingHP: {en: "Remaining HP", ru: "Осталось ХП:", de: "Verbleibende TP"},
-    lGuildPoints: {en: "Killed Bosses HP / Guild Points:", ru: "Суммарное ХП убитых боссов / Очки гильдии:", de: "Erschlagene Bosse HP / Gildenpunkte: "},
+    lGuildPoints: {en: "Killed Bosses HP / Guild Points:", ru: "Суммарное ХП убитых боссов / Очки гильдии:", de: "Erschlagene Bosse TP / Gildenpunkte: "},
     error:        {en: "Error!", ru: "Ошибка!", de: "Fehler!"},
     endBillion:   {en: " B", ru: " Млрд", de: " Mrd"},
     endTrillion:  {en: " T", ru: " Т", de: " B"},
     cSeHowFull:   {
         en: `Used to calculate remaining boss HP.
             <ul><li>Boss Number - number between 200 and 101.</li>
-            <li>HP Percentage - current % of HP remaining.</li></ul>`,
+            <li>HP Percentage - current % of HP remaining.</li>
+            <li>Killed Bosses HP - The sum of the guild's damage considering previously killed bosses.</li>
+            <li>Guild Points - Approximate amount of points the guild should have on the selected boss.</li></ul>`,
         ru: `Используется для расчёта оставшегося ХП у босса.
             <ul><li>Номер босса - число от 200 до 101.</li>
-            <li>Процент ХП - текущее ХП босса в процентах.</li></ul>`,
+            <li>Процент ХП - текущее ХП босса в процентах.</li>
+            <li>Суммарное ХП убитых боссов - Сумма урона гильдии с учетом ранее убитых боссов</li>
+            <li>Очки гильдии - Приблизительное количество очков, которые должны быть у гильдии на выбранном боссе.</li></ul>`,
         de: `Verwendet, um verbleibende Boss-TP zu berechnen.
             <ul><li>Bossnummer - eine Zahl zwischen 200 und 101.</li>
-            <li>TP-Prozentsatz - aktueller Prozentsatz der verbleibenden TP.</li></ul>`
+            <li>TP-Prozentsatz - aktueller Prozentsatz der verbleibenden TP.</li>
+            <li>Erschlagene Bosse TP - Die Summe des Gildenschadens unter Berücksichtigung zuvor besiegter Bosse.</li>
+            <li>Gildenpunkte - Ungefähre Anzahl der Punkte, die die Gilde auf dem ausgewählten Boss haben sollte.</li></ul>`
     },
 };
 
