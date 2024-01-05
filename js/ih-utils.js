@@ -304,7 +304,7 @@ function calcOctopus() {
         remHp = totHp * percHp / 100;
         sumHp  = bossTotalHp[bossNum] - remHp;
         let k = 1000 * (bossNum <= 160 ? 177 + (160 - bossNum) / 10 : 177 - (bossNum - 160) / 1.27);
-        sumHp  = numToIh(sumHp) + ' / ' + numToIh(sumHp / k); // was 0.00072
+        sumHp  = numToIh(sumHp) + ' / ' + numToIh(sumHp / k);
         remHp = numToIh(remHp);
         totHp = numToIh(totHp);
     } else totHp = remHp = sumHp = getLangString('error');
