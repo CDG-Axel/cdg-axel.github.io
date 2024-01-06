@@ -140,6 +140,7 @@ let copiesNeeded;
 let minPoints;
 let maxPoints;
 let timeStart;
+let startPercent;
 const elCount = chances.length;
 const maxProb = 200000;
 const lsPrefix = 'sa_sim_';
@@ -174,6 +175,15 @@ function nativeLang() {
     if (autoLang !== document.documentElement.lang && autoText) document.getElementById('eNativeLang').innerHTML = autoText;
 }
 
+function updateLink() {
+    let tp = document.getElementById('edTargetPoints');
+    if (!tp) return;
+    targetPoints = parseInt(tp.value);
+    firstTier = parseInt(document.getElementById('edFirstTier').value);
+    let text = window.location.href.split('?')[0] + "?target=" + targetPoints + "&save=" + tiers[firstTier];
+    document.getElementById('lCopyLink').href = text;
+}
+
 function init() {
     language = document.documentElement.lang;
 
@@ -204,17 +214,9 @@ function init() {
     })
     
     updateLink();
-    calcOctopus();
+    percentChange();
+    updateOctopus();
     if (params) runSimulation();
-}
-
-function updateLink() {
-    let tp = document.getElementById('edTargetPoints');
-    if (!tp) return;
-    targetPoints = parseInt(tp.value);
-    firstTier = parseInt(document.getElementById('edFirstTier').value);
-    let text = window.location.href.split('?')[0] + "?target=" + targetPoints + "&save=" + tiers[firstTier];
-    document.getElementById('lCopyLink').href = text;
 }
 
 function dataChanged(element) {
@@ -227,7 +229,8 @@ function dataChanged(element) {
     // store data and update link in changed
 	localStorage?.setItem?.(lsPrefix + element.id, value);
     if (element.id == "edTargetPoints" || element.id == "edFirstTier") updateLink();
-    if (element.id == "edBossNumber" || element.id == "edPercentHp") calcOctopus();
+    if (element.id == "edBossNumber") percentChange();
+    if (element.id == "edBossNumber" || element.id == "edPercentHp") updateOctopus();
 }
 
 function updateSaValues() {
@@ -293,22 +296,30 @@ function numToIh(value, isPoints=false) {
     else return value.toFixed(3) + getLangString('endBillion');
 }
 
-function calcOctopus() {
+function updateOctopus() {
     const ctrl = document.getElementById('rnBossNumber');
     if (!ctrl) return;
     const bossNum = Number(ctrl.value);
     const percHp  = Number(document.getElementById('rnPercentHp').value);
-    let totHp, remHp, sumHp;
-    if (bossNum && bossHp) {
+    let totHp, remHp, sumHp, selHp, hpFactor;
+    if (bossNum) {
         totHp = bossHp[bossNum];
+        hpFactor = 1000 * (bossNum <= 160 ? 177 + (160 - bossNum) / 10 : 177 - (bossNum - 160) / 1.27);
         remHp = totHp * percHp / 100;
-        sumHp  = bossTotalHp[bossNum] - remHp;
-        let k = 1000 * (bossNum <= 160 ? 177 + (160 - bossNum) / 10 : 177 - (bossNum - 160) / 1.27);
-        sumHp  = numToIh(sumHp) + ' / ' + numToIh(sumHp / k);
+        sumHp = bossTotalHp[bossNum] - remHp;
+        sumHp  = numToIh(sumHp) + ' / ' + numToIh(sumHp / hpFactor);
+        const perc = Math.abs(startPercent - percHp);
+        selHp = perc + '% : ' + numToIh(totHp * perc / 100);
         remHp = numToIh(remHp);
         totHp = numToIh(totHp);
     } else totHp = remHp = sumHp = getLangString('error');
     document.getElementById('resTotalHP').innerHTML = totHp;
     document.getElementById('resRemainingHP').innerHTML = remHp;
     document.getElementById('resGuildPoints').innerHTML = sumHp;
+    document.getElementById('lbHpDiff').innerHTML = selHp;
 }
+
+function percentChange() {
+    startPercent = document.getElementById('rnPercentHp')?.value;
+}
+

@@ -1,4 +1,4 @@
-Initial target of project - helper utility for Idle Heroes mobele game.
+Initial target of project - helper utility for Idle Heroes mobile game.
 
 You can contribute to this project by adding or fixing translations (js/ih-utils.js, js/gen_pages.mjs).
 It would be very cool if you could explain how guild points are calculated in Star Expedition. At the moment, the calculation of these points is quite approximate, especially for bosses 200-160.
