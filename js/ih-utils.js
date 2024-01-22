@@ -180,8 +180,8 @@ function updateLink() {
     if (!tp) return;
     targetPoints = parseInt(tp.value);
     firstTier = parseInt(document.getElementById('edFirstTier').value);
-    let text = window.location.href.split('?')[0] + "?target=" + targetPoints + "&save=" + tiers[firstTier];
-    document.getElementById('lCopyLink').href = text;
+    let link = window.location.href.split('?')[0] + "?target=" + targetPoints + "&save=" + tiers[firstTier];
+    document.getElementById('lCopyLink').href = link;
 }
 
 function init() {
@@ -198,10 +198,12 @@ function init() {
     loadCtrlValue('edBossNumber');
     loadCtrlValue('edPercentHp');
 
+    // update dependent controls
     let ctrl;
     if (ctrl = document.getElementById('edBossNumber')) document.getElementById('rnBossNumber').value = ctrl.value;
     if (ctrl = document.getElementById('edPercentHp')) document.getElementById('rnPercentHp').value = ctrl.value;
 
+    // process params if provided
     let params = window.location.search.replace('?', '');
     params.split('&').forEach((param) => {
         let [name, value] = param.split('=');
