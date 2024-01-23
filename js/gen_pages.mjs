@@ -36,6 +36,11 @@ const pageMap = {
     cResHelp:   {en: "Calculation time:", ru: "Время расчёта:", de: "Berechnungszeit:"},
     cSimLink:   {en: "This simulation link - ", ru: "Ссылка на эту симуляцию - ", de: "Dieser Simulationslink - "},
     lCopyLink:  {en: "click", ru: "клик", de: "klick"},
+    сLinkTitle: {
+        en: "You can share the current simulation with this link", 
+        ru: "Вы можете поделиться данной симуляцией с помощью ссылки", 
+        de: "Sie können die aktuelle Simulation mit diesem Link teilen"
+    },
     cTCol1:     {en: "Tier", ru: "Тир", de: "Rang"},
     cTCol2:     {en: "Chance", ru: "Шанс", de: "Chance"},
     cTCol3:     {en: "Points", ru: "Очков", de: "Punkte"},
