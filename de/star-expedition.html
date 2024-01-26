@@ -90,62 +90,67 @@
     </ul>
 
 <div class="accordion" id="accordionStarExp">
-    <div class="accordion-item">  
-        <h2 class="accordion-header">
-            <button class="accordion-button d-block text-center" type="button" data-bs-toggle="collapse" data-bs-target="#accSECollapse1" 
-                aria-expanded="true" aria-controls="accSECollapse1">Idle Heroes - Sternexpedition Rechner
-            </button>
-        </h2>
-    <div id="accSECollapse1" class="accordion-collapse collapse show">
-        <div class="accordion-body">
-          <div class="container-fluid border rounded">
-            <div class="row">
-              <label for="edBossNumber" class="form-label pt-3 ps-3">Boss Nummer</label>
-              <input id="edBossNumber" type="number" class="form-control text-center border-0 px-3" min="101" max="200" value=200 placeholder="" onchange="dataChanged(this);">
-              <input id="rnBossNumber" type="range" class="form-range p-3" min="101" max="200" value=200 oninput="dataChanged(this);">
-            </div>
-          </div>
-          <div class="container-fluid border rounded mt-2">
-            <div class="row">
-              <label for="edPercentHp" class="form-label col pt-3 px-3">Prozent TP</label>
-              <label id="lbHpDiff" class="form-label col pt-3 px-3 text-end"></label>
-              <input id="edPercentHp" type="number" class="form-control text-center border-0 px-3" min="0" max="100" value=100 placeholder="" onchange="dataChanged(this);">
-              <input id="rnPercentHp" type="range" class="form-range p-3" min="0" max="100" value=100 oninput="dataChanged(this);" onchange="percentChange();">
-            </div>
-          </div>
-          <div class="row text-center mt-3">
-            <h5>
-              <label class="form-label">Gesamt-TP:</label>
-              <label class="form-label" id="resTotalHP">0</label>
-            </h5>
-          </div>
-          <div class="row text-center">
-            <h5>
-              <label class="form-label">Verbleibende TP</label>
-              <label class="form-label" id="resRemainingHP">0</label>
-            </h5>
-          </div>
-          <div class="row text-center">
-            <h5>
-              <label class="form-label">Erschlagene Bosse TP / Gildenpunkte: </label>
-              <label class="form-label" id="resGuildPoints">0</label>
-            </h5>
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="accordion-item">
         <h2 class="accordion-header">
-            <button class="accordion-button d-block text-center collapsed" type="button" data-bs-toggle="collapse" 
-                data-bs-target="#accSECollapse2" aria-expanded="false" aria-controls="accSECollapse2">Anleitung zur Verwendung des Rechners
+            <button class="accordion-button d-block text-center" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#accSECollapse1"
+                    aria-expanded="true" aria-controls="accSECollapse1">Idle Heroes - Sternexpedition Rechner
+            </button>
+        </h2>
+        <div id="accSECollapse1" class="accordion-collapse collapse show">
+            <div class="accordion-body">
+                <div class="container-fluid border rounded">
+                    <div class="row">
+                        <label for="edBossNumber" class="form-label pt-3 ps-3">Boss Nummer</label>
+                        <input id="edBossNumber" type="number" class="form-control text-center border-0 px-3" min="101"
+                               max="200" value=200 placeholder="" onchange="dataChanged(this);">
+                        <input id="rnBossNumber" type="range" class="form-range p-3" min="101" max="200" value=200
+                               oninput="dataChanged(this);">
+                    </div>
+                </div>
+                <div class="container-fluid border rounded mt-2">
+                    <div class="row">
+                        <label for="edPercentHp" class="form-label col pt-3 px-3">Prozent TP</label>
+                        <label id="lbHpDiff" class="form-label col pt-3 px-3 text-end"></label>
+                        <input id="edPercentHp" type="number" class="form-control text-center border-0 px-3" min="0"
+                               max="100" value=100 placeholder="" onchange="dataChanged(this);">
+                        <input id="rnPercentHp" type="range" class="form-range p-3" min="0" max="100" value=100
+                               oninput="dataChanged(this);" onchange="percentChange();">
+                    </div>
+                </div>
+                <div class="row text-center mt-3">
+                    <h5>
+                        <label class="form-label">Gesamt-TP:</label>
+                        <label class="form-label" id="resTotalHP">0</label>
+                    </h5>
+                </div>
+                <div class="row text-center">
+                    <h5>
+                        <label class="form-label">Verbleibende TP</label>
+                        <label class="form-label" id="resRemainingHP">0</label>
+                    </h5>
+                </div>
+                <div class="row text-center">
+                    <h5>
+                        <label class="form-label">Erschlagene Bosse TP / Gilden punkte: </label>
+                        <label class="form-label" id="resGuildPoints">0</label>
+                    </h5>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="accordion-header">
+            <button class="accordion-button d-block text-center collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#accSECollapse2" aria-expanded="false" aria-controls="accSECollapse2">
+                Anleitung zur Verwendung des Rechners
             </button>
         </h2>
         <div id="accSECollapse2" class="accordion-collapse collapse">
             <div class="accordion-body">Verwendet, um verbleibende Boss-TP zu berechnen.
-            <ul><li>Bossnummer - eine Zahl zwischen 200 und 101.</li>
+            <ul><li>Boss nummer - eine Zahl zwischen 200 und 101.</li>
             <li>TP-Prozentsatz - aktueller Prozentsatz der verbleibenden TP.</li>
-            <li>Erschlagene Bosse TP - Die Summe des Gildenschadens unter Berücksichtigung zuvor besiegter Bosse.</li>
-            <li>Gildenpunkte - Ungefähre Anzahl der Punkte, die die Gilde auf dem ausgewählten Boss haben sollte.</li></ul></div>
+            <li>Erschlagene Bosse TP - die Summe des Gilden schadens unter Berücksichtigung zuvor besiegter Bosse.</li>
+            <li>Gilden punkte - ungefähre Anzahl der Punkte, die die Gilde auf dem ausgewählten Boss haben sollte.</li></ul></div>
         </div>
     </div>
 </div>

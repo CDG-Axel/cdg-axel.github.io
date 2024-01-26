@@ -1,0 +1,61 @@
+<div class="accordion" id="accordionStarExp">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button d-block text-center" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#accSECollapse1"
+                    aria-expanded="true" aria-controls="accSECollapse1">%%cSeHeader%%
+            </button>
+        </h2>
+        <div id="accSECollapse1" class="accordion-collapse collapse show">
+            <div class="accordion-body">
+                <div class="container-fluid border rounded">
+                    <div class="row">
+                        <label for="edBossNumber" class="form-label pt-3 ps-3">%%lbBossNumber%%</label>
+                        <input id="edBossNumber" type="number" class="form-control text-center border-0 px-3" min="101"
+                               max="200" value=200 placeholder="" onchange="dataChanged(this);">
+                        <input id="rnBossNumber" type="range" class="form-range p-3" min="101" max="200" value=200
+                               oninput="dataChanged(this);">
+                    </div>
+                </div>
+                <div class="container-fluid border rounded mt-2">
+                    <div class="row">
+                        <label for="edPercentHp" class="form-label col pt-3 px-3">%%lbPercentHp%%</label>
+                        <label id="lbHpDiff" class="form-label col pt-3 px-3 text-end"></label>
+                        <input id="edPercentHp" type="number" class="form-control text-center border-0 px-3" min="0"
+                               max="100" value=100 placeholder="" onchange="dataChanged(this);">
+                        <input id="rnPercentHp" type="range" class="form-range p-3" min="0" max="100" value=100
+                               oninput="dataChanged(this);" onchange="percentChange();">
+                    </div>
+                </div>
+                <div class="row text-center mt-3">
+                    <h5>
+                        <label class="form-label">%%lTotalHP%%</label>
+                        <label class="form-label" id="resTotalHP">0</label>
+                    </h5>
+                </div>
+                <div class="row text-center">
+                    <h5>
+                        <label class="form-label">%%lRemainingHP%%</label>
+                        <label class="form-label" id="resRemainingHP">0</label>
+                    </h5>
+                </div>
+                <div class="row text-center">
+                    <h5>
+                        <label class="form-label">%%lGuildPoints%%</label>
+                        <label class="form-label" id="resGuildPoints">0</label>
+                    </h5>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="accordion-header">
+            <button class="accordion-button d-block text-center collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#accSECollapse2" aria-expanded="false" aria-controls="accSECollapse2">
+                %%cSeHowToUse%%
+            </button>
+        </h2>
+        <div id="accSECollapse2" class="accordion-collapse collapse">
+            <div class="accordion-body">%%cSeHowFull%%</div>
+        </div>
+    </div>
+</div>

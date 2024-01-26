@@ -8,9 +8,9 @@ const pageMap = {
     mDark:      {en: "Dark", ru: "Темная", de: "Dunkel"},
     mAuto:      {en: "Auto", ru: "Авто", de: "Automatisch"},
     cHomeHeader:{
-        en: "<br>Created by CDG.Axel (C)2023<br><br>Resourses:", 
-        ru: "<br>Разработка - CDG.Axel (C)2023<br><br>Полезные ресурсы:",
-        de: "<br>Erstellt von CDG.Axel (C)2023<br><br>Nützliche Links:"
+        en: "<br>Created by CDG.Axel ©2023<br><br>Resources:",
+        ru: "<br>Разработка - CDG.Axel ©2023<br><br>Полезные ресурсы:",
+        de: "<br>Erstellt von CDG.Axel ©2023<br><br>Nützliche Links:"
     },
     cHomeFooter:{
         en: `You can <a href="https://github.com/CDG-Axel/cdg-axel.github.io" target="_blank">contribute to this project</a>
@@ -19,14 +19,14 @@ const pageMap = {
         ru: `Вы можете <a href="https://github.com/CDG-Axel/cdg-axel.github.io" target="_blank">помочь проекту</a>
             с переводом на другие языки или исправлением ошибок перевода.<br>Очень круто, если вы объясните, как считаются очки гильдии 
             в Звезной Экспедиции. На текущий момент расчет этих очков весьма приблизительный, особенно на боссах 200-160.`,
-        de: `Sie können <a href="https://github.com/CDG-Axel/cdg-axel.github.io" target="_blank">zu diesem Projekt beitragen</a>
-            indem Sie Übersetzungen hinzufügen oder korrigieren.<br>Es wäre sehr hilfreich, wenn Sie erklären könnten, wie die Gildenpunkte
-            in der Sternexpedition berechnet werden. Derzeit ist die Berechnung dieser Punkte ziemlich ungefähr, insbesondere bei Bossen von 200-160.`
+        de: `Sie können <a href="https://github.com/CDG-Axel/cdg-axel.github.io" target="_blank">zu diesem Projekt beitragen,</a>
+            indem Sie Übersetzungen hinzufügen oder korrigieren.<br>Es wäre sehr hilfreich, wenn Sie erklären könnten, wie die Gilden punkte
+            in der Sternexpedition berechnet werden. Derzeit ist die Berechnung dieser Punkte ziemlich ungefähr, insbesondere bei Bossen von 200 bis 160.`
     },
     cBotName:   {en: "Soul-Awakening telegram bot", ru: "Телеграм-бот пробуждения души", de: "Telegram-Bot für Glorreiche Erweckungssaison"},
     cCommunity: {en: "The largest Idle Heroes community", ru: "Крупнейшее русскоязычное комьюнити по игре Idle Heroes", de: "Die größte Idle Heroes-Community"},
     cYouTube:   {en: "AkuDemon's youtube channel", ru: "Ютюб-канал AkuDemon", de: "AkuDemon's YouTube-Kanal"},
-    cSaHeader:  {en: "Idle Heroes Soul-Awakening simulator", ru: "Idle heroes - Сеанс пробуждения души", de: "Idle heroes - Glorreiche Erweckungssaison simulation"},
+    cSaHeader:  {en: "Idle Heroes Soul-Awakening simulator", ru: "Idle Heroes - Сеанс пробуждения души", de: "Idle Heroes: Glorreiche Erweckungssaison simulation"},
     lTargetPts: {en: "Target points", ru: "Количество очков", de: "Zielpunkte"},
     lFirstTier: {en: "Save copies", ru: "Сохранять копии", de: "Kopien speichern"},
     lSimCount:  {en: "Simulation count", ru: "Количество симуляций", de: "Anzahl der Simulationen"},
@@ -36,7 +36,7 @@ const pageMap = {
     cResHelp:   {en: "Calculation time:", ru: "Время расчёта:", de: "Berechnungszeit:"},
     cSimLink:   {en: "This simulation link - ", ru: "Ссылка на эту симуляцию - ", de: "Dieser Simulationslink - "},
     lCopyLink:  {en: "click", ru: "клик", de: "klick"},
-    сLinkTitle: {
+    cLinkTitle: {
         en: "You can share the current simulation with this link", 
         ru: "Вы можете поделиться данной симуляцией с помощью ссылки", 
         de: "Sie können die aktuelle Simulation mit diesem Link teilen"
@@ -81,7 +81,7 @@ const pageMap = {
     lbPercentHp:  {en: "Percent HP", ru: "Процент ХП", de: "Prozent TP"},
     lTotalHP:     {en: "Total HP:", ru: "Всего ХП:", de: "Gesamt-TP:"},
     lRemainingHP: {en: "Remaining HP", ru: "Осталось ХП:", de: "Verbleibende TP"},
-    lGuildPoints: {en: "Killed Bosses HP / Guild Points:", ru: "Суммарное ХП убитых боссов / Очки гильдии:", de: "Erschlagene Bosse TP / Gildenpunkte: "},
+    lGuildPoints: {en: "Killed Bosses HP / Guild Points:", ru: "Суммарное ХП убитых боссов / Очки гильдии:", de: "Erschlagene Bosse TP / Gilden punkte: "},
     error:        {en: "Error!", ru: "Ошибка!", de: "Fehler!"},
     endBillion:   {en: " B", ru: " Млрд", de: " Mrd"},
     endTrillion:  {en: " T", ru: " Т", de: " B"},
@@ -97,10 +97,10 @@ const pageMap = {
             <li>Суммарное ХП убитых боссов - Сумма урона гильдии с учетом ранее убитых боссов</li>
             <li>Очки гильдии - Приблизительное количество очков, которые должны быть у гильдии на выбранном боссе.</li></ul>`,
         de: `Verwendet, um verbleibende Boss-TP zu berechnen.
-            <ul><li>Bossnummer - eine Zahl zwischen 200 und 101.</li>
+            <ul><li>Boss nummer - eine Zahl zwischen 200 und 101.</li>
             <li>TP-Prozentsatz - aktueller Prozentsatz der verbleibenden TP.</li>
-            <li>Erschlagene Bosse TP - Die Summe des Gildenschadens unter Berücksichtigung zuvor besiegter Bosse.</li>
-            <li>Gildenpunkte - Ungefähre Anzahl der Punkte, die die Gilde auf dem ausgewählten Boss haben sollte.</li></ul>`
+            <li>Erschlagene Bosse TP - die Summe des Gilden schadens unter Berücksichtigung zuvor besiegter Bosse.</li>
+            <li>Gilden punkte - ungefähre Anzahl der Punkte, die die Gilde auf dem ausgewählten Boss haben sollte.</li></ul>`
     },
 };
 
@@ -116,9 +116,9 @@ const tabData = {
             de: "Idle Heroes-Dienstprogramme von CDG.Axel. Glorreiche Erweckungssaison simulation und Sternexpeditionsrechner"
         }
     },
-    sawa: { 
+    soul_aw: {
         path: "soul-awakening.html", 
-        template: "templates/sawa.html",
+        template: "templates/soul_aw.html",
         menu: { en: "Awakening", ru: "Пробуждение", de: "Erweckung" },
         title: { en: "Soul-Awakening - Idle Heroes", ru: "Пробуждение души - Idle Heroes", de: "Erweckungssaison – Idle Heroes" },
         description: {
@@ -127,9 +127,9 @@ const tabData = {
             de: "Glorreiche Erweckungssaison für Idle Heroes"
         }
     },
-    sexp: { 
+    star_exp: {
         path: "star-expedition.html", 
-        template: "templates/sexp.html",
+        template: "templates/star_exp.html",
         menu: { en: "Star Exp", ru: "Экспедиция", "de": "Expedition" },
         title: { en: "Star Expedition - Idle Heroes", ru: "Звездная Экспедиция - Idle Heroes", de: "Sternexpedition – Idle Heroes" },
         description: {
@@ -145,33 +145,33 @@ const getLangString = (node, lang) => node[lang] ?? node['en'];
 
 // start generation
 let filePath = new URL('../templates/main_template.html', import.meta.url);
-const mainTempl = await readFile(filePath, { encoding: 'utf8' });
+const mainTemplate = await readFile(filePath, { encoding: 'utf8' });
 for (let tab in tabData) 
     for (let lang in langMap) {
         const fileName = langMap[lang] + tabData[tab].path;
         console.log('Generating', fileName + '...');
-        let content = mainTempl;
+        let content = mainTemplate;
         content = content.replace('%%title%%', getLangString(tabData[tab].title, lang));
         content = content.replace('%%description%%', getLangString(tabData[tab].description, lang));
         // replace menu data
         for (let item in pageMap) content = content.replace('%%' + item + '%%', getLangString(pageMap[item], lang));
         // form navigation
-        let navpart = "";
+        let navPart = "";
         for (let item in tabData) {
-            const current = item == tab? 'aria-current="page" ': '';
-            const active = item == tab? ' active': '';
+            const current = item === tab? ' aria-current="page"': '';
+            const active = item === tab? ' active': '';
             const link = langMap[lang] + tabData[item].path;
             const text = getLangString(tabData[item].menu, lang);
-            navpart += `<li class="nav-item"><a class="nav-link${active}" ${current}href="${link}">${text}</a></li>\n`
+            navPart += `<li class="nav-item"><a class="nav-link${active}"${current} href="${link}">${text}</a></li>\n`
         }
-        content = content.replace('%%nav-part%%', navpart);
-        navpart = "";
+        content = content.replace('%%nav-part%%', navPart);
+        navPart = "";
         for (let ml in langMap) {
             const ref = langMap[ml] + tabData[tab].path;
             const langText = getLangString(pageMap['langName'], ml);
-            navpart += `<li><a class="dropdown-item" href="${ref}">${langText}</a></li>\n`
+            navPart += `<li><a class="dropdown-item" href="${ref}">${langText}</a></li>\n`
         }
-        content = content.replace('%%lang-nav%%', navpart);
+        content = content.replace('%%lang-nav%%', navPart);
 
         filePath = new URL('../' + tabData[tab].template, import.meta.url);
         let tabContent = await readFile(filePath, { encoding: 'utf8' });
