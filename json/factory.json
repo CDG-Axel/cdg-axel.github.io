@@ -1,0 +1,9 @@
+{
+  "Levels": [
+    {"multiplier": 0, "next_lev": 150000000, "worker_limit": 120},
+    {"multiplier": 0.1, "next_lev": 1000000000, "worker_limit": 140},
+    {"multiplier": 0.25, "next_lev": 4000000000, "worker_limit": 160},
+    {"multiplier": 0.5, "next_lev": 10000000000, "worker_limit": 180},
+    {"multiplier": 1, "next_lev": 0, "worker_limit": 200}
+  ]
+}

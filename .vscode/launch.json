@@ -12,6 +12,13 @@
             "program": "${workspaceFolder}\\js\\gen_pages.mjs"
         },
         {
+            "type": "node",
+            "request": "launch",
+            "name": "Factory code",
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}\\js\\factory.js"
+        },
+       {
             "type": "chrome",
             "request": "launch",
             "name": "Open index.html",
