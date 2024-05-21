@@ -55,6 +55,15 @@ function formatNumber(num, maximumFractionDigits=2) {
     return new Intl.NumberFormat(lang, {maximumFractionDigits, minimumFractionDigits: maximumFractionDigits}).format(num);
 }
 
+function rabbitChange(number) {
+    const combo = document.getElementById('cbRabbit' + number);
+    const CPS = document.getElementById('lbCPS' + number);
+    const upCost = document.getElementById('lbUpCost' + number);
+    CPS.innerHTML = (Number(combo.value) * (1 + number)).toString();
+    const curRabbit = config["rabbits"][number];
+    upCost.innerHTML = formatNumber(curRabbit["factory_" + settings.factory][combo.value], 0);
+}
+
 function formRabbitsTable(cfg) {
     let maxRabbitLev = config["factory"].worker_limit[settings.factory-1];
     let tblBody = "";
@@ -71,8 +80,8 @@ function formRabbitsTable(cfg) {
             options += `<option${sel}>${level}</option>`
         }
         tblBody += `<tr><th scope="row" class="text-start">${curRabbit.name}</th>`;
-        tblBody += `<td><select class="form-select lev-select bg-info-subtle" aria-label="Level" onchange="">${options}</select></td>`;
-        tblBody += `<td>${CPS}</td><td>${formatNumber(upCost,0)}</td><td>${perChoc}</td>`;
+        tblBody += `<td><select id="cbRabbit${rabbit}" class="form-select lev-select bg-info-subtle" aria-label="Level" onchange="rabbitChange(${rabbit})">${options}</select></td>`;
+        tblBody += `<td id="lbCPS${rabbit}">${CPS}</td><td id="lbUpCost${rabbit}">${formatNumber(upCost,0)}</td><td>${perChoc}</td>`;
         tblBody += `<td>${maxRabbitLev}</td><td>${diff}</td></tr>`;
     }
     document.getElementById('tbRabbits').innerHTML = tblBody;
