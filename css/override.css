@@ -6,3 +6,9 @@
   --bs-nav-link-padding-x: 0.5rem;
   --bs-nav-link-padding-y: 0.25rem;
 }
+
+.lev-select {
+  padding: 0 1.5rem;
+  border: 0;
+}
+
