@@ -80,7 +80,7 @@ function formRabbitsTable(cfg) {
 
 function init() {
     lang = navigator.language || navigator.userLanguage;
-    fetch("json/factory.json").then(res => res.json().then(cfg => formRabbitsTable(cfg)));
+    fetch("../json/factory.json").then(res => res.json().then(cfg => formRabbitsTable(cfg)));
 }
 
 
