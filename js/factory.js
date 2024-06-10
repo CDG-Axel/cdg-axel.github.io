@@ -65,6 +65,7 @@ function rabbitChange(number) {
 }
 
 function formRabbitsTable(cfg) {
+    if (cfg !== undefined) config = cfg;
     let maxRabbitLev = config["factory"].worker_limit[settings.factory-1];
     let tblBody = "";
     for (let rabbit = 0; rabbit < config["rabbits"].length; rabbit++) {
@@ -88,7 +89,6 @@ function formRabbitsTable(cfg) {
 }
 
 function init() {
-    lang = navigator.language || navigator.userLanguage;
     fetch("../json/factory.json").then(res => res.json().then(cfg => formRabbitsTable(cfg)));
 }
 
