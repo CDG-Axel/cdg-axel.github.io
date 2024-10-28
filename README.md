@@ -19,3 +19,4 @@ Localized versions of the generated pages are placed in the /%language%/ directo
   /ru/soul-awakening.html
   /ru/star-expedition.html
 
+Now 3 languages are supported.
