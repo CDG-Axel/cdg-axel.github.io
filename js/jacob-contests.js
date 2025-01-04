@@ -13,7 +13,5 @@ function char_keyup(event) {
     }
 }
 
-
-
 function init() {
 }

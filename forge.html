@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Hypixel Forge</title>
+    <meta name="description" content="Hypixel Forge recipe calculator"/>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/theme.css" rel="stylesheet">
+    <link href="css/override.css" rel="stylesheet">
+    <script src="js/color-modes.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/forge.js"></script>
+</head>
+<body>
+    <div class="container-fluid border rounded">
+        <div class="row">
+            <div class="col" id="cStatus">
+                &nbsp;
+            </div>
+            <div class="col-auto btn-group dropstart px-0">
+                <button type="button" class="btn btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Menu</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="auction.html">Auction</a></li>
+                    <li><a class="dropdown-item" href="bazaar.html">Bazaar</a></li>
+                    <li><a class="dropdown-item" href="estimation.html">Estimation</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" evnt-click-reloadcfg>Reload config</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <ul class="nav nav-pills" id="nForgeMenu" evnt-click-navigation>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" type="button"
+            role="tab" data-bs-target="#pills-forge" aria-controls="pills-forge">Forge</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="pill" type="button" aria-selected="true"
+            role="tab" data-bs-target="#pills-forge" aria-controls="pills-forge">Inferno</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" type="button"
+            role="tab" data-bs-target="#pills-dashboard" aria-controls="pills-dashboard">Dashboard</button>
+        </li>
+    </ul>
+    <div class="tab-content px-2" id="pills-tabContent">
+        <div class="tab-pane fade show active" id="pills-forge" role="tabpanel" tabindex="0">
+            <table class="table table-mini text-end">
+                <thead><tr>
+                    <th scope="col" class="text-start">Item</th>
+                    <th scope="col">Hours</th>
+                    <th scope="col">Cnt</th>
+                    <th scope="col">Bazaar sell</th>
+                    <th scope="col">Bazaar buy</th>
+                    <th scope="col">Craft price</th>
+                    <th scope="col" class="text-center">Source</th>
+                    <th scope="col">Price total</th>
+                    <th scope="col">Hours total</th>
+                    <th scope="col">%</th>
+                </tr></thead>
+                <tbody id="tForge">
+                    <tr class="table-info" hypixel-id="skeleton_key">
+                        <th class="text-start">Skeleton key</th>
+                        <td>0,5</td>
+                        <td></td>
+                        <td class="table-secondary">38m</td>
+                        <td class="table-secondary">40,5m</td>
+                        <td></td>
+                        <td></td>
+                        <td>27,5m</td>
+                        <td>16,11</td>
+                        <td></td>
+                    </tr>
+                    <tr class="">
+                        <td class="text-start">Perfect Plate</td>
+                        <td>15,8</td>
+                        <td>1</td>
+                        <td class="table-secondary">34,7m</td>
+                        <td class="table-secondary">41,6m</td>
+                        <td>27,1m</td>
+                        <td>
+                            <select class="form-select py-0 pe-0" >
+                                <option>sell</option>
+                                <option>buy</option>
+                                <option disabled>craft</option>
+                                <option>own</option>
+                              </select>
+                        </td>
+                        <td>27,1m</td>
+                        <td>15,75</td>
+                        <td>99</td>
+                    </tr>
+                    <tr class="">
+                        <td class="text-start">Bejeweled handle</td>
+                        <td>0,01</td>
+                        <td>1</td>
+                        <td class="table-secondary">366k</td>
+                        <td class="table-secondary">521k</td>
+                        <td>366k</td>
+                        <td>craft</td>
+                        <td>366k</td>
+                        <td>0,01</td>
+                        <td>1</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="pills-dashboard" role="tabpanel" tabindex="1">
+            <table class="table table-striped table-mini text-end">
+                <thead><tr>
+                    <th scope="col" class="text-start">Item</th>
+                    <th scope="col">Bazaar sell</th>
+                    <th scope="col">Bazaar buy</th>
+                    <th scope="col">Craft price</th>
+                    <th scope="col">Profit</th>
+                    <th scope="col">Per hour</th>
+                </tr></thead>
+                <tbody id="tDashboard"><tr>
+                    <th class="text-start" dashboard-id="skeleton_key">Skeleton key</th>
+                    <td class="table-secondary">38m</td>
+                    <td class="table-secondary">40,5m</td>
+                    <td class="table-secondary">29,66m</td>
+                    <td class="table-success">14,6m</td>
+                    <td>0,9m</td>
+            </tr></tbody>
+            </table>
+        </div>
+    </div>
+</body>

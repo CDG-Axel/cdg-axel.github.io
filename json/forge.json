@@ -1,0 +1,203 @@
+{
+    "time_multiplier": 0.7,
+    "pages": [
+        {
+            "name": "Glacite Tunnels",
+            "elements": [
+                {"id": "skeleton_key"},
+                {"id": "perfect_plate"},
+                {"id": "tungsten_plate"},
+                {"id": "umber_plate"},
+                {"id": "mithril_plate"},
+                {"id": "glacite_amalgamation"},
+                {"id": "refined_umber"},
+                {"id": "refined_tungsten"},
+                {"id": "bejeweled_handle"},
+                {"id": "umber_key"}
+            ]
+        },
+        {
+            "name": "Dwarven mines",
+            "elements": [
+                {"id": "mithril_plate"},
+                {"id": "golden_plate"},
+                {"id": "refined_mithril"},
+                {"id": "refined_diamond"},
+                {"id": "refined_titanium"}
+            ]
+        },
+        {
+            "name": "Inferno",
+            "elements": [
+                {"id": "inferno_fuel_leg"},
+                {"id": "inferno_fuel_reg"},
+                {"id": "hypergolic_gabagool"},
+                {"id": "heavy_gabagool"},
+                {"id": "fuel_gabagool"},
+                {"id": "sulphuric_coal"}
+            ]
+        },
+        {
+            "name": "Dashboard",
+            "type": "dashboard",
+            "elements": [
+                {"id": "skeleton_key"},
+                {"id": "mithril_plate"}
+            ]
+        }
+    ],
+    "recipes": {
+        "skeleton_key": {
+            "craft_time": 1800,
+            "count": 1,
+            "components": [
+                { "id": "perfect_plate", "count": 1}, 
+                { "id": "bejeweled_handle", "count": 1}
+            ]
+        },
+        "bejeweled_handle": {
+            "craft_time": 30,
+            "count": 1,
+            "components": [
+                {"id": "glacite_jewel", "count": 3}
+            ]
+        },
+        "umber_key": {
+            "craft_time": 1800,
+            "count": 1,
+            "components": [
+                { "id": "enchanted_umber", "count": 192}, 
+                { "id": "bejeweled_handle", "count": 1}
+            ]
+        },
+        "perfect_plate": {
+            "craft_time": 1800,
+            "count": 1,
+            "components": [
+                { "id": "tungsten_plate", "count": 1}, 
+                { "id": "umber_plate", "count": 1},
+                { "id": "mithril_plate", "count": 1}
+            ]
+        },
+        "umber_plate": {
+            "craft_time": 10800,
+            "count": 1,
+            "components": [
+                { "id": "glacite_amalgamation", "count": 1}, 
+                { "id": "refined_umber", "count": 4}
+            ]
+        },
+        "tungsten_plate": {
+            "craft_time": 10800,
+            "count": 1,
+            "components": [
+                { "id": "glacite_amalgamation", "count": 1}, 
+                { "id": "refined_tungsten", "count": 4}
+            ]
+        },
+        "glacite_amalgamation": {
+            "craft_time": 14400,
+            "count": 1,
+            "components": [
+                { "id": "enchanted_glacite", "count": 256}, 
+                { "id": "fine_onyx_gem", "count": 4},
+                { "id": "fine_citrine_gem", "count": 4},
+                { "id": "fine_peridot_gem", "count": 4},
+                { "id": "fine_aquamarine_gem", "count": 4}
+            ]
+        },
+        "refined_umber": {
+            "craft_time": 3600,
+            "count": 1,
+            "components": [
+                { "id": "enchanted_umber", "count": 160}
+            ]
+        },
+        "refined_tungsten": {
+            "craft_time": 3600,
+            "count": 1,
+            "components": [
+                { "id": "enchanted_tungsten", "count": 160}
+            ]
+        },
+        "sulphuric_coal": {
+            "count": 4,
+            "components": [
+                { "id": "enchanted_sulphur", "count": 1 },
+                { "id": "enchanted_coal", "count": 16 }
+            ]
+        },
+        "fuel_gabagool": {
+            "count": 8,
+            "components": [
+                { "id": "very_crude_gabagool", "count": 1 },
+                { "id": "sulphuric_coal", "count": 8 }
+            ]
+        },
+        "heavy_gabagool": {
+            "count": 1,
+            "components": [
+                { "id": "fuel_gabagool", "count": 24 },
+                { "id": "sulphuric_coal", "count": 1 }
+            ]
+        },
+        "hypergolic_gabagool": {
+            "count": 1,
+            "components": [
+                { "id": "heavy_gabagool", "count": 12 },
+                { "id": "sulphuric_coal", "count": 1 }
+            ]
+        },
+        "inferno_fuel_leg": {
+            "count": 1,
+            "components": [
+                { "id": "hypergolic_gabagool", "count": 1 },
+                { "id": "crude_gabagool_distillate", "count": 6 },
+                { "id": "inferno_fuel_block", "count": 2 }
+            ]
+        },
+        "inferno_fuel_reg": {
+            "count": 1,
+            "components": [
+                { "id": "fuel_gabagool", "count": 1 },
+                { "id": "crude_gabagool_distillate", "count": 6 },
+                { "id": "inferno_fuel_block", "count": 2 }
+            ]
+        },
+        "mithril_plate": {
+            "craft_time": 64800,
+            "components": [
+                { "id": "golden_plate", "count": 1 },
+                { "id": "refined_mithril", "count": 5 },
+                { "id": "enchanted_iron_block", "count": 1 },
+                { "id": "refined_titanium", "count": 1 }
+            ]
+        },
+        "golden_plate": {
+            "craft_time": 21600,
+            "components": [
+                { "id": "refined_diamond", "count": 1 },
+                { "id": "glacite_jewel", "count": 5 },
+                { "id": "enchanted_gold_block", "count": 2 }
+            ]
+        },
+        "refined_mithril": {
+            "craft_time": 21600,
+            "components": [
+                { "id": "enchanted_mithril", "count": 160 }
+            ]
+        },
+        "refined_diamond": {
+            "craft_time": 28800,
+            "components": [
+                { "id": "enchanted_diamond_block", "count": 2 }
+            ]
+        },
+        "refined_titanium": {
+            "craft_time": 43200,
+            "components": [
+                { "id": "enchanted_titanium", "count": 16 }
+            ]
+        }
+    }
+}
