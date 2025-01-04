@@ -2,28 +2,13 @@
     "time_multiplier": 0.7,
     "pages": [
         {
-            "name": "Glacite Tunnels",
-            "elements": [
-                {"id": "skeleton_key"},
-                {"id": "perfect_plate"},
-                {"id": "tungsten_plate"},
-                {"id": "umber_plate"},
-                {"id": "mithril_plate"},
-                {"id": "glacite_amalgamation"},
-                {"id": "refined_umber"},
-                {"id": "refined_tungsten"},
-                {"id": "bejeweled_handle"},
-                {"id": "umber_key"}
-            ]
-        },
-        {
             "name": "Dwarven mines",
             "elements": [
                 {"id": "mithril_plate"},
                 {"id": "golden_plate"},
-                {"id": "refined_mithril"},
-                {"id": "refined_diamond"},
-                {"id": "refined_titanium"}
+                {"id": "refined_mithril", "collapsed": "true"},
+                {"id": "refined_diamond", "collapsed": "true"},
+                {"id": "refined_titanium", "collapsed": "true"}
             ]
         },
         {
@@ -41,20 +26,11 @@
             "name": "Dashboard",
             "type": "dashboard",
             "elements": [
-                {"id": "skeleton_key"},
                 {"id": "mithril_plate"}
             ]
         }
     ],
     "recipes": {
-        "skeleton_key": {
-            "craft_time": 1800,
-            "count": 1,
-            "components": [
-                { "id": "perfect_plate", "count": 1}, 
-                { "id": "bejeweled_handle", "count": 1}
-            ]
-        },
         "bejeweled_handle": {
             "craft_time": 30,
             "count": 1,
@@ -70,31 +46,6 @@
                 { "id": "bejeweled_handle", "count": 1}
             ]
         },
-        "perfect_plate": {
-            "craft_time": 1800,
-            "count": 1,
-            "components": [
-                { "id": "tungsten_plate", "count": 1}, 
-                { "id": "umber_plate", "count": 1},
-                { "id": "mithril_plate", "count": 1}
-            ]
-        },
-        "umber_plate": {
-            "craft_time": 10800,
-            "count": 1,
-            "components": [
-                { "id": "glacite_amalgamation", "count": 1}, 
-                { "id": "refined_umber", "count": 4}
-            ]
-        },
-        "tungsten_plate": {
-            "craft_time": 10800,
-            "count": 1,
-            "components": [
-                { "id": "glacite_amalgamation", "count": 1}, 
-                { "id": "refined_tungsten", "count": 4}
-            ]
-        },
         "glacite_amalgamation": {
             "craft_time": 14400,
             "count": 1,
@@ -104,20 +55,6 @@
                 { "id": "fine_citrine_gem", "count": 4},
                 { "id": "fine_peridot_gem", "count": 4},
                 { "id": "fine_aquamarine_gem", "count": 4}
-            ]
-        },
-        "refined_umber": {
-            "craft_time": 3600,
-            "count": 1,
-            "components": [
-                { "id": "enchanted_umber", "count": 160}
-            ]
-        },
-        "refined_tungsten": {
-            "craft_time": 3600,
-            "count": 1,
-            "components": [
-                { "id": "enchanted_tungsten", "count": 160}
             ]
         },
         "sulphuric_coal": {
@@ -167,7 +104,7 @@
         "mithril_plate": {
             "craft_time": 64800,
             "components": [
-                { "id": "golden_plate", "count": 1 },
+                { "id": "golden_plate", "count": 1, "source": "craft"},
                 { "id": "refined_mithril", "count": 5 },
                 { "id": "enchanted_iron_block", "count": 1 },
                 { "id": "refined_titanium", "count": 1 }
