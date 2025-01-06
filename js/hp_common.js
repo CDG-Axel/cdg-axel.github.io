@@ -1,9 +1,21 @@
 const lang = (navigator.language || navigator.userLanguage);
 const intl = new Intl.NumberFormat(lang,{minimumFractionDigits: 1, maximumFractionDigits: 1});
 
-export function formatNumber(number) {
-    return number === undefined ? '' : intl.format(number);
+const capitalize = word => word.slice(0, 1).toUpperCase() + word.slice(1);
+export const snakeToFlu = word => word.split('_').map(capitalize).join(' ');
+export const loadFromStorage = name => localStorage?.getItem?.(name);
+export const saveToStorage = (name, value) => localStorage?.setItem?.(name, value);
+export let shortThousands = isMobileDevice();
+export const setShortThousands = value => shortThousands = value;
+
+export function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
+
+export function formatNumber(number, doShortThousands = undefined) {
+    const postfix = (doShortThousands ?? shortThousands) ? 'k' : '';
+    return number === undefined ? '' : intl.format((doShortThousands ?? shortThousands) ? number/1000 : number) + postfix;
+};
 
 export function setStatus(text) {
     const status = document.getElementById('cStatus'); 
@@ -19,7 +31,7 @@ export function addHandlers(handlers) {
     }
 }
 
-export const escapeHtml = (unsafe) => {
+export function escapeHtml(unsafe) {
     return unsafe.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 }
 
@@ -35,7 +47,7 @@ export function createTooltip(tagName, tooltip, classList = [], text = undefined
     return createElement(tagName, classList, {
         'data-bs-toggle': 'tooltip', 
         'data-bs-html': true, 
-        'data-bs-custom-class': 'entries-tooltip',
+        'data-bs-custom-class': customClass,
         'data-bs-title': tooltip
     }, text);
 }
@@ -43,6 +55,3 @@ export function createTooltip(tagName, tooltip, classList = [], text = undefined
 export function addColumn(row, text, classList = []) {
     row.appendChild(createElement('td', classList, {}, text));
 }
-
-export const loadFromStorage = name => localStorage?.getItem?.(name);
-export const saveToStorage = (name, value) => localStorage?.setItem?.(name, value);
