@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Hypixel Forge Config</title>
+    <meta name="description" content="Hypixel Forge recipe calculator - config"/>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/theme.css" rel="stylesheet">
+    <link href="css/override.css" rel="stylesheet">
+    <script src="js/color-modes.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/forge-config.js"></script>
+</head>
+<body>
+    <div class="container-fluid border rounded">
+        <div class="mb-3">
+            <label for="edConfigJson" class="form-label">Forge config JSON</label>
+            <textarea class="form-control" id="edConfigJson" rows="10"></textarea>
+        </div>
+        <p class="mb-3">You can use external JSON editors for a more convenient experience, 
+            such as syntax highlighting.
+            (Click <a href='https://www.google.com/search?q=online+json+editor'>here</a>
+            to search on Google.)
+        </p>
+        <p class="mb-3 d-none" id="pnlError"><span class="text-danger">Cant's save sanges</span> - there were error parsing JSON:
+            <span id="spErrorText">Error text</span>
+        </p>
+        <button type="button" class="btn btn-secondary mb-3" evnt-click-cancel>Cancel editing</button>
+        <button type="button" class="btn btn-success mb-3" evnt-click-confirm>Confirm changes</button>
+    </div>
+
+    <div class="modal fade" id="saveChanges" tabindex="-1" aria-labelledby="confirmLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="confirmLabel">Are you sure?</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Config has been verified successfully. Are you sure you want to apply it?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal" evnt-click-save>Save changes</button>
+            </div>
+          </div>
+        </div>
+    </div>    
+</body>

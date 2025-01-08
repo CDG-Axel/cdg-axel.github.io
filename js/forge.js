@@ -35,7 +35,7 @@ function calcRecipe(recipeId) {
     recipe.sell_price = prices.products[recipeId]?.sell_price;
     for (const component of recipe.components) {
         component.buy_price = prices.products[component.id]?.buy_price;
-        component.sell_price = prices.products[component.id]?.sell_price;
+        component.sell_price = prices.products[component.id]?.sell_price ?? component.ah_price;
         const source = component.source ?? 'sell';
         const compRecipe = config.recipes[component.id];
         if (compRecipe !== undefined) {
@@ -64,7 +64,8 @@ function getColoredDifference(greater, lower) {
 }
 
 function getTooltip(recipe) {
-    const profit = formatNumber((recipe.buy_price - recipe.craft_price)/recipe.result_craft_time);
+    const profit = recipe.result_craft_time !== undefined? 
+        formatNumber((recipe.buy_price - recipe.craft_price)/recipe.result_craft_time): 'only applied to forge';
     return `<b>Profit</b><br/>Sell order: ${getColoredDifference(recipe.buy_price, recipe.craft_price)}<br/>
     Instasell: ${getColoredDifference(recipe.sell_price, recipe.craft_price)}<br/>Per hour: ${profit}`;
 }
@@ -81,7 +82,7 @@ function drawElem(elem, attrName) {
         profEl.classList.add(profit > 0? 'table-success': 'table-danger');
         profEl.classList.remove(profit > 0? 'table-danger': 'table-success');
         profEl.textContent = formatNumber(profit);
-        elem.childNodes[5].textContent = formatNumber(profit !== undefined? profit / recipe.result_craft_time: undefined);
+        elem.childNodes[5].textContent = formatNumber(profit !== undefined && recipe.result_craft_time !== undefined ? profit / recipe.result_craft_time: undefined);
     } else {
         elem.childNodes[3].textContent = formatNumber(recipe.sell_price);
         elem.childNodes[4].textContent = formatNumber(recipe.buy_price);
@@ -91,7 +92,7 @@ function drawElem(elem, attrName) {
             tooltipElem.setAttribute('data-bs-title', getTooltip(recipe));
             tooltipList.push(new bootstrap.Tooltip(tooltipElem));
         }
-        elem.childNodes[8].textContent = formatNumber(recipe.result_craft_time);
+        elem.childNodes[8].textContent = formatNumber(recipe.result_craft_time, false);
         for (const component of recipe.components) {
             elem = elem.nextSibling;
             elem.childNodes[3].textContent = formatNumber(component.sell_price);
@@ -99,8 +100,8 @@ function drawElem(elem, attrName) {
             elem.childNodes[5].textContent = formatNumber(component.craft_price);
             elem.childNodes[6].firstChild.value = component.source ?? 'sell';
             elem.childNodes[7].textContent = formatNumber(component.result_price);
-            elem.childNodes[8].textContent = formatNumber(component.result_craft_time);
-            elem.childNodes[9].textContent = formatNumber(component.percent);
+            elem.childNodes[8].textContent = formatNumber(component.result_craft_time, false);
+            elem.childNodes[9].textContent = formatNumber(component.percent, false);
         }
     }
 }
@@ -188,7 +189,7 @@ function createRow(page_elem, component = undefined, index = 0) {
         {"component-link": page_elem.id + ',' + index});
     if (header) newRow.addEventListener('click', rowClick);
     newRow.appendChild(createElement('th', ["text-start"], {}, snakeToFlu(header? (item?.name ?? page_elem.id): component.id)));
-    addColumn(newRow, header && item?.craft_time !== undefined ? formatNumber(item?.craft_time / 3600) : undefined);
+    addColumn(newRow, header && item?.craft_time !== undefined ? formatNumber(item?.craft_time / 3600, false) : undefined);
     addColumn(newRow, header? item.count : component.count);
     addColumn(newRow, undefined, ['table-secondary']);
     addColumn(newRow, undefined, ['table-secondary']);
@@ -224,7 +225,8 @@ function formPage() {
         for (const element of page.elements) {
             const newRow = createElement('tr', [], {"dashboard-id": element.id} );
             elements.push(newRow);
-            newRow.appendChild(createElement('th', ['text-start'], {}, snakeToFlu(element.id)));
+            const item = config.recipes[element.id];
+            newRow.appendChild(createElement('th', ['text-start'], {}, snakeToFlu(item?.name ?? element.id)));
             addColumn(newRow, undefined, ['table-secondary']);
             addColumn(newRow, undefined, ['table-secondary']);
             addColumn(newRow, undefined, ['table-secondary']);
@@ -245,7 +247,7 @@ function formPage() {
     }
 }
 
-function updateConfig(response) {
+function restoreConfig(response) {
     // restore collapsed and source values
     for (let page of response.pages) {
         const oldPage = findPage(page.name);
@@ -264,7 +266,12 @@ function updateConfig(response) {
             recipe.components.forEach((component, idx) => component.source = oldRecipe.components[idx]?.source);
         }
     }
-    config = response;
+    return response;
+}
+
+function updateConfig(response) {
+    config = response; // restoreConfig(response);
+    saveConfig();
     // update bazaar goods
     goods.clear();
     for (const [recipeId, recipe] of Object.entries(config.recipes)) {
@@ -311,7 +318,7 @@ function clickNav(item) {
 
 function clickThousands() {
     setShortThousands(document.getElementById('chkThousands').checked);
-    saveToStorage(lsPrefix + "checkThousands", shortThousands);
+    saveToStorage(lsPrefix + "shortThousands", shortThousands);
     drawPage();
 }
 
@@ -322,11 +329,11 @@ function init() {
         'change-thousands': clickThousands
     })
     selectedMenu = loadFromStorage(lsPrefix + "selected_menu");
-    setShortThousands('true' === (loadFromStorage(lsPrefix + "checkThousands") ?? shortThousands.toString()));
+    setShortThousands('true' === (loadFromStorage(lsPrefix + "shortThousands") ?? shortThousands.toString()));
     document.getElementById('chkThousands').checked = shortThousands;
     const conf_str = loadFromStorage(lsPrefix + 'config');
-    if (conf_str) config = JSON.parse(conf_str);
-    reloadCfg();
+    if (conf_str) updateConfig(JSON.parse(conf_str));
+    else reloadCfg();
 }
 
 init();

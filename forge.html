@@ -32,16 +32,36 @@
                     <li><a class="dropdown-item disabled">Nothing there</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="chkThousands" evnt-change-thousands>
-                                <label class="form-check-label" for="chkThousands">Short thousands</label>
-                            </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="chkThousands" evnt-change-thousands>
+                            <label class="form-check-label" for="chkThousands">Short thousands</label>
+                        </div>
                     </a></li>
-                    <li><a class="dropdown-item" href="#" evnt-click-reloadcfg>Reload config</a></li>
+                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#resetConfig">Reset config</a></li>
+                    <li><a class="dropdown-item" href="forge-config.html">Edit config</a></li>
                 </ul>
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="resetConfig" tabindex="-1" aria-labelledby="resetLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="resetLabel">Are you sure?</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-danger">
+                This action will reset your own config and replace it with the default one.
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal" evnt-click-reloadcfg>Reset config</button>
+            </div>
+          </div>
+        </div>
+    </div>
+    
     <ul class="nav nav-pills" id="nForgeMenu" evnt-click-navigation>
         <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="pill" type="button"
@@ -72,17 +92,30 @@
                     <th scope="col">%</th>
                 </tr></thead>
                 <tbody id="tForge">
-                    <tr class="table-info d-none" hypixel-id="skeleton_key">
-                        <th class="text-start">Skeleton key</th>
-                        <td>0,5</td>
+                    <tr class="table-info d-none" hypixel-id="mithril_plate" collapsed="false" index="0">
+                        <th class="text-start">Mithril Plate</th>
+                        <td>18.0</td>
                         <td></td>
-                        <td class="table-secondary">38m</td>
-                        <td class="table-secondary">40,5m</td>
+                        <td class="table-secondary">7,895,244.9</td>
+                        <td class="table-secondary">8,147,019.1</td>
+                        <td class="table-secondary"></td>
                         <td></td>
+                        <td data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="undefined" data-bs-title="tooltip">6,069,619.4</td>
+                        <td>16.8</td>
                         <td></td>
-                        <td>27,5m</td>
-                        <td>16,11</td>
+                    </tr>
+
+                    <tr class="d-none" component-link="mithril_plate,0">
+                        <th class="text-start">Golden Plate</th>
                         <td></td>
+                        <td>1</td>
+                        <td class="table-secondary">2,239,045.1</td>
+                        <td class="table-secondary">2,335,826.7</td>
+                        <td class="table-secondary">1,758,423.7</td>
+                        <td><select class="form-select py-0 pe-0"><option>sell</option><option>buy</option><option>craft</option><option>own</option></select></td>
+                        <td>1,758,423.7</td>
+                        <td>4.2</td>
+                        <td>29.1</td>
                     </tr>
                 </tbody>
             </table>
@@ -97,14 +130,16 @@
                     <th scope="col">Profit</th>
                     <th scope="col">Per hour</th>
                 </tr></thead>
-                <tbody id="tDashboard"><tr class="d-none">
-                    <th class="text-start" dashboard-id="skeleton_key">Skeleton key</th>
-                    <td class="table-secondary">38m</td>
-                    <td class="table-secondary">40,5m</td>
-                    <td class="table-secondary">29,66m</td>
-                    <td class="table-success">14,6m</td>
-                    <td>0,9m</td>
-            </tr></tbody>
+                <tbody id="tDashboard">
+                    <tr dashboard-id="mithril_plate" class="d-none">
+                        <th class="text-start">Mithril Plate</th>
+                        <td class="table-secondary">7,895,244.9</td>
+                        <td class="table-secondary">8,147,020.0</td>
+                        <td class="table-secondary">6,052,440.6</td>
+                        <td class="table-success">2,094,579.4</td>
+                        <td>124,677.3</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
