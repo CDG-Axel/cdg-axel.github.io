@@ -2,31 +2,49 @@
     "time_multiplier": 0.7,
     "pages": [
         {
+            "name": "Glacite Tunnels",
+            "elements": [
+                {"id": "glacite_amalgamation"},
+                {"id": "umber_key"},
+                {"id": "tungsten_key"},
+                {"id": "refined_umber", "collapsed": true},
+                {"id": "refined_tungsten", "collapsed": true},
+                {"id": "bejeweled_handle", "collapsed": true}
+            ]
+        },
+        {
             "name": "Dwarven mines",
             "elements": [
                 {"id": "mithril_plate"},
                 {"id": "golden_plate"},
-                {"id": "refined_mithril", "collapsed": "true"},
-                {"id": "refined_diamond", "collapsed": "true"},
-                {"id": "refined_titanium", "collapsed": "true"}
+                {"id": "refined_mithril", "collapsed": true},
+                {"id": "refined_diamond", "collapsed": true},
+                {"id": "refined_titanium", "collapsed": true},
+                {"id": "gemstone_chamber"},
+                {"id": "gemstone_mixture", "collapsed": true}
             ]
         },
         {
             "name": "Inferno",
-            "elements": [
+            "elements": [                
                 {"id": "inferno_fuel_leg"},
-                {"id": "inferno_fuel_reg"},
+                {"id": "inferno_fuel_reg", "collapsed": true},
                 {"id": "hypergolic_gabagool"},
-                {"id": "heavy_gabagool"},
-                {"id": "fuel_gabagool"},
-                {"id": "sulphuric_coal"}
+                {"id": "heavy_gabagool", "collapsed": true},
+                {"id": "fuel_gabagool", "collapsed": true},
+                {"id": "sulphuric_coal", "collapsed": true},
+                {"id": "molten_powder"},
+                {"id": "amalgamated_crimsonite_new", "collapsed": true}
             ]
         },
         {
             "name": "Dashboard",
             "type": "dashboard",
             "elements": [
-                {"id": "mithril_plate"}
+                {"id": "umber_key"},
+                {"id": "tungsten_key"},
+                {"id": "mithril_plate"},
+                {"id": "inferno_fuel_leg"}
             ]
         }
     ],
@@ -39,11 +57,38 @@
             ]
         },
         "umber_key": {
-            "craft_time": 1800,
+            "craft_time": 30,
             "count": 1,
             "components": [
                 { "id": "enchanted_umber", "count": 192}, 
                 { "id": "bejeweled_handle", "count": 1}
+            ]
+        },
+        "tungsten_key": {
+            "craft_time": 30,
+            "count": 1,
+            "components": [
+                { "id": "enchanted_tungsten", "count": 192}, 
+                { "id": "bejeweled_handle", "count": 1}
+            ]
+        },
+        "molten_powder": {
+            "count": 1,
+            "components": [
+                { "id": "amalgamated_crimsonite_new", "count": 1, "source": "craft"}, 
+                { "id": "derelict_ashe", "count": 128}
+            ]
+        },
+        "amalgamated_crimsonite_new": {
+            "count": 40,
+            "name": "Amalgamated Crimsonite",
+            "components": [
+                { "id": "enchanted_glowstone", "count": 4}, 
+                { "id": "enchanted_mycelium_cube", "count": 1},
+                { "id": "enchanted_red_sand_cube", "count": 1},
+                { "id": "whipped_magma_cream", "count": 4},
+                { "id": "enchanted_blaze_rod", "count": 4},
+                { "id": "mutant_nether_stalk", "count": 4}
             ]
         },
         "glacite_amalgamation": {
@@ -57,6 +102,20 @@
                 { "id": "fine_aquamarine_gem", "count": 4}
             ]
         },
+        "refined_umber": {
+            "craft_time": 3600,
+            "count": 1,
+            "components": [
+                { "id": "enchanted_umber", "count": 160}
+            ]
+        },
+        "refined_tungsten": {
+            "craft_time": 3600,
+            "count": 1,
+            "components": [
+                { "id": "enchanted_tungsten", "count": 160}
+            ]
+        },
         "sulphuric_coal": {
             "count": 4,
             "components": [
@@ -67,28 +126,28 @@
         "fuel_gabagool": {
             "count": 8,
             "components": [
-                { "id": "very_crude_gabagool", "count": 1 },
-                { "id": "sulphuric_coal", "count": 8 }
+                { "id": "very_crude_gabagool", "count": 1},
+                { "id": "sulphuric_coal", "count": 8, "source": "craft" }
             ]
         },
         "heavy_gabagool": {
             "count": 1,
             "components": [
-                { "id": "fuel_gabagool", "count": 24 },
-                { "id": "sulphuric_coal", "count": 1 }
+                { "id": "fuel_gabagool", "count": 24, "source": "craft" },
+                { "id": "sulphuric_coal", "count": 1, "source": "craft" }
             ]
         },
         "hypergolic_gabagool": {
             "count": 1,
             "components": [
-                { "id": "heavy_gabagool", "count": 12 },
-                { "id": "sulphuric_coal", "count": 1 }
+                { "id": "heavy_gabagool", "count": 12, "source": "craft" },
+                { "id": "sulphuric_coal", "count": 1, "source": "craft" }
             ]
         },
         "inferno_fuel_leg": {
             "count": 1,
             "components": [
-                { "id": "hypergolic_gabagool", "count": 1 },
+                { "id": "hypergolic_gabagool", "count": 1, "source": "craft" },
                 { "id": "crude_gabagool_distillate", "count": 6 },
                 { "id": "inferno_fuel_block", "count": 2 }
             ]
@@ -96,7 +155,7 @@
         "inferno_fuel_reg": {
             "count": 1,
             "components": [
-                { "id": "fuel_gabagool", "count": 1 },
+                { "id": "fuel_gabagool", "count": 1, "source": "craft" },
                 { "id": "crude_gabagool_distillate", "count": 6 },
                 { "id": "inferno_fuel_block", "count": 2 }
             ]
@@ -134,6 +193,24 @@
             "craft_time": 43200,
             "components": [
                 { "id": "enchanted_titanium", "count": 16 }
+            ]
+        },
+        "gemstone_chamber": {
+            "craft_time": 14400,
+            "craft_coins": 25000,
+            "components": [
+                { "id": "worm_membrane", "count": 100 },
+                { "id": "gemstone_mixture", "count": 1 }
+            ]
+        },
+        "gemstone_mixture": {
+            "craft_time": 14400,
+            "components": [
+                { "id": "sludge_juice", "count": 320}, 
+                { "id": "fine_jade_gem", "count": 4},
+                { "id": "fine_amber_gem", "count": 4},
+                { "id": "fine_amethyst_gem", "count": 4},
+                { "id": "fine_sapphire_gem", "count": 4}
             ]
         }
     }
