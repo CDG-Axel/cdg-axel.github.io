@@ -1,4 +1,4 @@
-import { addHandlers, loadFromStorage, saveToStorage } from './hp_common.js';
+import { addHandlers, loadFromStorage, saveToStorage, stringify } from './hp_common.js';
 
 const lsPrefix = 'hp_frg_';
 let verifiedContent;
@@ -22,7 +22,7 @@ function getConfig() {
             component.percent = undefined;
         });
     }
-    document.getElementById('edConfigJson').value = JSON.stringify(config, null, '  ');
+    document.getElementById('edConfigJson').value = stringify(config, 4);
 }
 
 function clickCancel() {

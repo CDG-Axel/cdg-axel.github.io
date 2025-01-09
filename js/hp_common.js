@@ -55,3 +55,54 @@ export function createTooltip(tagName, tooltip, classList = [], text = undefined
 export function addColumn(row, text, classList = []) {
     row.appendChild(createElement('td', classList, {}, text));
 }
+
+function stringifyValue(value) {
+    if (value === undefined) return 'undefined';
+    if (value === null) return 'null';
+    if (typeof(value) === 'string') return '"' + value + '"';
+    return value.toString();
+}
+
+export function stringify(obj, spacing = 2, offset = 0) {
+    // simple value
+    if (obj === null || typeof(obj) !== 'object') return stringifyValue(obj);
+    // one line array or object
+    const elCount = Array.isArray(obj) ? obj.length : Object.values(obj).filter(item => item !== undefined).length;
+    if (elCount < 6 && Object.values(obj).every(value => value === null || typeof(value) !== 'object')) {
+        // plain array
+        if (Array.isArray(obj)) {
+            return '[' + obj.map(value => stringifyValue(value)).join(', ') + ']';
+        }
+        // plain object
+        const resArr = [];
+        for (let [key, value] of Object.entries(obj)) {
+            if (value !== undefined) resArr.push(`"${key}": ` + stringifyValue(value));
+        }
+        return '{' + resArr.join(', ') + '}';
+    }
+    
+    const prefix = ''.padEnd(spacing + offset);
+    const resArr = [];
+    if (Array.isArray(obj)) {
+        // multiline array
+        for (let value of obj) {
+            if (value === null || typeof(value) !== 'object') {
+                resArr.push(prefix + stringifyValue(value));
+            } else {
+                resArr.push(prefix + stringify(value, spacing, offset + spacing));
+            }
+        }
+        return '[\n' + resArr.join(',\n') + '\n' + ''.padEnd(offset) + ']';
+    }
+    // multiline object
+    for (let [key, value] of Object.entries(obj)) {
+        if (value === undefined) continue;
+        const start = prefix + `"${key}": `;
+        if (value === null || typeof(value) !== 'object') {
+            resArr.push(start + stringifyValue(value));
+        } else {
+            resArr.push(start + stringify(value, spacing, offset + spacing));
+        }
+    }
+    return '{\n' + resArr.join(',\n') + '\n' + ''.padEnd(offset) + '}';
+}
