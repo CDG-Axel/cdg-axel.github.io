@@ -54,5 +54,185 @@
             </div>
           </div>
         </div>
-    </div>    
+    </div>
+
+    <div class="accordion"><div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                Detailed JSON description
+            </button>
+        </h2>
+        
+        <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                <!-- Description -->
+                <div class="card shadow d-none">
+                    <div class="card-body">
+                      <h1 class="card-title text-center text-primary">JSON Description</h1>
+                      <p class="card-text">This document provides a detailed description of the JSON structure, 
+                        breaking it into top-level keys, details, examples, and notable features for better understanding.</p>
+                    </div>
+                </div>
+                
+                <!-- Top-Level Keys -->
+                <div class="card my-3">
+                    <div class="card-header bg-primary text-white">
+                      <h2 class="mb-0">Top-Level Keys</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>The JSON structure consists of the following top-level keys:</p>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <code>time_multiplier</code>: 
+                                <ul>
+                                    <li>A multiplier (floating-point number) applied to all crafting times to adjust durations globally.</li>
+                                    <li>Example: <code>0.7</code> reduces crafting times to 70% of the base time.</li>
+                                </ul>
+                            </li>
+                            <li class="list-group-item">
+                                <code>pages</code>:  
+                                <ul>
+                                    <li>A list of grouped UI or categorization sections for displaying recipes. Each page represents a specific category.</li>
+                                    <li>Example pages: <code>Dwarven mines</code>, <code>Inferno</code>, <code>Dashboard</code></li>
+                                </ul>
+                            </li>
+                            <li class="list-group-item">
+                                <code>recipes</code>:
+                                <ul>
+                                    <li>A dictionary of crafting recipes where the key is the recipe name, and the value defines its crafting components, crafting time, and output quantity</li>
+                                </ul>
+                            </li>
+                          </ul>
+                    </div>
+                </div>    
+                
+                <!-- Details -->
+                <div class="card my-3">
+                    <div class="card-header bg-success text-white">
+                        <h2 class="mb-0">Details</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>This section provides additional details about <code>pages</code> and <code>recipes</code> top-level keys.</p>
+                        <!-- pages -->
+                        <h3 class="rounded bg-secondary text-center py-2">pages</h3>
+                        <p><strong>Type:</strong> <code>array</code></p>
+                        <p><strong>Description:</strong> A collection of pages, each with a name and associated elements.</p>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <code>name</code>: Name of the page (e.g., <code>Dwarven mines</code>, <code>Inferno</code>).
+                            </li>
+                            <li class="list-group-item">
+                                <code>type</code> (optional, default: <code>forge</code>): Specifies the type of page.
+                                <ul>
+                                    <li>Pages with <code>forge</code> type contain collapsible recipes (items and their required components).</li>
+                                    <li>Pages with <code>dashboard</code> type are used to organize concise information about the profitability of certain recipes.</li>
+                                </ul>
+                            </li>
+                            <li class="list-group-item">
+                                <code>elements</code>: A list of recipes displayed on this page.
+                                <ul>
+                                    <li>
+                                        <code>id</code>: Unique identifier for the element.
+                                    </li>
+                                    <li>
+                                        <code>collapsed</code> (optional, default <code>false</code>): A boolean (<code>true</code> or <code>false</code>) indicating if the element is collapsed by default in the UI. 
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <!-- recipes -->
+                        <h3 class="rounded bg-secondary text-center py-2 my-3">recipes</h3>
+                        <p><strong>Type:</strong> <code>object</code></p>
+                        <p><strong>Description:</strong> Contains crafting recipes, each with the following structure:</p>
+                        <ul class="list-group">
+                            <li class="list-group-item"><code>craft_time</code> (Optional): Time in seconds required to craft this item. If omitted, crafting is instant.</li>
+                            <li class="list-group-item"><code>count</code> (Optional, default is <code>1</code>): Quantity of the items produced per craft.</li>
+                            <li class="list-group-item"><code>name</code> (Optional): An override for the name, created by removing 
+                                underscores ("_") from the item ID. This is used when the in-game item name does not match its ID. 
+                                For example, the item ID <code>amalgamated_crimsonite_new</code> corresponds to the actual
+                                name <code>Amalgamated Crimsonite</code>.
+                            </li>
+                            <li class="list-group-item">
+                                <code>craft_coins</code> (Optional): Used when the crafting cost is not zero. For example, crafting <code>gemstone_chamber</code> requires 25,000 coins.
+                            </li>
+                            <li class="list-group-item">
+                                <code>components:</code> An array of required items, each containing:
+                                <ul>
+                                    <li><code>id</code>: The identifier of the component.</li>
+                                    <li><code>count</code>: Quantity of the component required.</li>
+                                    <li><code>source</code>: (Optional) Specifies the method by which the component for crafting is 
+                                        obtained. It can have one of the following values:
+                                        <ul>
+                                            <li><code>sell</code> (default): Items are obtained via a buy order.</li>
+                                            <li><code>buy</code>: Items are obtained via instant buy.</li>
+                                            <li><code>craft</code>: Items are created through crafting.</li>
+                                            <li><code>own</code>: Items are used from your own stock and are treated as having no associated cost.</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                  
+                <!-- Key Examples -->
+                <div class="card my-3 ">
+                    <div class="card-header bg-info text-white">
+                        <h2 class="mb-0">Key Examples</h2>
+                    </div>
+                    <div class="card-body">
+                        <ol class="list-group list-group-numbered">
+                            <li class="list-group-item">Pages
+                                <ul>
+                                    <li><code>Dwarven mines</code>: Contains recipes like <code>mithril_plate</code> and <code>golden_plate</code>, 
+                                        with some items collapsed by default (e.g., <code>refined_mithril</code>)</li>
+                                    <li><code>Inferno</code>: Lists fuel and crafting materials (e.g., 
+                                        <code>hypergolic_gabagool</code>, <code>sulphuric_coal</code>)
+                                    </li>
+                                    <li><code>Dashboard</code>: A special page (type: <code>dashboard</code>) that provides focused, 
+                                        concise information about the profitability of specific recipes (e.g., <code>mithril_plate</code>).
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="list-group-item">Recipes
+                                <ul>
+                                    <li><code>mithril_plate</code><ul>
+                                        <li>Crafting time: 64800 seconds</li>
+                                        <li>Components: <code>golden_plate</code>, 5x <code>refined_mithril</code>, 
+                                            <code>enchanted_iron_block</code>, <code>refined_titanium</code></li>
+                                    </ul></li>
+                                    <li><code>hypergolic_gabagool</code>
+                                        <ul><li>Requires 12 <code>heavy_gabagool</code> 
+                                            and 1 <code>sulphuric_coal</code>. Produces 1 item.</li></ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="list-group-item">Crafting Chain Example
+                                <ul>
+                                    <li><code>mithril_plate</code> requires <code>golden_plate</code>, which in turn requires <code>refined_diamond</code>.</li>
+                                    <li>This shows a multi-level crafting dependency</li>
+                                </ul>
+                            </li>
+                          </ol>
+                    </div>
+                </div>    
+                  
+                <!-- Notable Features -->
+                <div class="card my-3">
+                    <div class="card-header bg-warning text-dark">
+                      <h2 class="mb-0">Notable Features</h2>
+                    </div>
+                    <div class="card-body">
+                      <ul>
+                        <li><strong>Scalability:</strong> The structure is designed to support multiple pages and nested components, ensuring scalability.</li>
+                        <li><strong>Flexibility:</strong> Optional keys (e.g., <code>collapsed</code>) allow for customization.</li>
+                        <li><strong>Hierarchical Organization:</strong> <code>recipes</code> key maintain a clear hierarchy.</li>
+                        <li><strong>Extensibility:</strong> New pages, elements, or recipes can be added without disrupting existing data.</li>
+                      </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div></div>
 </body>
