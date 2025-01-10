@@ -55,6 +55,9 @@ function init() {
         'click-save': clickSave
     });
     getConfig();
+    const freeSpace = window.innerHeight - document.getElementById('pnlJson').offsetHeight - document.getElementById('btnDescr').offsetHeight - 2;
+    const edText = document.getElementById('edConfigJson');
+    if (freeSpace > 0) edText.setAttribute('style',`height: ${edText.offsetHeight + freeSpace}px;`);
 }
 
 init();
