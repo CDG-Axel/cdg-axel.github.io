@@ -25,14 +25,14 @@ function getConfig() {
     document.getElementById('edConfigJson').value = stringify(config, 4);
 }
 
-function clickCancel() {
+function clickClose() {
     window.location.assign('forge.html');
 }
 
 function clickSave() {
     if (verifiedContent === undefined) return;
     saveToStorage(lsPrefix + 'config', verifiedContent);
-    window.location.assign('forge.html');
+    clickClose();
 }
 
 function clickConfirm() {
@@ -50,7 +50,7 @@ function clickConfirm() {
 function init() {
     saveModal = new bootstrap.Modal(document.getElementById('saveChanges'));
     addHandlers({
-        'click-cancel': clickCancel,
+        'click-cancel': clickClose,
         'click-confirm': clickConfirm,
         'click-save': clickSave
     });

@@ -213,5 +213,12 @@
                 { "id": "fine_sapphire_gem", "count": 4}
             ]
         }
+    },
+    "translate": {
+        "diver_fragment": "Emperor's Skull",
+        "enchantment_ultimate_bobbin_time_3": "Bobbin' Time III",
+        "capsaicin_eyedrops_no_charges": "Capsaicin Eyedrops",
+        "amalgamated_crimsonite_new": "Amalgamated Crimsonite"
     }
+
 }

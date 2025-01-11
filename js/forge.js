@@ -188,7 +188,8 @@ function createRow(page_elem, component = undefined, index = 0) {
         header? {"hypixel-id": page_elem.id, "collapsed": page_elem.collapsed ?? 'false', "index": page_elem.idx} : 
         {"component-link": page_elem.id + ',' + index});
     if (header) newRow.addEventListener('click', rowClick);
-    newRow.appendChild(createElement('th', ["text-start"], {}, snakeToFlu(header? (item?.name ?? page_elem.id): component.id)));
+    const name = header? (item?.name ?? page_elem.id): component.id;
+    newRow.appendChild(createElement('th', ["text-start"], {}, config.translate?.[name] ?? snakeToFlu(name)));
     addColumn(newRow, header && item?.craft_time !== undefined ? formatNumber(item?.craft_time / 3600, false) : undefined);
     addColumn(newRow, header? item.count : component.count);
     addColumn(newRow, undefined, ['table-secondary']);

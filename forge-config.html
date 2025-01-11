@@ -31,9 +31,10 @@
             (Click <a href='https://www.google.com/search?q=online+json+editor' target="_blank">here</a>
             to search on Google.)
         </p>
-        <p class="mb-3 d-none" id="pnlError"><span class="text-danger">Cant's save sanges</span> - there were error parsing JSON:
+        <div class="alert alert-danger d-none" role="alert" id="pnlError">
+            <span class="text-danger">Cant's save changes - there were error parsing JSON:</span> 
             <span id="spErrorText">Error text</span>
-        </p>
+          </div>
         <button type="button" class="btn btn-secondary mb-3" evnt-click-cancel>Cancel editing</button>
         <button type="button" class="btn btn-success mb-3" evnt-click-confirm>Confirm changes</button>
     </div>
