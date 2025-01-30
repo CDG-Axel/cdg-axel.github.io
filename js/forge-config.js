@@ -26,7 +26,7 @@ function getConfig() {
 }
 
 function clickClose() {
-    window.location.assign('forge.html');
+    window.location.assign('forge_.html');
 }
 
 function clickSave() {
