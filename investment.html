@@ -6,84 +6,10 @@
     <title>Планировщик регулярных доходов</title>
     <link href="/css/bootstrap.css" rel="stylesheet">
     <link href="/css/theme.css" rel="stylesheet">
-    <style>
-        .timeline-row {
-            height: 40px;
-        }
-        .timeline-row td:nth-child(n+3) {
-            position: relative;
-            padding: 0;
-        }
-        .timeline-month   :where(th:nth-child(n+3), td:nth-child(n+3)),
-        .monthly-sum      :where(th:nth-child(n+3), td:nth-child(n+3)) {
-            min-width:      80px;
-            text-align:     center;
-            vertical-align: middle;
-            padding:        0.25rem !important;
-        }
-        .timeline-month   :where(th:nth-child(n+3), td:nth-child(n+3)) {
-            font-size: 0.9rem;
-        }
-        .monthly-sum      :where(th:nth-child(n+3), td:nth-child(n+3)) {
-            font-size: 0.8rem;
-        }
-        .timeline-month th:nth-child(4),
-        .monthly-sum th:nth-child(4),
-        .timeline-row td:nth-child(4) {
-            background-color: var(--bs-primary-bg-subtle);
-        }
-        .timeline-year :where(th:nth-child(n+2), td:nth-child(n+2)) {
-            min-width: 80px;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        .income-bar {
-            position: absolute;
-            height: 60%;
-            top: 20%;
-            left: 0;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            color: var(--bs-body-color);
-            border: 1px solid rgba(0,0,0,0.1);
-            padding: 0 0.1rem;
-            background-color: var(--bs-success-bg-subtle);
-        }
-        .income-bar.yellow { background-color: var(--bs-warning-bg-subtle); }
-        .income-bar.red    { background-color: var(--bs-danger-bg-subtle); }
-        .income-bar.gray   { background-color: var(--bs-secondary-bg-subtle); }
-
-        .timeline-table {
-            table-layout: fixed;
-            min-width: 100%;
-        }
-        .timeline-table :where(th, td):nth-child(-n+2) {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            word-wrap: break-word;
-        }
-        .timeline-table :where(th, td):first-child {
-            width: 30%;
-            white-space: normal;
-        }
-        .timeline-table :where(th, td):nth-child(2) {
-            width: 15%;
-            white-space: nowrap;
-        }
-
-        .source-desc {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--bs-secondary-color);
-        }
-
-        @media (max-width: 768px) {
-        }
-    </style>
+    <link href="/css/investment.css" rel="stylesheet">
+    <script src="/js/color-modes.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/investment.js"></script>
 </head>
 <body class="container-fluid my-4">
 <!-- Summary -->
@@ -101,9 +27,9 @@
 <div class="table-responsive">
     <table class="timeline-table table table-bordered">
         <thead>
-        <tr class="timeline-month">
+        <tr class="timeline-month test-static d-none">
             <th>Источник</th>
-            <th>Общая сумма</th>
+            <th>Сумма</th>
             <th>Дек</th>
             <th>Янв</th>
             <th>Фев</th>
@@ -112,12 +38,12 @@
             <th>Май</th>
             <th>Июн</th>
         </tr>
-        <tr class="timeline-year">
+        <tr class="timeline-year test-static d-none">
             <th colspan="2">Год</th>
             <th>2025</th>
             <th colspan="6">2026</th>
         </tr>
-        <tr class="monthly-sum">
+        <tr class="monthly-sum test-static d-none">
             <th>Сумма по месяцам</th>
             <th></th>
             <th>150к</th>
@@ -131,7 +57,7 @@
         </thead>
         <tbody>
         <!-- Источник 1: Зарплата (постоянная, зелёный) -->
-        <tr class="timeline-row">
+        <tr class="timeline-row test-static d-none">
             <td>Зарплата<br><span class="source-desc">С 01.01.2025 (бесконечно)</span></td>
             <td>630к руб.</td> <!-- Общая сумма за весь период -->
             <td><div class="income-bar">90к</div></td>
@@ -143,7 +69,7 @@
             <td><div class="income-bar">90к</div></td>
         </tr>
         <!-- Источник 2: Аренда (проблемная, красный) -->
-        <tr class="timeline-row">
+        <tr class="timeline-row test-static d-none">
             <td>Аренда квартиры<br><span class="source-desc">С 01.06.2025 по 31.12.2025</span></td>
             <td>30к руб.</td>
             <td><div class="income-bar red" style="left: 0; width: 100%;">30к</div></td>
@@ -155,7 +81,7 @@
             <td></td>
         </tr>
         <!-- Источник 3: Депозит (начинается 20 янв, 4 мес, total 60k, distributed; цвета по статусу) -->
-        <tr class="timeline-row">
+        <tr class="timeline-row test-static d-none">
             <td>Депозит в банке<br><span class="source-desc">С 20.01.2026 по 20.05.2026</span></td>
             <td>60к руб.</td>
             <td></td>
@@ -167,7 +93,7 @@
             <td></td>
         </tr>
         <!-- Источник 4: Инвестиции в акции (заканчивается в марте, без распределения; цвета по статусу, убрали красный в последнем если не нужно) -->
-        <tr class="timeline-row">
+        <tr class="timeline-row test-static d-none">
             <td>Инвестиции в акции<br><span class="source-desc">С 01.11.2025 по 31.03.2026</span></td>
             <td>70к руб.</td>
             <td><div class="income-bar">20к</div></td>
@@ -182,7 +108,5 @@
     </table>
 </div>
 
-<script src="/js/color-modes.js"></script>
-<script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
