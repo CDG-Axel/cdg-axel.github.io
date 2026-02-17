@@ -12,12 +12,13 @@
         }
         .timeline-row td:nth-child(n+3) {
             position: relative;
-            padding: 0 !important;
+            padding: 0;
         }
         .timeline-month   :where(th:nth-child(n+3), td:nth-child(n+3)),
         .monthly-sum      :where(th:nth-child(n+3), td:nth-child(n+3)) {
             min-width:      80px;
             text-align:     center;
+            vertical-align: middle;
             padding:        0.25rem !important;
         }
         .timeline-month   :where(th:nth-child(n+3), td:nth-child(n+3)) {
@@ -29,12 +30,11 @@
         .timeline-month th:nth-child(4),
         .monthly-sum th:nth-child(4),
         .timeline-row td:nth-child(4) {
-            background-color: var(--bs-primary-bg-subtle) !important;
+            background-color: var(--bs-primary-bg-subtle);
         }
         .timeline-year :where(th:nth-child(n+2), td:nth-child(n+2)) {
             min-width: 80px;
             text-align: center;
-            padding: 0.25rem !important;
             font-size: 0.9rem;
         }
 
@@ -51,19 +51,11 @@
             color: var(--bs-body-color);
             border: 1px solid rgba(0,0,0,0.1);
             padding: 0 0.1rem;
-        }
-        .income-bar.green {
             background-color: var(--bs-success-bg-subtle);
         }
-        .income-bar.yellow {
-            background-color: var(--bs-warning-bg-subtle);
-        }
-        .income-bar.red {
-            background-color: var(--bs-danger-bg-subtle);
-        }
-        .income-bar.gray {
-            background-color: var(--bs-secondary-bg-subtle);
-        }
+        .income-bar.yellow { background-color: var(--bs-warning-bg-subtle); }
+        .income-bar.red    { background-color: var(--bs-danger-bg-subtle); }
+        .income-bar.gray   { background-color: var(--bs-secondary-bg-subtle); }
 
         .timeline-table {
             table-layout: fixed;
@@ -93,8 +85,8 @@
         }
     </style>
 </head>
-<body class="container-fluid my-4"> <!-- container-fluid для full-width -->
-<!-- Summary блок -->
+<body class="container-fluid my-4">
+<!-- Summary -->
 <div class="card mb-4">
     <div class="card-body">
         <h5 class="card-title">Сводка</h5>
@@ -126,8 +118,8 @@
             <th colspan="6">2026</th>
         </tr>
         <tr class="monthly-sum">
-            <th>Сумма по месяцам</th> <!-- Перенесли в первую колонку -->
-            <th></th> <!-- Вторая пустая -->
+            <th>Сумма по месяцам</th>
+            <th></th>
             <th>150к</th>
             <th>125к</th>
             <th>140к</th>
@@ -142,13 +134,13 @@
         <tr class="timeline-row">
             <td>Зарплата<br><span class="source-desc">С 01.01.2025 (бесконечно)</span></td>
             <td>630к руб.</td> <!-- Общая сумма за весь период -->
-            <td><div class="income-bar green">90к</div></td>
-            <td><div class="income-bar green">90к</div></td>
-            <td><div class="income-bar green">90к</div></td>
-            <td><div class="income-bar green">90к</div></td>
-            <td><div class="income-bar green">90к</div></td>
-            <td><div class="income-bar green">90к</div></td>
-            <td><div class="income-bar green">90к</div></td>
+            <td><div class="income-bar">90к</div></td>
+            <td><div class="income-bar">90к</div></td>
+            <td><div class="income-bar">90к</div></td>
+            <td><div class="income-bar">90к</div></td>
+            <td><div class="income-bar">90к</div></td>
+            <td><div class="income-bar">90к</div></td>
+            <td><div class="income-bar">90к</div></td>
         </tr>
         <!-- Источник 2: Аренда (проблемная, красный) -->
         <tr class="timeline-row">
@@ -167,9 +159,9 @@
             <td>Депозит в банке<br><span class="source-desc">С 20.01.2026 по 20.05.2026</span></td>
             <td>60к руб.</td>
             <td></td>
-            <td><div class="income-bar green" style="left: 61%; width: 39%;">5к</div></td> <!-- Начинается, >1 мес до конца: зелёный -->
-            <td><div class="income-bar green">14к</div></td>
-            <td><div class="income-bar green">15к</div></td>
+            <td><div class="income-bar" style="left: 61%; width: 39%;">5к</div></td> <!-- Начинается, >1 мес до конца: зелёный -->
+            <td><div class="income-bar">14к</div></td>
+            <td><div class="income-bar">15к</div></td>
             <td><div class="income-bar yellow">15к</div></td> <!-- Заканчивается <1 мес (в мае): жёлтый для апреля? Wait, status per bar -->
             <td><div class="income-bar yellow" style="width: 66%;">10к</div></td> <!-- Заканчивается в этом месяце: жёлтый -->
             <td></td>
@@ -178,9 +170,9 @@
         <tr class="timeline-row">
             <td>Инвестиции в акции<br><span class="source-desc">С 01.11.2025 по 31.03.2026</span></td>
             <td>70к руб.</td>
-            <td><div class="income-bar green">20к</div></td>
-            <td><div class="income-bar green">20к</div></td>
-            <td><div class="income-bar green">20к</div></td>
+            <td><div class="income-bar">20к</div></td>
+            <td><div class="income-bar">20к</div></td>
+            <td><div class="income-bar">20к</div></td>
             <td><div class="income-bar yellow">10к</div></td> <!-- Полный месяц, но заканчивается в марте: если <1 мес до конца, жёлтый -->
             <td></td>
             <td></td>
