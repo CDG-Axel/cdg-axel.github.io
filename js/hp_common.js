@@ -1,4 +1,4 @@
-const lang = (navigator.language || navigator.userLanguage);
+const lang = navigator.language;
 const intl = new Intl.NumberFormat(lang,{minimumFractionDigits: 1, maximumFractionDigits: 1});
 
 const capitalize = word => word.slice(0, 1).toUpperCase() + word.slice(1);
@@ -15,7 +15,7 @@ export function isMobileDevice() {
 export function formatNumber(number, doShortThousands = undefined) {
     const postfix = (doShortThousands ?? shortThousands) ? 'k' : '';
     return number === undefined ? '' : intl.format((doShortThousands ?? shortThousands) ? number/1000 : number) + postfix;
-};
+}
 
 export function setStatus(text) {
     const status = document.getElementById('cStatus'); 
@@ -38,7 +38,7 @@ export function escapeHtml(unsafe) {
 export function createElement(tagName, classList = [], attributes = {}, text = undefined) { 
     const newElem = document.createElement(tagName);
     for (let cls of classList) if (cls !== '') newElem.classList.add(cls);
-    for (let [name, value] of Object.entries(attributes)) newElem.setAttribute(name, value);
+    for (let [name, value] of Object.entries(attributes)) newElem.setAttribute(name, value.toString());
     if (text !== undefined) newElem.appendChild(document.createTextNode(text));
     return newElem;
 }
@@ -54,6 +54,10 @@ export function createTooltip(tagName, tooltip, classList = [], text = undefined
 
 export function addColumn(row, text, classList = []) {
     row.appendChild(createElement('td', classList, {}, text));
+}
+
+export function addElement(row, tagName, text = undefined) {
+    row.appendChild(createElement(tagName, [], {}, text));
 }
 
 function stringifyValue(value) {

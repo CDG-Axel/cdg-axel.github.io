@@ -11,102 +11,109 @@
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="js/investment.js"></script>
 </head>
-<body class="container-fluid my-4">
-<!-- Summary -->
-<div class="card mb-4">
-    <div class="card-body">
-        <h5 class="card-title">Сводка</h5>
-        <div class="row">
-            <div class="col-md-4"><strong>Текущий доход:</strong> 110к руб.</div>
-            <div class="col-md-4"><strong>Прогноз через 3 мес:</strong> 95к руб.</div>
-            <div class="col-md-4"><strong>Проблемные источники: </strong>Аренда квартиры</div>
+<body>
+<main class="container-fluid my-4">
+    <!-- Summary -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col" aria-label="Доход / прогноз">
+                    <strong>Текущий доход:</strong> <span id="pIncomeCur">110</span>
+                    <br><strong>Прогноз через 3 мес:</strong> <span id="pIncome3m">95</span>
+                </div>
+                <div class="col" aria-label="Проблемные источники">
+                    <strong>Проблемные источники:</strong>
+                    <span id="pTroubles">
+                        <br>Аренда квартиры
+                        <br>Инвестиции в акции
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="table-responsive">
-    <table class="timeline-table table table-bordered">
-        <thead>
-        <tr class="timeline-month test-static d-none">
-            <th>Источник</th>
-            <th>Сумма</th>
-            <th>Дек</th>
-            <th>Янв</th>
-            <th>Фев</th>
-            <th>Мар</th>
-            <th>Апр</th>
-            <th>Май</th>
-            <th>Июн</th>
-        </tr>
-        <tr class="timeline-year test-static d-none">
-            <th colspan="2">Год</th>
-            <th>2025</th>
-            <th colspan="6">2026</th>
-        </tr>
-        <tr class="monthly-sum test-static d-none">
-            <th>Сумма по месяцам</th>
-            <th></th>
-            <th>150к</th>
-            <th>125к</th>
-            <th>140к</th>
-            <th>140к</th>
-            <th>90к</th>
-            <th>100к</th>
-            <th>90к</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Источник 1: Зарплата (постоянная, зелёный) -->
-        <tr class="timeline-row test-static d-none">
-            <td>Зарплата<br><span class="source-desc">С 01.01.2025 (бесконечно)</span></td>
-            <td>630к руб.</td> <!-- Общая сумма за весь период -->
-            <td><div class="income-bar">90к</div></td>
-            <td><div class="income-bar">90к</div></td>
-            <td><div class="income-bar">90к</div></td>
-            <td><div class="income-bar">90к</div></td>
-            <td><div class="income-bar">90к</div></td>
-            <td><div class="income-bar">90к</div></td>
-            <td><div class="income-bar">90к</div></td>
-        </tr>
-        <!-- Источник 2: Аренда (проблемная, красный) -->
-        <tr class="timeline-row test-static d-none">
-            <td>Аренда квартиры<br><span class="source-desc">С 01.06.2025 по 31.12.2025</span></td>
-            <td>30к руб.</td>
-            <td><div class="income-bar red" style="left: 0; width: 100%;">30к</div></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <!-- Источник 3: Депозит (начинается 20 янв, 4 мес, total 60k, distributed; цвета по статусу) -->
-        <tr class="timeline-row test-static d-none">
-            <td>Депозит в банке<br><span class="source-desc">С 20.01.2026 по 20.05.2026</span></td>
-            <td>60к руб.</td>
-            <td></td>
-            <td><div class="income-bar" style="left: 61%; width: 39%;">5к</div></td> <!-- Начинается, >1 мес до конца: зелёный -->
-            <td><div class="income-bar">14к</div></td>
-            <td><div class="income-bar">15к</div></td>
-            <td><div class="income-bar yellow">15к</div></td> <!-- Заканчивается <1 мес (в мае): жёлтый для апреля? Wait, status per bar -->
-            <td><div class="income-bar yellow" style="width: 66%;">10к</div></td> <!-- Заканчивается в этом месяце: жёлтый -->
-            <td></td>
-        </tr>
-        <!-- Источник 4: Инвестиции в акции (заканчивается в марте, без распределения; цвета по статусу, убрали красный в последнем если не нужно) -->
-        <tr class="timeline-row test-static d-none">
-            <td>Инвестиции в акции<br><span class="source-desc">С 01.11.2025 по 31.03.2026</span></td>
-            <td>70к руб.</td>
-            <td><div class="income-bar">20к</div></td>
-            <td><div class="income-bar">20к</div></td>
-            <td><div class="income-bar">20к</div></td>
-            <td><div class="income-bar yellow">10к</div></td> <!-- Полный месяц, но заканчивается в марте: если <1 мес до конца, жёлтый -->
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-
+    <div class="table-responsive">
+        <table class="timeline-table table table-bordered">
+            <thead id="tlHeader">
+            <tr class="timeline-month test-static d-none">
+                <th scope="col">Источник</th>
+                <th scope="col">Сумма</th>
+                <th scope="col">Дек</th>
+                <th scope="col">Янв</th>
+                <th scope="col">Фев</th>
+                <th scope="col">Мар</th>
+                <th scope="col">Апр</th>
+                <th scope="col">Май</th>
+                <th scope="col">Июн</th>
+            </tr>
+            <tr class="timeline-year test-static d-none">
+                <td colspan="2"></td>
+                <td>2025</td>
+                <td colspan="6">2026</td>
+            </tr>
+            <tr class="monthly-sum test-static d-none">
+                <th colspan="2">Сумма по месяцам</th>
+                <td>140к</td>
+                <td>110к</td>
+                <td>105к</td>
+                <td>104к</td>
+                <td>105к</td>
+                <td>105к</td>
+                <td>100к</td>
+            </tr>
+            </thead>
+            <tbody id="tlBody">
+            <!-- Источник 1: Зарплата (не требует особого внимания, зелёный) -->
+            <tr class="timeline-row test-static d-none">
+                <td>Зарплата<br><span class="source-desc">С 01.01.2025 (бесконечно)</span></td>
+                <td>90к</td>
+                <td><div class="income-bar">90к</div></td>
+                <td><div class="income-bar">90к</div></td>
+                <td><div class="income-bar">90к</div></td>
+                <td><div class="income-bar">90к</div></td>
+                <td><div class="income-bar">90к</div></td>
+                <td><div class="income-bar">90к</div></td>
+                <td><div class="income-bar">90к</div></td>
+            </tr>
+            <!-- Источник 2: Аренда (проблемная, красный) -->
+            <tr class="timeline-row test-static d-none">
+                <td>Аренда квартиры<br><span class="source-desc">С 01.06.2025 по 31.12.2025</span></td>
+                <td>30к</td>
+                <td><div class="income-bar red">30к</div></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <!-- Источник 3: Депозит (еще не начался, серый) -->
+            <tr class="timeline-row test-static d-none">
+                <td>Депозит в банке<br><span class="source-desc">С 20.02.2026 по 20.06.2026</span></td>
+                <td>60к</td>
+                <td></td>
+                <td></td>
+                <td><div class="income-bar gray" style="left: 61%; width: 39%;">5к</div></td>
+                <td><div class="income-bar gray">14к</div></td>
+                <td><div class="income-bar gray">15к</div></td>
+                <td><div class="income-bar gray">15к</div></td>
+                <td><div class="income-bar gray" style="width: 66%;">10к</div></td>
+            </tr>
+            <!-- Источник 4: Инвестиции в акции (скоро заканчиваются, желтый) -->
+            <tr class="timeline-row test-static d-none">
+                <td>Инвестиции в акции<br><span class="source-desc">С 01.11.2025 по 18.02.2026</span></td>
+                <td>70к</td>
+                <td><div class="income-bar yellow">20к</div></td>
+                <td><div class="income-bar yellow">20к</div></td>
+                <td><div class="income-bar yellow" style="width: 68%">10к</div></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
 </body>
 </html>
