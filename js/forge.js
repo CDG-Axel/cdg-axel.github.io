@@ -321,7 +321,7 @@ function init() {
         'click-reloadcfg': reloadCfg,
         'click-navigation': clickNav,
         'change-thousands': clickThousands
-    })
+    });
     selectedMenu = loadFromStorage(lsPrefix + "selected_menu");
     setShortThousands('true' === (loadFromStorage(lsPrefix + "shortThousands") ?? shortThousands.toString()));
     document.getElementById('chkThousands').checked = shortThousands;
