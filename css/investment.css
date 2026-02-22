@@ -25,6 +25,9 @@
 .timeline-row {
     height: 40px;
 }
+.timeline-row td:nth-child(2) {
+    text-align: right;
+}
 .timeline-row td:nth-child(n+3) {
     position: relative;
     padding: 0;
