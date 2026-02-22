@@ -81,7 +81,7 @@ function calcMonthData(source, monthStart, now) {
 }
 
 function generatePage() {
-    const now = new Date('2026-01-21'); // на время тестирования
+    const now = new Date();
     const attrScope = {scope: "col"};
 
     const months = createElement('tr', ['timeline-month']);
