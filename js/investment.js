@@ -115,7 +115,15 @@ function generatePage() {
 
         wrapper.append(textBlock, editBtn);
         nameCell.appendChild(wrapper);
-        row.append(nameCell, createElement('td', [], {}, intl.format(source.sum)));
+        const sumCell = createElement('td');
+        sumCell.appendChild(document.createTextNode(intl.format(source.sum)));
+        if (source.income) {
+            sumCell.append(
+                createElement('br'),
+                createElement('span', ['source-desc'], {}, '+ ' + intl.format(source.income))
+            );
+        }
+        row.append(nameCell, sumCell);
         return row;
     });
 
