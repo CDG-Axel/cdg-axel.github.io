@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Планировщик регулярных доходов</title>
     <meta name="description" content="Планировщик доходов - позволяет оценивать ваши доходы за месяц от разных источников (зарплата, пенсия, депозиты, инвестиции)" />
-    <meta name="keywords" content="Планировщик доходов, планировщик финансов"/>
     <meta name="robots" content="index, follow" />
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCTDGHCKB3"></script>
@@ -40,13 +39,20 @@
                     </span>
                 </div>
                 <!-- Кнопки управления в правом углу карточки -->
-                <div class="d-grid gap-2 col-auto">
+                <div class="d-grid gap-1 col-auto">
                     <button class="btn btn-primary btn-sm" evnt-click-add>
                         + Добавить
                     </button>
                     <button class="btn btn-outline-secondary btn-sm" id="btnRestore" title="Отменить удаление" evnt-click-restore disabled>
                         Отменить
                     </button>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown">☰ меню</button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" evnt-click-export>Экспорт конфига</a></li>
+                            <li><a class="dropdown-item" evnt-click-import>Импорт конфига</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

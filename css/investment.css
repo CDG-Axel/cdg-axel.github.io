@@ -2,6 +2,12 @@
     --timeline-col-source: 35%;
     --timeline-col-amount: 10%;
     --timeline-month-min: 80px;
+    --main-max-width: 1200px;
+}
+
+main {
+    max-width: var(--main-max-width);
+    margin-inline: auto;
 }
 
 .timeline-table {

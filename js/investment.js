@@ -188,6 +188,25 @@ function resetCfg() {
     fetch('json/investment_def.json').then(res => res.text()).then(updateConfig);
 }
 
+/* ---- меню ---- */
+
+function exportConfig() {
+    const json = JSON.stringify(config, dateReplacer, 2);
+    const anchor = document.createElement('a');
+    anchor.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    anchor.download = 'investment_config.json';
+    anchor.click();
+    URL.revokeObjectURL(anchor.href);
+}
+
+function importConfig() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.addEventListener('change', () => input.files[0].text().then(updateConfig));
+    input.click();
+}
+
 /* ---- модальная форма ---- */
 
 const sForm = {
@@ -306,7 +325,9 @@ function init() {
         'change-type': updateFieldsByType,
         'change-dates': validateDates,
         'click-save': saveSource,
-        'click-delete': deleteSource
+        'click-delete': deleteSource,
+        'click-export': exportConfig,
+        'click-import': importConfig
     });
     const confStr = loadFromStorage(lsPrefix + 'config');
     if (confStr) updateConfig(confStr);
