@@ -55,7 +55,7 @@ function calcMonthData(source, monthStart, now) {
     if (source.start_date < monthEnd && (!source.end_date || source.end_date > monthStart)) {
         const activeStart = source.start_date > monthStart ? source.start_date : monthStart;
         const activeEnd = (!source.end_date || source.end_date > monthEnd) ? monthEnd : source.end_date;
-        activeDays = Math.floor((activeEnd - activeStart) / (1000 * 60 * 60 * 24)) + 1;
+        activeDays = Math.floor((activeEnd - activeStart) / msPerDay) + 1;
 
         // Ограничения 70/30 гарантируют минимальную видимую ширину бара при коротких периодах
         let barSt = Math.min(70, Math.round((activeStart.getDate() - 1) / daysInMonth * 100));
