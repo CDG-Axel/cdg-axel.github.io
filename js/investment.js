@@ -38,6 +38,14 @@ function saveConfig() {
     saveToStorage(lsPrefix + 'config', JSON.stringify(config, dateReplacer));
 }
 
+function activityColor(source, now) {
+    if (source.start_date > now) return 'gray';
+    if (!source.end_date) return '';
+    if (source.end_date < now) return 'red';
+    if (source.end_date - now < WARNING_DAYS * msPerDay) return  'yellow';
+    return '';
+}
+
 function calcMonthData(source, monthStart, now) {
     const monthEnd = new Date(monthStart.getFullYear(), 1 + monthStart.getMonth(), 0);
     const daysInMonth = monthEnd.getDate();
@@ -46,7 +54,7 @@ function calcMonthData(source, monthStart, now) {
 
     if (source.start_date < monthEnd && (!source.end_date || source.end_date > monthStart)) {
         const activeStart = source.start_date > monthStart ? source.start_date : monthStart;
-        const activeEnd = !source.end_date || source.end_date > monthEnd ? monthEnd : source.end_date;
+        const activeEnd = (!source.end_date || source.end_date > monthEnd) ? monthEnd : source.end_date;
         activeDays = Math.floor((activeEnd - activeStart) / (1000 * 60 * 60 * 24)) + 1;
 
         // Ограничения 70/30 гарантируют минимальную видимую ширину бара при коротких периодах
@@ -66,18 +74,44 @@ function calcMonthData(source, monthStart, now) {
 
     const column = createElement('td');
     if (activeDays > 0) {
-        let color = '';
-        if (source.start_date > now) {
-            color = 'gray';
-        } else if (source.end_date) {
-            if (source.end_date < now) color = 'red';
-            else if (source.end_date - now < WARNING_DAYS * msPerDay) color = 'yellow';
-        }
+        const color = activityColor(source, now);
         const attrs = style? {style} : {};
         column.appendChild(createElement('div', ['income-bar', color], attrs, intl.format(income)));
     }
 
     return {income, column};
+}
+
+function createSource(source, idx) {
+    const row = createElement('tr', ['timeline-row']);
+    const nameCell = createElement('td');
+    const from = source.start_date.toLocaleDateString(lang);
+    const end = source.end_date? `по ${source.end_date.toLocaleDateString(lang)}`: '(бессрочно)';
+    const period = `C ${from} ${end}`;
+
+    const wrapper = createElement('div', ['d-flex', 'justify-content-between', 'align-items-center']);
+    const textBlock = createElement('div');
+    textBlock.append(
+        document.createTextNode(source.name),
+        createElement('br'),
+        createElement('span', ['source-desc'], {}, period)
+    );
+    const editBtn = createElement('button', ['btn', 'flex-shrink-0', 'px-1'], {title: 'Редактировать / удалить  '}, '✎');
+    editBtn.addEventListener('click', () => openModal(idx));
+
+    wrapper.append(textBlock, editBtn);
+    nameCell.appendChild(wrapper);
+    const sumCell = createElement('td');
+    sumCell.appendChild(document.createTextNode(intl.format(source.sum)));
+    if (source.income) {
+        sumCell.append(
+            createElement('br'),
+            createElement('span', ['source-desc'], {}, '+ ' + intl.format(source.income))
+        );
+    }
+    row.append(nameCell, sumCell);
+    return row;
+
 }
 
 function generatePage() {
@@ -97,35 +131,7 @@ function generatePage() {
     sums.appendChild(createElement('th', [], {"colspan": 2}, 'Сумма по месяцам'));
 
     const monthsPerYear = {};
-    const sources = config.incomes.map((source, idx) => {
-        const row = createElement('tr', ['timeline-row']);
-        const nameCell = createElement('td');
-        const period = `C ${source.start_date.toLocaleDateString(lang)} ` +
-            (source.end_date? `по ${source.end_date.toLocaleDateString(lang)}`: '(бессрочно)');
-
-        const wrapper = createElement('div', ['d-flex', 'justify-content-between', 'align-items-center']);
-        const textBlock = createElement('div');
-        textBlock.append(
-            document.createTextNode(source.name),
-            createElement('br'),
-            createElement('span', ['source-desc'], {}, period)
-        );
-        const editBtn = createElement('button', ['btn', 'flex-shrink-0', 'px-1'], {title: 'Редактировать / удалить  '}, '✎');
-        editBtn.addEventListener('click', () => openModal(idx));
-
-        wrapper.append(textBlock, editBtn);
-        nameCell.appendChild(wrapper);
-        const sumCell = createElement('td');
-        sumCell.appendChild(document.createTextNode(intl.format(source.sum)));
-        if (source.income) {
-            sumCell.append(
-                createElement('br'),
-                createElement('span', ['source-desc'], {}, '+ ' + intl.format(source.income))
-            );
-        }
-        row.append(nameCell, sumCell);
-        return row;
-    });
+    const sources = config.incomes.map(createSource);
 
     for (let i = -1; i <= 5; i++) {
         const monthStart = new Date(now.getFullYear(), now.getMonth() + i, 1);
