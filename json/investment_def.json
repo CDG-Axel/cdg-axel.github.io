@@ -19,7 +19,7 @@
       "income": 29600,
       "type": "investment",
       "start_date": "2026-02-20",
-      "end_date": "2026-06-20"
+      "end_date": "2026-06-18"
     },
     {
       "name": "Акции (Сбербанк, 1000)",
@@ -27,7 +27,7 @@
       "income": 12000,
       "type": "investment",
       "start_date": "2025-11-01",
-      "end_date": "2026-02-18"
+      "end_date": "2026-02-19"
     }
   ]
 }

@@ -82,11 +82,19 @@ function calcMonthData(source, monthStart, now) {
     return {income, column};
 }
 
+function pluralDays(n) {
+    const l2 = n % 100;
+    if (l2 >= 11 && l2 <= 14) return 'дней';
+    const ld = n % 10;
+    return ld === 1 ? 'день' : ld >= 2 && ld <= 4 ? 'дня' : 'дней';
+}
+
 function createSource(source, idx) {
     const row = createElement('tr', ['timeline-row']);
     const nameCell = createElement('td');
     const from = source.start_date.toLocaleDateString(lang);
-    const end = source.end_date? `по ${source.end_date.toLocaleDateString(lang)}`: '(бессрочно)';
+    const days = source.end_date? Math.round(1 + (source.end_date - source.start_date)/msPerDay): 0;
+    const end = days > 0? `по ${source.end_date.toLocaleDateString(lang)}, ${days} ${pluralDays(days)}`: '(бессрочно)';
     const period = `C ${from} ${end}`;
 
     const wrapper = createElement('div', ['d-flex', 'justify-content-between', 'align-items-center']);
