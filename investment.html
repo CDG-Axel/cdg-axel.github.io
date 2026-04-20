@@ -49,8 +49,10 @@
                     <div class="dropdown">
                         <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown">☰ меню</button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" evnt-click-export>Экспорт конфига</a></li>
-                            <li><a class="dropdown-item" evnt-click-import>Импорт конфига</a></li>
+                            <li><a class="dropdown-item" evnt-click-export>Экспорт конфига (файл)</a></li>
+                            <li><a class="dropdown-item" evnt-click-import>Импорт конфига (файл)</a></li>
+                            <li><a class="dropdown-item" evnt-click-exp-clip>Экспорт конфига (буфер обмена)</a></li>
+                            <li><a class="dropdown-item" evnt-click-imp-clip>Импорт конфига (буфер обмена)</a></li>
                         </ul>
                     </div>
                 </div>
@@ -180,13 +182,13 @@
                     <div class="row mb-3">
                         <div class="col">
                             <label for="fSum" class="form-label" id="fSumLabel">Сумма, руб.</label>
-                            <input type="number" class="form-control" id="fSum" min="1" required>
+                            <input type="number" class="form-control" id="fSum" min="0" step="any" required>
                             <div class="invalid-feedback">Введите положительное число</div>
                         </div>
                         <!-- Поле дохода показывается только для инвестиций -->
                         <div class="col" id="fIncomeGroup">
                             <label for="fIncome" class="form-label">Ожидаемый доход, руб.</label>
-                            <input type="number" class="form-control" id="fIncome" min="1">
+                            <input type="number" class="form-control" id="fIncome" min="0" step="any">
                             <div class="invalid-feedback">Введите ожидаемый доход</div>
                         </div>
                     </div>

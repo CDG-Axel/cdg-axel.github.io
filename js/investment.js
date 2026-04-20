@@ -221,6 +221,24 @@ function importConfig() {
     input.click();
 }
 
+function exportClipboard() {
+    const json = JSON.stringify(config, dateReplacer, 2);
+    navigator.clipboard.writeText(json).then(() => {
+        alert('Настройки скопированы в буфер обмена');
+    });
+}
+
+function importClipboard() {
+    navigator.clipboard.readText().then(text => {
+        try {
+            updateConfig(text);
+            alert('Настройки импортированы из буфера обмена');
+        } catch {
+            alert('Не удалось прочитать настройки');
+        }
+    });
+}
+
 /* ---- модальная форма ---- */
 
 const sForm = {
@@ -341,7 +359,9 @@ function init() {
         'click-save': saveSource,
         'click-delete': deleteSource,
         'click-export': exportConfig,
-        'click-import': importConfig
+        'click-import': importConfig,
+        'click-exp-clip': exportClipboard,
+        'click-imp-clip': importClipboard
     });
     const confStr = loadFromStorage(lsPrefix + 'config');
     if (confStr) updateConfig(confStr);
