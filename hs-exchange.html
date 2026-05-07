@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Обмен картами</title>
+    <link rel="stylesheet" href="css/hs-exchange.css">
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────── -->
+<header>
+    <div class="header-title">
+        <span class="star-deco">★</span>
+        Обмен картами
+    </div>
+    <span id="season-label"></span>
+    <input id="season-input" type="text" maxlength="40" enterkeyhint="done">
+    <div class="menu-wrap">
+        <button id="btn-menu" title="Меню">☰</button>
+        <div id="menu-dropdown">
+            <div class="menu-section">
+                <div class="menu-section-label">Сезон</div>
+                <button class="menu-item" id="btn-new-season">🔄 Новый сезон</button>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-label">Экспорт</div>
+                <button class="menu-item" id="menu-export-file">💾 Скачать JSON-файл</button>
+                <button class="menu-item" id="menu-export-clip">📋 Копировать в буфер</button>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-label">Импорт</div>
+                <button class="menu-item" id="menu-import-file">📂 Загрузить JSON-файл</button>
+                <button class="menu-item" id="menu-import-clip">📋 Вставить из буфера</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ── Table ─────────────────────────────────────────────── -->
+<div class="scroll-area">
+    <table>
+        <thead>
+        <tr>
+            <th rowspan="2" style="text-align:left; padding-left:10px;">Игрок</th>
+            <th colspan="3" class="th-group th-recv">Получено</th>
+            <th colspan="3" class="th-group th-sent">Отдано</th>
+            <th rowspan="2">Баланс<br><small style="font-size:9px;opacity:.7;">★</small></th>
+            <th rowspan="2">Примечание</th>
+        </tr>
+        <tr>
+            <th class="th-recv">Всего</th>
+            <th class="th-recv">Новых</th>
+            <th class="th-recv">Звёзд</th>
+            <th class="th-sent">Всего</th>
+            <th class="th-sent">Новых</th>
+            <th class="th-sent">Звёзд</th>
+        </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+    <div class="add-row-wrap">
+        <button id="btn-add-row">＋ Добавить игрока</button>
+    </div>
+</div>
+
+<!-- ── Quick Panel ────────────────────────────────────────── -->
+<div id="quick-panel">
+    <div class="panel-top">
+        <span id="panel-player">Выберите игрока</span>
+        <div class="toggle-wrap">
+            <label for="toggle-new">Новая</label>
+            <input type="checkbox" id="toggle-new">
+            <label class="toggle-slider" for="toggle-new"></label>
+        </div>
+    </div>
+    <div class="panel-rows">
+        <div class="panel-row">
+            <span class="panel-row-label recv-lbl">Получено:</span>
+            <button class="star-btn" data-dir="recv" data-stars="1" disabled>1★</button>
+            <button class="star-btn" data-dir="recv" data-stars="2" disabled>2★</button>
+            <button class="star-btn" data-dir="recv" data-stars="3" disabled>3★</button>
+            <button class="star-btn" data-dir="recv" data-stars="4" disabled>4★</button>
+            <button class="star-btn" data-dir="recv" data-stars="5" disabled>5★</button>
+        </div>
+        <div class="panel-row">
+            <span class="panel-row-label sent-lbl">Отдано:</span>
+            <button class="star-btn" data-dir="sent" data-stars="1" disabled>1★</button>
+            <button class="star-btn" data-dir="sent" data-stars="2" disabled>2★</button>
+            <button class="star-btn" data-dir="sent" data-stars="3" disabled>3★</button>
+            <button class="star-btn" data-dir="sent" data-stars="4" disabled>4★</button>
+            <button class="star-btn" data-dir="sent" data-stars="5" disabled>5★</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Overlay ────────────────────────────────────────────── -->
+<div id="overlay"></div>
+
+<!-- ── Modal: Confirm ─────────────────────────────────────── -->
+<div class="modal" id="modal-confirm">
+    <p id="confirm-msg"></p>
+    <div class="modal-btns">
+        <button class="btn-secondary" id="confirm-cancel"></button>
+        <button class="btn-primary"   id="confirm-ok"></button>
+    </div>
+</div>
+
+<!-- ── Modal: History ─────────────────────────────────────── -->
+<div class="modal" id="modal-history">
+    <div class="modal-header">
+        <span class="modal-title" id="modal-title"></span>
+        <button class="modal-close" id="btn-history-close">✕</button>
+    </div>
+    <div id="modal-body"></div>
+</div>
+
+<!-- ── Modal: Paste ───────────────────────────────────────── -->
+<div class="modal" id="modal-paste">
+    <div class="modal-header">
+        <span class="modal-title">Вставить данные</span>
+        <button class="modal-close" id="btn-paste-cancel">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">
+        Вставьте содержимое JSON-файла:
+    </p>
+    <textarea id="paste-area" placeholder='{"version":1,"currentSeason":"Сезон 1",...}'></textarea>
+    <div class="modal-btns">
+        <button class="btn-secondary" id="btn-paste-cancel2"
+                onclick="document.getElementById('btn-paste-cancel').click()">Отмена</button>
+        <button class="btn-primary" id="btn-paste-import">Импортировать</button>
+    </div>
+</div>
+
+<!-- ── Hidden file input ──────────────────────────────────── -->
+<input type="file" id="file-input" accept=".json,application/json" style="display:none">
+
+<!-- ── Toast ─────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<script src="js/hs-exchange.js"></script>
+</body>
+</html>
