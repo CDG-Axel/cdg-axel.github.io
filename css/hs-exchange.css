@@ -392,19 +392,19 @@ td { padding: 3px 4px; text-align: center; vertical-align: middle; }
 .sdt-data-row { border-bottom: 1px solid var(--border); }
 .sdt-data-row:last-child { border-bottom: none; }
 
-.sdt-h-label { padding: 6px 10px; }
-.sdt-h-star {
+.sdt-header-row > :first-child { padding: 6px 10px; }
+.sdt-header-row > :not(:first-child) {
     font-size: 11px; font-weight: 700; letter-spacing: .06em;
     text-transform: uppercase; color: var(--gold);
     padding: 6px 4px; text-align: center;
 }
-.sdt-row-label {
+.sdt-data-row > :first-child {
     font-size: 12px; font-weight: 600; color: var(--text2);
     padding: 7px 10px; white-space: nowrap;
 }
-.sdt-row-label.recv-lbl { color: var(--green); }
-.sdt-row-label.sent-lbl { color: #f08080; }
-.sdt-cell {
+.sdt-data-row > :first-child.recv-lbl { color: var(--green); }
+.sdt-data-row > :first-child.sent-lbl { color: #f08080; }
+.sdt-data-row > :not(:first-child) {
     font-family: var(--font-mono); font-size: 13px;
     color: var(--text); text-align: center; padding: 7px 4px;
 }
