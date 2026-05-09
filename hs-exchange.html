@@ -124,41 +124,35 @@
         <span class="modal-title">✎ <span id="edit-title"></span></span>
         <button class="modal-close" data-closes="modal-edit">✕</button>
     </div>
-    <div class="edit-table-wrap">
-        <table class="edit-table">
-            <thead>
-            <tr>
-                <th class="edit-th-label"></th>
-                <th>1★</th><th>2★</th><th>3★</th><th>4★</th><th>5★</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td class="edit-row-label recv-lbl">Получено новых</td>
-                <td><input class="edit-inp" id="edit-rn-0" type="number" min="0" value="0" aria-label="Получено новых 1★"></td>
-                <td><input class="edit-inp" id="edit-rn-1" type="number" min="0" value="0" aria-label="Получено новых 2★"></td>
-                <td><input class="edit-inp" id="edit-rn-2" type="number" min="0" value="0" aria-label="Получено новых 3★"></td>
-                <td><input class="edit-inp" id="edit-rn-3" type="number" min="0" value="0" aria-label="Получено новых 4★"></td>
-                <td><input class="edit-inp" id="edit-rn-4" type="number" min="0" value="0" aria-label="Получено новых 5★"></td>
-            </tr>
-            <tr>
-                <td class="edit-row-label recv-lbl">Получено дублей</td>
-                <td><input class="edit-inp" id="edit-rd-0" type="number" min="0" value="0" aria-label="Получено дублей 1★"></td>
-                <td><input class="edit-inp" id="edit-rd-1" type="number" min="0" value="0" aria-label="Получено дублей 2★"></td>
-                <td><input class="edit-inp" id="edit-rd-2" type="number" min="0" value="0" aria-label="Получено дублей 3★"></td>
-                <td><input class="edit-inp" id="edit-rd-3" type="number" min="0" value="0" aria-label="Получено дублей 4★"></td>
-                <td><input class="edit-inp" id="edit-rd-4" type="number" min="0" value="0" aria-label="Получено дублей 5★"></td>
-            </tr>
-            <tr>
-                <td class="edit-row-label sent-lbl">Подарено</td>
-                <td><input class="edit-inp" id="edit-st-0" type="number" min="0" value="0" aria-label="Подарено 1★"></td>
-                <td><input class="edit-inp" id="edit-st-1" type="number" min="0" value="0" aria-label="Подарено 2★"></td>
-                <td><input class="edit-inp" id="edit-st-2" type="number" min="0" value="0" aria-label="Подарено 3★"></td>
-                <td><input class="edit-inp" id="edit-st-3" type="number" min="0" value="0" aria-label="Подарено 4★"></td>
-                <td><input class="edit-inp" id="edit-st-4" type="number" min="0" value="0" aria-label="Подарено 5★"></td>
-            </tr>
-            </tbody>
-        </table>
+    <div class="edit-grid">
+        <div class="edit-header-row">
+            <div></div>
+            <div>1★</div><div>2★</div><div>3★</div><div>4★</div><div>5★</div>
+        </div>
+        <div class="edit-data-row">
+            <div class="recv-lbl">Получено новых</div>
+            <input class="edit-inp" id="edit-rn-0" type="number" min="0" value="0" aria-label="Получено новых 1★">
+            <input class="edit-inp" id="edit-rn-1" type="number" min="0" value="0" aria-label="Получено новых 2★">
+            <input class="edit-inp" id="edit-rn-2" type="number" min="0" value="0" aria-label="Получено новых 3★">
+            <input class="edit-inp" id="edit-rn-3" type="number" min="0" value="0" aria-label="Получено новых 4★">
+            <input class="edit-inp" id="edit-rn-4" type="number" min="0" value="0" aria-label="Получено новых 5★">
+        </div>
+        <div class="edit-data-row">
+            <div class="recv-lbl">Получено дублей</div>
+            <input class="edit-inp" id="edit-rd-0" type="number" min="0" value="0" aria-label="Получено дублей 1★">
+            <input class="edit-inp" id="edit-rd-1" type="number" min="0" value="0" aria-label="Получено дублей 2★">
+            <input class="edit-inp" id="edit-rd-2" type="number" min="0" value="0" aria-label="Получено дублей 3★">
+            <input class="edit-inp" id="edit-rd-3" type="number" min="0" value="0" aria-label="Получено дублей 4★">
+            <input class="edit-inp" id="edit-rd-4" type="number" min="0" value="0" aria-label="Получено дублей 5★">
+        </div>
+        <div class="edit-data-row">
+            <div class="sent-lbl">Подарено</div>
+            <input class="edit-inp" id="edit-st-0" type="number" min="0" value="0" aria-label="Подарено 1★">
+            <input class="edit-inp" id="edit-st-1" type="number" min="0" value="0" aria-label="Подарено 2★">
+            <input class="edit-inp" id="edit-st-2" type="number" min="0" value="0" aria-label="Подарено 3★">
+            <input class="edit-inp" id="edit-st-3" type="number" min="0" value="0" aria-label="Подарено 4★">
+            <input class="edit-inp" id="edit-st-4" type="number" min="0" value="0" aria-label="Подарено 5★">
+        </div>
     </div>
     <div class="edit-summary">
         <div class="edit-sum-row">

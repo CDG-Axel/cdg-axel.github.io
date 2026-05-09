@@ -563,7 +563,7 @@ function renderStatsDetail(t) {
 }
 
 // ── Import / Export ───────────────────────────────────────────
-function exportData() { return JSON.stringify({ version: 3, ...state }, null, 2); }
+function exportData(space = 2) { return JSON.stringify({ version: 3, ...state }, null, space); }
 
 function importData(json) {
     try {
@@ -591,7 +591,7 @@ function downloadFile() {
 }
 
 async function copyToClipboard() {
-    try { await navigator.clipboard.writeText(exportData()); showToast('Скопировано в буфер обмена'); }
+    try { await navigator.clipboard.writeText(exportData(0)); showToast('Скопировано в буфер обмена'); }
     catch (e) { showToast('Не удалось скопировать: ' + e.message); }
     closeMenu();
 }

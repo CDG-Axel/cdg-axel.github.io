@@ -279,7 +279,7 @@ td { padding: 3px 4px; text-align: center; vertical-align: middle; }
     padding: 20px;
 }
 .modal.open { display: block; }
-.modal-wide { width: min(600px, calc(100vw - 24px)); }
+.modal-wide { width: min(500px, calc(100vw - 24px)); }
 
 .modal-header {
     display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
@@ -310,26 +310,42 @@ td { padding: 3px 4px; text-align: center; vertical-align: middle; }
 #confirm-msg { font-size: 14px; line-height: 1.6; margin-bottom: 4px; }
 
 /* ── Edit modal ───────────────────────────────────────────── */
-.edit-table-wrap { overflow-x: auto; margin-bottom: 14px; }
-.edit-table { width: 100%; border-collapse: collapse; }
-.edit-table th {
-    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--gold); padding: 6px 4px; text-align: center;
-    border-bottom: 1px solid var(--border2);
+.edit-grid {
+    display: flex; flex-direction: column;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 14px;
 }
-.edit-table th.edit-th-label { color: var(--text2); text-align: left; min-width: 130px; }
-.edit-table td { padding: 4px 3px; vertical-align: middle; }
-.edit-row-label {
-    font-size: 12px; font-weight: 600; text-align: left; white-space: nowrap; padding-right: 8px;
+.edit-header-row, .edit-data-row {
+    display: grid;
+    grid-template-columns: 1fr 60px 60px 60px 60px 60px;
+    padding: 3px 0;
+    align-items: center;
 }
-.edit-row-label.recv-lbl { color: var(--green); }
-.edit-row-label.sent-lbl { color: #f08080; }
+.edit-header-row {
+    background: var(--bg3);
+    border-bottom: 2px solid var(--border2);
+}
+.edit-data-row { border-bottom: 1px solid var(--border); }
+.edit-data-row:last-child { border-bottom: none; }
+
+.edit-header-row {
+    font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--gold);
+    padding: 6px 4px; text-align: center;
+}
+.edit-data-row > :first-child {
+    font-size: 12px; font-weight: 600; color: var(--text2);
+    padding: 6px 10px; white-space: nowrap;
+}
+.edit-data-row > :first-child.recv-lbl { color: var(--green); }
+.edit-data-row > :first-child.sent-lbl { color: #f08080; }
 .edit-inp {
-    width: 52px; text-align: center;
+    width: 90%;
+    text-align: center;
     background: var(--bg3); border: 1px solid var(--border2);
     border-radius: 5px; color: var(--text);
     font-family: var(--font-mono), monospace; font-size: 13px; font-weight: 500;
-    padding: 5px 4px; outline: none;
+    padding: 2px 4px; outline: none;
     transition: border-color .15s, background .15s;
     -moz-appearance: textfield;
 }
