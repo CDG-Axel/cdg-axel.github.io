@@ -1,321 +1,300 @@
 // ============================================================
-//  Card Exchange Tracker — app.js
+//  Card Exchange Tracker — hs-exchange.js
 // ============================================================
 
-const STORAGE_KEY = 'cardTracker_v1';
+const STORAGE_KEY = 'cardTracker_v2';
+const STARS = 5;
 
 // ── State ────────────────────────────────────────────────────
 let state = {
     currentSeason: 'Сезон 1',
-    players: [],          // { name, recv:{total,new_,stars}, sent:{total,new_,stars}, note }
-    history: {},          // { normalizedName: [ {season, recv, sent} ] }
+    players: [],
+    history: {},
     isNewCard: false,
-    activeRow: null,      // index of focused row
+    activeRow: null,
+    lastAction: null,
 };
 
 // ── Helpers ──────────────────────────────────────────────────
-const norm = s => (s || '').trim().toLowerCase();
-
-function genEmpty() {
-    return { total: 0, new_: 0, stars: 0 };
-}
+const norm   = s => (s || '').trim().toLowerCase();
+const zeroes = () => Array(STARS).fill(0);
 
 function newPlayer(name = '') {
-    return { name, recv: genEmpty(), sent: genEmpty(), note: '' };
+    return { name, received_new: zeroes(), received_double: zeroes(), sent: zeroes(), note: '' };
 }
 
-function historyTotals(normName) {
-    const seasons = state.history[normName] || [];
-    const r = genEmpty(), s = genEmpty();
-    for (const h of seasons) {
-        r.total += h.recv.total; r.new_ += h.recv.new_; r.stars += h.recv.stars;
-        s.total += h.sent.total; s.new_ += h.sent.new_; s.stars += h.sent.stars;
+function calcStars(arr) {
+    return arr.reduce((sum, n, i) => sum + n * (i + 1), 0);
+}
+
+function arrAdd(base, delta) {
+    return base.map((v, i) => v + (delta[i] || 0));
+}
+
+function playerTotals(d) {
+    const recv_new   = d.received_new   || zeroes();
+    const recv_dbl   = d.received_double || zeroes();
+    const recv_total = recv_new.map((v, i) => v + recv_dbl[i]);
+    const sent       = d.sent || zeroes();
+    return {
+        recv_new, recv_dbl, recv_total, sent,
+        recv_new_count:   recv_new.reduce((a, b) => a + b, 0),
+        recv_dbl_count:   recv_dbl.reduce((a, b) => a + b, 0),
+        recv_total_count: recv_total.reduce((a, b) => a + b, 0),
+        sent_count:       sent.reduce((a, b) => a + b, 0),
+        recv_stars:       calcStars(recv_total),
+        sent_stars:       calcStars(sent),
+        balance:          calcStars(recv_total) - calcStars(sent),
+    };
+}
+
+function aggregateRecords(records) {
+    const out = { received_new: zeroes(), received_double: zeroes(), sent: zeroes() };
+    for (const r of records) {
+        out.received_new    = arrAdd(out.received_new,    r.received_new    || zeroes());
+        out.received_double = arrAdd(out.received_double, r.received_double || zeroes());
+        out.sent            = arrAdd(out.sent,            r.sent            || zeroes());
     }
-    return { recv: r, sent: s, seasons };
+    return out;
+}
+
+function mergeSeasonArrays(base, incoming) {
+    const result = base.map(s => ({
+        season:          s.season,
+        received_new:    [...s.received_new],
+        received_double: [...s.received_double],
+        sent:            [...s.sent],
+    }));
+    for (const s of incoming) {
+        const ex = result.find(r => r.season === s.season);
+        if (ex) {
+            ex.received_new    = arrAdd(ex.received_new,    s.received_new);
+            ex.received_double = arrAdd(ex.received_double, s.received_double);
+            ex.sent            = arrAdd(ex.sent,            s.sent);
+        } else {
+            result.push({
+                season:          s.season,
+                received_new:    [...s.received_new],
+                received_double: [...s.received_double],
+                sent:            [...s.sent],
+            });
+        }
+    }
+    return result;
+}
+
+// ── DOM helpers ───────────────────────────────────────────────
+function createElement(tagName, classList = [], attributes = {}, text = undefined) {
+    const el = document.createElement(tagName);
+    for (const cls of classList) if (cls) el.classList.add(cls);
+    for (const [name, value] of Object.entries(attributes)) el.setAttribute(name, String(value));
+    if (text !== undefined) el.appendChild(document.createTextNode(text));
+    return el;
+}
+
+function appendElement(parent, tagName, classList = [], attributes = {}, text = undefined) {
+    const el = createElement(tagName, classList, attributes, text);
+    parent.appendChild(el);
+    return el;
+}
+
+function addHandler(id, type, listener) {
+    document.getElementById(id).addEventListener(type, listener);
 }
 
 // ── Persistence ───────────────────────────────────────────────
-function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
 function load() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-            const loaded = JSON.parse(raw);
-            Object.assign(state, loaded);
-        }
-    } catch (e) {
-        console.warn('Load error', e);
-    }
+        if (raw) Object.assign(state, JSON.parse(raw));
+    } catch (e) { console.warn('Load error', e); }
 }
 
 // ── Render ────────────────────────────────────────────────────
-function render() {
-    renderTable();
-    renderPanel();
-}
+function render() { renderTable(); renderPanel(); }
 
 function renderTable() {
     const tbody = document.getElementById('tbody');
     tbody.innerHTML = '';
 
     state.players.forEach((p, i) => {
-        const bal = (p.recv.stars || 0) - (p.sent.stars || 0);
-        const balClass = bal > 0 ? 'pos' : bal < 0 ? 'neg' : '';
-        const isActive = state.activeRow === i;
-        const tr = document.createElement('tr');
-        if (isActive) tr.classList.add('active-row');
+        const t = playerTotals(p);
+        const tr = createElement('tr', state.activeRow === i ? ['active-row'] : []);
 
-        tr.innerHTML = `
-      <td class="td-name">
-        <div class="name-cell">
-          <input class="inp inp-name" data-row="${i}" data-field="name"
-                 value="${esc(p.name)}" placeholder="Игрок" autocomplete="off"
-                 inputmode="text" enterkeyhint="done">
-          <button class="btn-info" data-row="${i}" title="История игрока">ℹ</button>
-          <button class="btn-del" data-row="${i}" title="Удалить строку">✕</button>
-        </div>
-      </td>
-      <td><input class="inp inp-num" data-row="${i}" data-group="recv" data-field="total"
-           value="${p.recv.total||''}" placeholder="0" inputmode="numeric"></td>
-      <td><input class="inp inp-num" data-row="${i}" data-group="recv" data-field="new_"
-           value="${p.recv.new_||''}" placeholder="0" inputmode="numeric"></td>
-      <td><input class="inp inp-num" data-row="${i}" data-group="recv" data-field="stars"
-           value="${p.recv.stars||''}" placeholder="0" inputmode="numeric"></td>
-      <td><input class="inp inp-num" data-row="${i}" data-group="sent" data-field="total"
-           value="${p.sent.total||''}" placeholder="0" inputmode="numeric"></td>
-      <td><input class="inp inp-num" data-row="${i}" data-group="sent" data-field="new_"
-           value="${p.sent.new_||''}" placeholder="0" inputmode="numeric"></td>
-      <td><input class="inp inp-num" data-row="${i}" data-group="sent" data-field="stars"
-           value="${p.sent.stars||''}" placeholder="0" inputmode="numeric"></td>
-      <td class="td-bal ${balClass}">${bal}</td>
-      <td><input class="inp inp-note" data-row="${i}" data-field="note"
-           value="${esc(p.note)}" placeholder="…" inputmode="text"></td>
-    `;
+        // Name cell
+        const tdName   = appendElement(tr, 'td', ['td-name']);
+        const nameCell = appendElement(tdName, 'div', ['name-cell']);
+        const nameInput = createElement('input', ['inp', 'inp-name'], {
+            'data-row': i, value: p.name, placeholder: 'Игрок',
+            autocomplete: 'off', inputmode: 'text', enterkeyhint: 'done',
+        });
+        nameCell.appendChild(nameInput);
+        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-info'], { 'data-row': i, title: 'Статистика' }, 'ℹ'));
+        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-edit'], { 'data-row': i, title: 'Редактировать' }, '✎'));
+        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-del'],  { 'data-row': i, title: 'Удалить' }, '✕'));
+
+        // Received: total, new, stars
+        appendElement(tr, 'td', ['td-num', 'td-recv'], {}, String(t.recv_total_count));
+        appendElement(tr, 'td', ['td-num', 'td-recv'], {}, String(t.recv_new_count));
+        appendElement(tr, 'td', ['td-num', 'td-recv', 'td-stars'], {}, String(t.recv_stars));
+
+        // Sent: total, stars
+        appendElement(tr, 'td', ['td-num', 'td-sent'], {}, String(t.sent_count));
+        appendElement(tr, 'td', ['td-num', 'td-sent', 'td-stars'], {}, String(t.sent_stars));
+
+        // Balance
+        const bc = t.balance > 0 ? 'pos' : t.balance < 0 ? 'neg' : '';
+        appendElement(tr, 'td', ['td-num', 'td-bal', bc], {}, String(t.balance));
+
+        // Note
+        const tdNote = appendElement(tr, 'td', ['td-note']);
+        tdNote.appendChild(createElement('input', ['inp', 'inp-note'], {
+            'data-row': i, value: p.note, placeholder: '…', inputmode: 'text',
+        }));
+
         tbody.appendChild(tr);
+
+        // Events
+        nameInput.addEventListener('focus',   onNameFocus);
+        nameInput.addEventListener('blur',    onNameBlur);
+        nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
+
+        tdNote.querySelector('.inp-note').addEventListener('focus', () => setActiveRow(i));
+        tdNote.querySelector('.inp-note').addEventListener('blur',  onNoteBlur);
+        tdNote.querySelector('.inp-note').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
+
+        tr.addEventListener('click', () => setActiveRow(i));
+        tdName.querySelector('.btn-info').addEventListener('click', e => { e.stopPropagation(); openStatsModal(i); });
+        tdName.querySelector('.btn-edit').addEventListener('click', e => { e.stopPropagation(); openEditModal(i); });
+        tdName.querySelector('.btn-del').addEventListener('click',  e => { e.stopPropagation(); deleteRow(i); });
     });
 
-    // Re-attach events
-    tbody.querySelectorAll('.inp-name').forEach(el => {
-        el.addEventListener('focus', onNameFocus);
-        el.addEventListener('blur', onNameBlur);
-        el.addEventListener('keydown', onNameKeydown);
-    });
-    tbody.querySelectorAll('.inp-num').forEach(el => {
-        el.addEventListener('focus', onNumFocus);
-        el.addEventListener('blur', onNumBlur);
-        el.addEventListener('keydown', onNumKeydown);
-    });
-    tbody.querySelectorAll('.inp-note').forEach(el => {
-        el.addEventListener('focus', e => setActiveRow(+e.target.dataset.row));
-        el.addEventListener('blur', onNoteBlur);
-        el.addEventListener('keydown', e => { if(e.key==='Enter') e.target.blur(); });
-    });
-    tbody.querySelectorAll('.btn-del').forEach(el => {
-        el.addEventListener('click', e => deleteRow(+e.currentTarget.dataset.row));
-    });
-    tbody.querySelectorAll('.btn-info').forEach(el => {
-        el.addEventListener('click', e => showHistory(+e.currentTarget.dataset.row));
-    });
+    renderTotalsRow(tbody);
+}
+
+function renderTotalsRow(tbody) {
+    if (state.players.length === 0) return;
+    const t = playerTotals(aggregateRecords(state.players));
+    const tr = createElement('tr', ['totals-row']);
+
+    appendElement(tr, 'td', ['td-name', 'totals-label'], {}, 'Итого');
+    appendElement(tr, 'td', ['td-num', 'td-recv'], {}, String(t.recv_total_count));
+    appendElement(tr, 'td', ['td-num', 'td-recv'], {}, String(t.recv_new_count));
+    appendElement(tr, 'td', ['td-num', 'td-recv', 'td-stars'], {}, String(t.recv_stars));
+    appendElement(tr, 'td', ['td-num', 'td-sent'], {}, String(t.sent_count));
+    appendElement(tr, 'td', ['td-num', 'td-sent', 'td-stars'], {}, String(t.sent_stars));
+    const bc = t.balance > 0 ? 'pos' : t.balance < 0 ? 'neg' : '';
+    appendElement(tr, 'td', ['td-num', 'td-bal', bc], {}, String(t.balance));
+    appendElement(tr, 'td', ['td-note']);
+    tbody.appendChild(tr);
 }
 
 function renderPanel() {
     const player = state.activeRow !== null ? state.players[state.activeRow] : null;
-    const label = document.getElementById('panel-player');
-    label.textContent = player ? player.name || '(без имени)' : 'Выберите игрока';
-
-    const btns = document.querySelectorAll('.star-btn');
-    btns.forEach(btn => btn.disabled = !player);
-
-    document.getElementById('toggle-new').disabled = !player;
-}
-
-function esc(s) {
-    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    document.getElementById('panel-player').textContent =
+        player ? (player.name || '(без имени)') : 'Выберите игрока';
+    const disabled = !player;
+    document.querySelectorAll('.star-btn').forEach(b => b.disabled = disabled);
+    document.getElementById('toggle-new').disabled = disabled;
+    document.getElementById('btn-undo').disabled   = disabled || !state.lastAction;
 }
 
 // ── Active row ────────────────────────────────────────────────
 function setActiveRow(i) {
     state.activeRow = i;
-    document.querySelectorAll('#tbody tr').forEach((tr, idx) => {
-        tr.classList.toggle('active-row', idx === i);
-    });
+    document.querySelectorAll('#tbody tr').forEach((tr, idx) =>
+        tr.classList.toggle('active-row', idx === i)
+    );
     renderPanel();
 }
 
-// ── Name field logic ──────────────────────────────────────────
-let namePrevValue = '';
-
-function onNameFocus(e) {
-    const i = +e.target.dataset.row;
-    setActiveRow(i);
-    namePrevValue = e.target.value;
-}
-
-function onNameKeydown(e) {
-    if (e.key === 'Enter') e.target.blur();
-}
+// ── Name handling ─────────────────────────────────────────────
+function onNameFocus(e) { setActiveRow(+e.target.dataset.row); }
 
 async function onNameBlur(e) {
-    const i = +e.target.dataset.row;
+    const i       = +e.target.dataset.row;
     const newName = e.target.value.trim();
     const oldName = (state.players[i].name || '').trim();
-
     if (newName === oldName) return;
-
-    // Rename existing player
-    if (oldName) {
-        await handleRename(i, oldName, newName, e.target);
-    } else {
-        // Brand new name entry
-        await handleNewName(i, newName, e.target);
-    }
+    if (oldName) await handleRename(i, oldName, newName, e.target);
+    else         await handleNewName(i, newName, e.target);
 }
 
 async function handleNewName(i, newName, inputEl) {
     if (!newName) return;
-    const normNew = norm(newName);
-    const histExists = state.history[normNew] && state.history[normNew].length > 0;
-
-    if (histExists) {
-        const totals = historyTotals(normNew);
-        const confirmed = await showConfirm(
+    if ((state.history[norm(newName)] || []).length > 0) {
+        const ok = await showConfirm(
             `В истории найден игрок «${newName}».\nЭто тот же человек?`,
             'Да, тот же', 'Нет, другой'
         );
-        if (!confirmed) {
-            // Return focus so user can retype
+        if (!ok) {
             inputEl.value = '';
             state.players[i].name = '';
             setTimeout(() => inputEl.focus(), 50);
             return;
         }
     }
-
     state.players[i].name = newName;
-    save();
-    render();
-}
-
-// Merge two season arrays, summing entries that share the same season name
-function mergeSeasonArrays(base, incoming) {
-    const result = base.map(s => ({
-        season: s.season,
-        recv: { ...s.recv },
-        sent: { ...s.sent },
-    }));
-    for (const s of incoming) {
-        const existing = result.find(r => r.season === s.season);
-        if (existing) {
-            existing.recv.total  += s.recv.total  || 0;
-            existing.recv.new_   += s.recv.new_   || 0;
-            existing.recv.stars  += s.recv.stars  || 0;
-            existing.sent.total  += s.sent.total  || 0;
-            existing.sent.new_   += s.sent.new_   || 0;
-            existing.sent.stars  += s.sent.stars  || 0;
-        } else {
-            result.push({ season: s.season, recv: { ...s.recv }, sent: { ...s.sent } });
-        }
-    }
-    return result;
+    save(); render();
 }
 
 async function handleRename(i, oldName, newName, inputEl) {
-    if (!newName) {
-        // Revert
-        inputEl.value = oldName;
-        return;
-    }
+    if (!newName) { inputEl.value = oldName; return; }
+    const normOld = norm(oldName), normNew = norm(newName);
+    if (normOld === normNew) { state.players[i].name = newName; save(); render(); return; }
 
-    const normOld = norm(oldName);
-    const normNew = norm(newName);
-
-    if (normOld === normNew) {
-        // Just casing/spacing change — update name directly
-        state.players[i].name = newName;
-        // Rename key in history
-        if (state.history[normOld] && normOld !== normNew) {
-            state.history[normNew] = state.history[normOld];
-            delete state.history[normOld];
-        }
-        save(); render(); return;
-    }
-
-    const histExists = state.history[normNew] && state.history[normNew].length > 0;
-
-    if (histExists) {
-        const confirmed = await showConfirm(
+    if ((state.history[normNew] || []).length > 0) {
+        const ok = await showConfirm(
             `Игрок «${newName}» уже есть в истории. Объединить данные?`,
             'Да, объединить', 'Нет, изменить имя'
         );
-        if (!confirmed) {
+        if (!ok) {
             inputEl.value = oldName;
             state.players[i].name = oldName;
             setTimeout(() => inputEl.focus(), 50);
             return;
         }
-        // Merge: combine season data, summing entries with the same season name
         if (state.history[normOld]) {
-            state.history[normNew] = mergeSeasonArrays(
-                state.history[normNew] || [],
-                state.history[normOld]
-            );
+            state.history[normNew] = mergeSeasonArrays(state.history[normNew] || [], state.history[normOld]);
             delete state.history[normOld];
         }
     } else {
-        // Rename history key
         if (state.history[normOld]) {
             state.history[normNew] = state.history[normOld];
             delete state.history[normOld];
         }
     }
-
     state.players[i].name = newName;
     save(); render();
 }
 
-// ── Numeric fields ────────────────────────────────────────────
-function onNumFocus(e) {
-    setActiveRow(+e.target.dataset.row);
-}
-
-function onNumKeydown(e) {
-    if (e.key === 'Enter') e.target.blur();
-}
-
-function onNumBlur(e) {
-    const i = +e.target.dataset.row;
-    const group = e.target.dataset.group; // recv | sent
-    const field = e.target.dataset.field; // total | new_ | stars
-    const val = parseInt(e.target.value, 10);
-    state.players[i][group][field] = isNaN(val) ? 0 : Math.max(0, val);
-    e.target.value = state.players[i][group][field] || '';
-    save(); render();
-}
-
 function onNoteBlur(e) {
-    const i = +e.target.dataset.row;
-    state.players[i].note = e.target.value;
+    state.players[+e.target.dataset.row].note = e.target.value;
     save();
 }
 
 // ── Quick Panel ───────────────────────────────────────────────
-function quickAdd(direction, stars) {
+function quickAdd(direction, starIndex) {
     if (state.activeRow === null) return;
     const p = state.players[state.activeRow];
-    const group = direction === 'recv' ? p.recv : p.sent;
-    const isNew = state.isNewCard;
-
-    group.total = (group.total || 0) + 1;
-    if (isNew) group.new_ = (group.new_ || 0) + 1;
-    group.stars = (group.stars || 0) + stars;
-
+    const group = direction === 'recv'
+        ? (state.isNewCard ? 'received_new' : 'received_double')
+        : 'sent';
+    p[group][starIndex]++;
+    state.lastAction = { playerIndex: state.activeRow, group, starIndex, delta: 1 };
     save(); render();
-
-    // Keep focus on panel
     flashRow(state.activeRow);
+}
+
+function undoLast() {
+    if (!state.lastAction) return;
+    const { playerIndex, group, starIndex, delta } = state.lastAction;
+    const p = state.players[playerIndex];
+    if (p) p[group][starIndex] = Math.max(0, p[group][starIndex] - delta);
+    state.lastAction = null;
+    save(); render();
 }
 
 function flashRow(i) {
@@ -326,25 +305,24 @@ function flashRow(i) {
     }
 }
 
-// ── Delete row ────────────────────────────────────────────────
+// ── Delete / Add row ──────────────────────────────────────────
 async function deleteRow(i) {
     const name = state.players[i].name || '(без имени)';
-    const confirmed = await showConfirm(
+    const ok = await showConfirm(
         `Удалить игрока «${name}»?\n\nИстория за все сезоны сохранится.`,
         'Удалить', 'Отмена'
     );
-    if (!confirmed) return;
+    if (!ok) return;
     if (state.activeRow === i) state.activeRow = null;
     else if (state.activeRow > i) state.activeRow--;
+    if (state.lastAction?.playerIndex === i) state.lastAction = null;
     state.players.splice(i, 1);
     save(); render();
 }
 
-// ── Add row ───────────────────────────────────────────────────
 function addRow() {
     state.players.push(newPlayer());
     save(); render();
-    // Focus new name field
     setTimeout(() => {
         const inputs = document.querySelectorAll('.inp-name');
         if (inputs.length) inputs[inputs.length - 1].focus();
@@ -353,134 +331,217 @@ function addRow() {
 
 // ── New Season ────────────────────────────────────────────────
 async function newSeason() {
-    const confirmed = await showConfirm(
-        `Начать новый сезон?\n\nДанные текущего сезона «${state.currentSeason}» будут сохранены в историю, а счётчики обнулятся. Игроки останутся.`,
+    const ok = await showConfirm(
+        `Начать новый сезон?\n\nДанные «${state.currentSeason}» сохранятся в историю, счётчики обнулятся. Игроки останутся.`,
         'Начать новый сезон', 'Отмена'
     );
-    if (!confirmed) return;
+    if (!ok) return;
 
-    // Archive current season for each player
+    const finishedSeason = state.currentSeason;
     for (const p of state.players) {
         if (!p.name) continue;
         const key = norm(p.name);
         if (!state.history[key]) state.history[key] = [];
         state.history[key].push({
-            season: state.currentSeason,
-            recv: { ...p.recv },
-            sent: { ...p.sent },
+            season:          finishedSeason,
+            received_new:    [...p.received_new],
+            received_double: [...p.received_double],
+            sent:            [...p.sent],
         });
-        p.recv = genEmpty();
-        p.sent = genEmpty();
-        p.note = '';
+        p.received_new    = zeroes();
+        p.received_double = zeroes();
+        p.sent            = zeroes();
+        p.note            = '';
     }
-
-    // Increment season name
-    const match = state.currentSeason.match(/^(.*?)(\d+)$/);
-    if (match) {
-        state.currentSeason = match[1] + (parseInt(match[2]) + 1);
-    } else {
-        state.currentSeason = state.currentSeason + ' 2';
-    }
-
-    state.activeRow = null;
+    const m = state.currentSeason.match(/^(.*?)(\d+)$/);
+    state.currentSeason = m ? m[1] + (parseInt(m[2]) + 1) : state.currentSeason + ' 2';
+    state.activeRow  = null;
+    state.lastAction = null;
     save(); render();
     document.getElementById('season-label').textContent = state.currentSeason;
+    openStatsModal(null, finishedSeason);
 }
 
-// ── History Modal ─────────────────────────────────────────────
-function showHistory(i) {
+// ── Edit Modal ────────────────────────────────────────────────
+let editTarget = null;
+
+function openEditModal(i) {
+    editTarget = i;
     const p = state.players[i];
-    const name = p.name || '(без имени)';
-    const key = norm(name);
-    const { recv: tr, sent: ts, seasons } = historyTotals(key);
+    document.getElementById('edit-title').textContent = p.name || '(без имени)';
+    for (let s = 0; s < STARS; s++) {
+        document.getElementById(`edit-rn-${s}`).value = p.received_new[s]    || 0;
+        document.getElementById(`edit-rd-${s}`).value = p.received_double[s] || 0;
+        document.getElementById(`edit-st-${s}`).value = p.sent[s]            || 0;
+    }
+    updateEditSummary();
+    openModal('modal-edit');
+}
 
-    // Current season contribution
-    const cr = p.recv, cs = p.sent;
-    const allRecv = { total: tr.total + cr.total, new_: tr.new_ + cr.new_, stars: tr.stars + cr.stars };
-    const allSent = { total: ts.total + cs.total, new_: ts.new_ + cs.new_, stars: ts.stars + cs.stars };
-    const allBal = allRecv.stars - allSent.stars;
+function updateEditSummary() {
+    const rn = [], rd = [], st = [];
+    for (let s = 0; s < STARS; s++) {
+        rn.push(parseInt(document.getElementById(`edit-rn-${s}`).value, 10) || 0);
+        rd.push(parseInt(document.getElementById(`edit-rd-${s}`).value, 10) || 0);
+        st.push(parseInt(document.getElementById(`edit-st-${s}`).value, 10) || 0);
+    }
+    const rt  = rn.map((v, i) => v + rd[i]);
+    const rs  = calcStars(rt), ss = calcStars(st), bal = rs - ss;
+    const rnc = rn.reduce((a, b) => a + b, 0);
+    const rdc = rd.reduce((a, b) => a + b, 0);
+    const rtc = rt.reduce((a, b) => a + b, 0);
+    const stc = st.reduce((a, b) => a + b, 0);
 
-    let seasonsHtml = '';
-    if (seasons.length) {
-        seasonsHtml = seasons.map(s => {
-            const b = s.recv.stars - s.sent.stars;
-            const bc = b > 0 ? 'pos' : b < 0 ? 'neg' : '';
-            return `
-        <div class="hist-season">
-          <div class="hist-season-name">${esc(s.season)}</div>
-          <div class="hist-grid">
-            <span class="hist-label">Получено:</span>
-            <span>${s.recv.total} карт / ${s.recv.new_} новых / ${s.recv.stars}★</span>
-            <span class="hist-label">Отдано:</span>
-            <span>${s.sent.total} карт / ${s.sent.new_} новых / ${s.sent.stars}★</span>
-            <span class="hist-label">Баланс:</span>
-            <span class="${bc}">${b > 0 ? '+' : ''}${b}★</span>
-          </div>
-        </div>`;
-        }).join('');
-    } else {
-        seasonsHtml = '<div class="hist-empty">Прошлых сезонов нет</div>';
+    document.getElementById('edit-recv-summary').textContent =
+        `${rtc} (новых — ${rnc}, дублей — ${rdc}) = ${rs}★`;
+    document.getElementById('edit-sent-summary').textContent =
+        `${stc} (новых — ${rnc}) = ${ss}★`;
+
+    const balEl = document.getElementById('edit-balance');
+    balEl.textContent = (bal > 0 ? '+' : '') + bal + '★';
+    balEl.className = 'edit-bal-val ' + (bal > 0 ? 'pos' : bal < 0 ? 'neg' : '');
+}
+
+function saveEdit() {
+    if (editTarget === null) return;
+    const p = state.players[editTarget];
+    for (let s = 0; s < STARS; s++) {
+        p.received_new[s]    = Math.max(0, parseInt(document.getElementById(`edit-rn-${s}`).value, 10) || 0);
+        p.received_double[s] = Math.max(0, parseInt(document.getElementById(`edit-rd-${s}`).value, 10) || 0);
+        p.sent[s]            = Math.max(0, parseInt(document.getElementById(`edit-st-${s}`).value, 10) || 0);
+    }
+    state.lastAction = null;
+    save(); render();
+    closeModal('modal-edit');
+}
+
+// ── Stats Modal ───────────────────────────────────────────────
+let statsMode = null;
+
+function openStatsModal(playerIndex, preselectSeason = null) {
+    statsMode = playerIndex;
+    document.getElementById('stats-title').textContent =
+        playerIndex !== null ? (state.players[playerIndex]?.name || '(без имени)') : 'Все игроки';
+    buildSeasonList(preselectSeason);
+    openModal('modal-stats');
+}
+
+function buildSeasonList(preselectSeason) {
+    const list = document.getElementById('stats-season-list');
+    list.innerHTML = '';
+
+    const seasonNames = getSeasonNames();
+
+    const liCurr = createElement('li', ['stats-season-item'],
+        { 'data-season': 'current' }, state.currentSeason + ' (текущий)');
+    list.appendChild(liCurr);
+    liCurr.addEventListener('click', () => selectStatsSeason('current'));
+
+    for (const sname of seasonNames) {
+        const li = createElement('li', ['stats-season-item'], { 'data-season': sname }, sname);
+        list.appendChild(li);
+        li.addEventListener('click', () => selectStatsSeason(sname));
     }
 
-    const currentBal = cr.stars - cs.stars;
-    const currentBc = currentBal > 0 ? 'pos' : currentBal < 0 ? 'neg' : '';
-    const allBc = allBal > 0 ? 'pos' : allBal < 0 ? 'neg' : '';
+    if (seasonNames.length > 0) {
+        const liAll = createElement('li', ['stats-season-item'], { 'data-season': 'all' }, 'За всё время');
+        list.appendChild(liAll);
+        liAll.addEventListener('click', () => selectStatsSeason('all'));
+    }
 
-    document.getElementById('modal-title').textContent = name;
-    document.getElementById('modal-body').innerHTML = `
-    <div class="hist-section-title">Текущий сезон: ${esc(state.currentSeason)}</div>
-    <div class="hist-grid">
-      <span class="hist-label">Получено:</span>
-      <span>${cr.total} карт / ${cr.new_} новых / ${cr.stars}★</span>
-      <span class="hist-label">Отдано:</span>
-      <span>${cs.total} карт / ${cs.new_} новых / ${cs.stars}★</span>
-      <span class="hist-label">Баланс:</span>
-      <span class="${currentBc}">${currentBal > 0 ? '+' : ''}${currentBal}★</span>
-    </div>
-    <div class="hist-divider"></div>
-    <div class="hist-section-title">Прошлые сезоны</div>
-    ${seasonsHtml}
-    <div class="hist-divider"></div>
-    <div class="hist-section-title">Итого за всё время</div>
-    <div class="hist-grid">
-      <span class="hist-label">Получено:</span>
-      <span>${allRecv.total} карт / ${allRecv.new_} новых / ${allRecv.stars}★</span>
-      <span class="hist-label">Отдано:</span>
-      <span>${allSent.total} карт / ${allSent.new_} новых / ${allSent.stars}★</span>
-      <span class="hist-label">Баланс:</span>
-      <span class="${allBc}">${allBal > 0 ? '+' : ''}${allBal}★</span>
-    </div>
-  `;
-    openModal('modal-history');
+    selectStatsSeason(preselectSeason || 'current');
+}
+
+function getSeasonNames() {
+    const names = new Set();
+    if (statsMode !== null) {
+        const p = state.players[statsMode];
+        for (const h of (state.history[norm(p?.name || '')] || [])) names.add(h.season);
+    } else {
+        for (const seasons of Object.values(state.history))
+            for (const h of seasons) names.add(h.season);
+    }
+    return [...names];
+}
+
+function selectStatsSeason(seasonKey) {
+    document.querySelectorAll('.stats-season-item').forEach(li =>
+        li.classList.toggle('selected', li.dataset.season === seasonKey)
+    );
+
+    let data;
+    if (seasonKey === 'current') {
+        data = statsMode !== null
+            ? state.players[statsMode]
+            : aggregateRecords(state.players.filter(p => p.name));
+    } else if (seasonKey === 'all') {
+        if (statsMode !== null) {
+            const p = state.players[statsMode];
+            data = aggregateRecords([...(state.history[norm(p?.name || '')] || []), p]);
+        } else {
+            const all = [];
+            for (const seasons of Object.values(state.history)) all.push(...seasons);
+            for (const p of state.players) if (p.name) all.push(p);
+            data = aggregateRecords(all);
+        }
+    } else {
+        if (statsMode !== null) {
+            const p   = state.players[statsMode];
+            const rec = (state.history[norm(p?.name || '')] || []).find(h => h.season === seasonKey);
+            data = rec || { received_new: zeroes(), received_double: zeroes(), sent: zeroes() };
+        } else {
+            const recs = [];
+            for (const seasons of Object.values(state.history)) {
+                const r = seasons.find(h => h.season === seasonKey);
+                if (r) recs.push(r);
+            }
+            data = aggregateRecords(recs);
+        }
+    }
+
+    renderStatsDetail(playerTotals(data));
+}
+
+function renderStatsDetail(t) {
+    for (let s = 0; s < STARS; s++) {
+        document.getElementById(`sd-rn-${s}`).textContent = t.recv_new[s];
+        document.getElementById(`sd-rd-${s}`).textContent = t.recv_dbl[s];
+        document.getElementById(`sd-st-${s}`).textContent = t.sent[s];
+    }
+
+    document.getElementById('sd-recv-summary').textContent =
+        `${t.recv_total_count} (новых — ${t.recv_new_count}, дублей — ${t.recv_dbl_count}) = ${t.recv_stars}★`;
+    document.getElementById('sd-sent-summary').textContent =
+        `${t.sent_count} = ${t.sent_stars}★`;
+
+    const balEl = document.getElementById('sd-balance');
+    balEl.textContent = (t.balance > 0 ? '+' : '') + t.balance + '★';
+    balEl.className = 'sd-bal-val ' + (t.balance > 0 ? 'pos' : t.balance < 0 ? 'neg' : '');
 }
 
 // ── Import / Export ───────────────────────────────────────────
-function exportData() {
-    return JSON.stringify({ version: 1, ...state }, null, 2);
-}
+function exportData() { return JSON.stringify({ version: 2, ...state }, null, 2); }
 
 function importData(json) {
     try {
         const data = JSON.parse(json);
         if (!data.players || !data.history) throw new Error('Неверный формат');
         state.currentSeason = data.currentSeason || 'Сезон 1';
-        state.players = data.players;
-        state.history = data.history;
-        state.activeRow = null;
+        state.players       = data.players;
+        state.history       = data.history;
+        state.activeRow     = null;
+        state.lastAction    = null;
         save(); render();
         document.getElementById('season-label').textContent = state.currentSeason;
         return true;
-    } catch (e) {
-        alert('Ошибка импорта: ' + e.message);
-        return false;
-    }
+    } catch (e) { alert('Ошибка импорта: ' + e.message); return false; }
 }
 
 function downloadFile() {
-    const blob = new Blob([exportData()], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'card-tracker.json';
+    const a = createElement('a', [], {
+        href:     URL.createObjectURL(new Blob([exportData()], { type: 'application/json' })),
+        download: 'hs-exchange.json',
+    });
     a.click();
     closeMenu();
 }
@@ -495,42 +556,34 @@ async function copyToClipboard() {
     closeMenu();
 }
 
-function triggerFileImport() {
-    document.getElementById('file-input').click();
-    closeMenu();
-}
-
-function onFileImport(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-        if (importData(ev.target.result)) showToast('Данные загружены');
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-}
-
 async function pasteFromClipboard() {
     try {
         const text = await navigator.clipboard.readText();
         if (importData(text)) showToast('Данные загружены из буфера');
-    } catch (e) {
-        // Fallback: show textarea
+    } catch {
         openModal('modal-paste');
     }
     closeMenu();
 }
 
-function importFromTextarea() {
-    const text = document.getElementById('paste-area').value;
-    if (importData(text)) {
-        showToast('Данные загружены');
-        closeModal('modal-paste');
-    }
+function triggerFileImport() { document.getElementById('file-input').click(); closeMenu(); }
+
+function onFileImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { if (importData(ev.target.result)) showToast('Данные загружены'); };
+    reader.readAsText(file);
+    e.target.value = '';
 }
 
-// ── Modal helpers ─────────────────────────────────────────────
+function importFromTextarea() {
+    const text = document.getElementById('paste-area').value.trim();
+    if (!text) { showToast('Поле пустое — вставьте данные'); return; }
+    if (importData(text)) { showToast('Данные загружены'); closeModal('modal-paste'); }
+}
+
+// ── Modals ────────────────────────────────────────────────────
 function openModal(id) {
     document.getElementById(id).classList.add('open');
     document.getElementById('overlay').classList.add('open');
@@ -538,10 +591,8 @@ function openModal(id) {
 
 function closeModal(id) {
     document.getElementById(id).classList.remove('open');
-    // Close overlay if no modals open
-    if (!document.querySelector('.modal.open')) {
+    if (!document.querySelector('.modal.open'))
         document.getElementById('overlay').classList.remove('open');
-    }
 }
 
 function closeAllModals() {
@@ -549,28 +600,25 @@ function closeAllModals() {
     document.getElementById('overlay').classList.remove('open');
 }
 
-// ── Confirm dialog ────────────────────────────────────────────
 function showConfirm(message, okText, cancelText) {
     return new Promise(resolve => {
         document.getElementById('confirm-msg').innerHTML = message.replace(/\n/g, '<br>');
-        document.getElementById('confirm-ok').textContent = okText;
+        document.getElementById('confirm-ok').textContent     = okText;
         document.getElementById('confirm-cancel').textContent = cancelText;
         openModal('modal-confirm');
 
-        function onOk() { cleanup(); resolve(true); }
+        function onOk()     { cleanup(); resolve(true);  }
         function onCancel() { cleanup(); resolve(false); }
-        function cleanup() {
+        function cleanup()  {
             document.getElementById('confirm-ok').removeEventListener('click', onOk);
             document.getElementById('confirm-cancel').removeEventListener('click', onCancel);
             closeModal('modal-confirm');
         }
-
         document.getElementById('confirm-ok').addEventListener('click', onOk);
         document.getElementById('confirm-cancel').addEventListener('click', onCancel);
     });
 }
 
-// ── Toast ─────────────────────────────────────────────────────
 function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -579,92 +627,80 @@ function showToast(msg) {
 }
 
 // ── Menu ──────────────────────────────────────────────────────
-function toggleMenu() {
-    document.getElementById('menu-dropdown').classList.toggle('open');
-}
-function closeMenu() {
-    document.getElementById('menu-dropdown').classList.remove('open');
-}
+function toggleMenu() { document.getElementById('menu-dropdown').classList.toggle('open'); }
+function closeMenu()  { document.getElementById('menu-dropdown').classList.remove('open'); }
 
-// ── Season label edit ─────────────────────────────────────────
+// ── Season label ──────────────────────────────────────────────
 function editSeason() {
-    const label = document.getElementById('season-label');
-    const input = document.getElementById('season-input');
-    label.style.display = 'none';
-    input.style.display = 'inline-block';
-    input.value = state.currentSeason;
-    input.focus();
-    input.select();
+    document.getElementById('season-label').style.display = 'none';
+    const inp = document.getElementById('season-input');
+    inp.style.display = 'inline-block';
+    inp.value = state.currentSeason;
+    inp.focus(); inp.select();
 }
 
 function onSeasonBlur() {
-    const input = document.getElementById('season-input');
-    const val = input.value.trim();
+    const inp = document.getElementById('season-input');
+    const val = inp.value.trim();
     if (val) state.currentSeason = val;
     document.getElementById('season-label').textContent = state.currentSeason;
     document.getElementById('season-label').style.display = '';
-    input.style.display = 'none';
+    inp.style.display = 'none';
     save();
 }
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     load();
-
     document.getElementById('season-label').textContent = state.currentSeason;
+    document.getElementById('toggle-new').checked = state.isNewCard;
 
-    // Add row button
-    document.getElementById('btn-add-row').addEventListener('click', addRow);
-
-    // New season
-    document.getElementById('btn-new-season').addEventListener('click', () => {
-        closeMenu(); newSeason();
-    });
-
-    // Menu
-    document.getElementById('btn-menu').addEventListener('click', e => {
-        e.stopPropagation(); toggleMenu();
-    });
-    document.addEventListener('click', e => {
-        if (!e.target.closest('#menu-dropdown') && !e.target.closest('#btn-menu')) closeMenu();
-    });
-
-    // Menu items
-    document.getElementById('menu-export-file').addEventListener('click', downloadFile);
-    document.getElementById('menu-export-clip').addEventListener('click', copyToClipboard);
-    document.getElementById('menu-import-file').addEventListener('click', triggerFileImport);
-    document.getElementById('menu-import-clip').addEventListener('click', pasteFromClipboard);
-    document.getElementById('file-input').addEventListener('change', onFileImport);
-
-    // Paste modal
-    document.getElementById('btn-paste-import').addEventListener('click', importFromTextarea);
-    document.getElementById('btn-paste-cancel').addEventListener('click', () => closeModal('modal-paste'));
-
-    // History modal close
-    document.getElementById('btn-history-close').addEventListener('click', () => closeModal('modal-history'));
-
-    // Overlay
-    document.getElementById('overlay').addEventListener('click', closeAllModals);
-
-    // Quick panel toggle
-    document.getElementById('toggle-new').addEventListener('change', e => {
-        state.isNewCard = e.target.checked;
-    });
+    // Bulk handlers
+    const handlers = [
+        ['btn-add-row',       'click', addRow],
+        ['btn-new-season',    'click', () => { closeMenu(); newSeason(); }],
+        ['btn-stats-all',     'click', () => { closeMenu(); openStatsModal(null); }],
+        ['btn-menu',          'click', e => { e.stopPropagation(); toggleMenu(); }],
+        ['menu-export-file',  'click', downloadFile],
+        ['menu-export-clip',  'click', copyToClipboard],
+        ['menu-import-file',  'click', triggerFileImport],
+        ['menu-import-clip',  'click', pasteFromClipboard],
+        ['file-input',        'change', onFileImport],
+        ['toggle-new',        'change', e => { state.isNewCard = e.target.checked; }],
+        ['btn-undo',          'click', undoLast],
+        ['season-label',      'click', editSeason],
+        ['season-input',      'blur',  onSeasonBlur],
+        ['season-input',      'keydown', e => { if (e.key === 'Enter') e.target.blur(); }],
+        ['btn-edit-save',     'click', saveEdit],
+        ['btn-paste-import',  'click', importFromTextarea],
+    ];
+    handlers.forEach(([id, type, fn]) => addHandler(id, type, fn));
 
     // Star buttons
-    document.querySelectorAll('.star-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const dir = btn.dataset.dir;
-            const stars = +btn.dataset.stars;
-            quickAdd(dir, stars);
-        });
+    document.querySelectorAll('.star-btn').forEach(btn =>
+        btn.addEventListener('click', () => quickAdd(btn.dataset.dir, +btn.dataset.stars - 1))
+    );
+
+    // Edit inputs live summary
+    document.querySelectorAll('.edit-inp').forEach(inp => {
+        inp.addEventListener('input', updateEditSummary);
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
     });
 
-    // Season label click to edit
-    document.getElementById('season-label').addEventListener('click', editSeason);
-    document.getElementById('season-input').addEventListener('blur', onSeasonBlur);
-    document.getElementById('season-input').addEventListener('keydown', e => {
-        if (e.key === 'Enter') e.target.blur();
+    // Close buttons via data-closes attribute
+    document.querySelectorAll('[data-closes]').forEach(btn =>
+        btn.addEventListener('click', () => closeModal(btn.dataset.closes))
+    );
+
+    // Overlay closes modals (except confirm)
+    document.getElementById('overlay').addEventListener('click', () => {
+        if (document.getElementById('modal-confirm').classList.contains('open')) return;
+        closeAllModals();
+    });
+
+    // Close menu on outside click
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#menu-dropdown') && !e.target.closest('#btn-menu')) closeMenu();
     });
 
     render();
