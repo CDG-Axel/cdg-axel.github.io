@@ -121,6 +121,7 @@ thead th {
     text-transform: uppercase; color: var(--text2);
     padding: 7px 5px; text-align: center;
     border-bottom: 2px solid var(--border2); white-space: nowrap;
+    vertical-align: bottom;
 }
 thead th.th-group { background: var(--bg3); border-bottom: 1px solid var(--border); }
 thead th.th-name  { text-align: left; padding-left: 10px; }

@@ -2,24 +2,32 @@
 //  Card Exchange Tracker — hs-exchange.js
 // ============================================================
 
-const STORAGE_KEY = 'cardTracker_v2';
+const STORAGE_KEY = 'cardTracker_v3';
 const STARS = 5;
 
 // ── State ────────────────────────────────────────────────────
 let state = {
-    currentSeason: 'Сезон 1',
-    players: [],
-    history: {},
-    isNewCard: false,
-    activeRow: null,
-    lastAction: null,
+    lang:         'ru',
+    isNewCard:    false,
+    activePlayer: null,  // normalized key
+    lastAction:   null,  // { playerKey, group, starIndex, delta }
+
+    current: {
+        name:       'Сезон 1',
+        start_date: new Date().toISOString(),
+        players:    {},
+        // { normKey: { name, received_new[], received_double[], sent[], note } }
+    },
+
+    history: [],
+    // [ { name, start_date, end_date, players: { normKey: { name, received_new[], received_double[], sent[] } } } ]
 };
 
 // ── Helpers ──────────────────────────────────────────────────
 const norm   = s => (s || '').trim().toLowerCase();
 const zeroes = () => Array(STARS).fill(0);
 
-function newPlayer(name = '') {
+function newPlayerData(name = '') {
     return { name, received_new: zeroes(), received_double: zeroes(), sent: zeroes(), note: '' };
 }
 
@@ -32,14 +40,17 @@ function arrAdd(base, delta) {
 }
 
 function playerTotals(d) {
-    const recv_new   = d.received_new   || zeroes();
-    const recv_dbl   = d.received_double || zeroes();
-    const recv_total = recv_new.map((v, i) => v + recv_dbl[i]);
-    const sent       = d.sent || zeroes();
+    const received_new    = d.received_new    || zeroes();
+    const received_double = d.received_double || zeroes();
+    const sent            = d.sent            || zeroes();
+    const recv_total      = received_new.map((v, i) => v + received_double[i]);
     return {
-        recv_new, recv_dbl, recv_total, sent,
-        recv_new_count:   recv_new.reduce((a, b) => a + b, 0),
-        recv_dbl_count:   recv_dbl.reduce((a, b) => a + b, 0),
+        recv_new:         received_new,
+        recv_dbl:         received_double,
+        recv_total,
+        sent,
+        recv_new_count:   received_new.reduce((a, b) => a + b, 0),
+        recv_dbl_count:   received_double.reduce((a, b) => a + b, 0),
         recv_total_count: recv_total.reduce((a, b) => a + b, 0),
         sent_count:       sent.reduce((a, b) => a + b, 0),
         recv_stars:       calcStars(recv_total),
@@ -48,39 +59,26 @@ function playerTotals(d) {
     };
 }
 
-function aggregateRecords(records) {
+function aggregatePlayers(playersDict) {
     const out = { received_new: zeroes(), received_double: zeroes(), sent: zeroes() };
-    for (const r of records) {
-        out.received_new    = arrAdd(out.received_new,    r.received_new    || zeroes());
-        out.received_double = arrAdd(out.received_double, r.received_double || zeroes());
-        out.sent            = arrAdd(out.sent,            r.sent            || zeroes());
+    for (const p of Object.values(playersDict)) {
+        out.received_new    = arrAdd(out.received_new,    p.received_new    || zeroes());
+        out.received_double = arrAdd(out.received_double, p.received_double || zeroes());
+        out.sent            = arrAdd(out.sent,            p.sent            || zeroes());
     }
     return out;
 }
 
-function mergeSeasonArrays(base, incoming) {
-    const result = base.map(s => ({
-        season:          s.season,
-        received_new:    [...s.received_new],
-        received_double: [...s.received_double],
-        sent:            [...s.sent],
-    }));
-    for (const s of incoming) {
-        const ex = result.find(r => r.season === s.season);
-        if (ex) {
-            ex.received_new    = arrAdd(ex.received_new,    s.received_new);
-            ex.received_double = arrAdd(ex.received_double, s.received_double);
-            ex.sent            = arrAdd(ex.sent,            s.sent);
-        } else {
-            result.push({
-                season:          s.season,
-                received_new:    [...s.received_new],
-                received_double: [...s.received_double],
-                sent:            [...s.sent],
-            });
-        }
-    }
-    return result;
+// Sorted player entries by balance descending
+function sortedPlayers() {
+    return Object.entries(state.current.players)
+        .map(([key, p]) => ({ key, p, bal: playerTotals(p).balance }))
+        .sort((a, b) => b.bal - a.bal);
+}
+
+function formatDate(iso) {
+    if (!iso) return null;
+    return new Date(iso).toLocaleDateString();
 }
 
 // ── DOM helpers ───────────────────────────────────────────────
@@ -119,21 +117,22 @@ function renderTable() {
     const tbody = document.getElementById('tbody');
     tbody.innerHTML = '';
 
-    state.players.forEach((p, i) => {
-        const t = playerTotals(p);
-        const tr = createElement('tr', state.activeRow === i ? ['active-row'] : []);
+    for (const { key, p } of sortedPlayers()) {
+        const t        = playerTotals(p);
+        const isActive = state.activePlayer === key;
+        const tr       = createElement('tr', isActive ? ['active-row'] : []);
 
         // Name cell
         const tdName   = appendElement(tr, 'td', ['td-name']);
         const nameCell = appendElement(tdName, 'div', ['name-cell']);
         const nameInput = createElement('input', ['inp', 'inp-name'], {
-            'data-row': i, value: p.name, placeholder: 'Игрок',
+            'data-key': key, value: p.name, placeholder: 'Игрок',
             autocomplete: 'off', inputmode: 'text', enterkeyhint: 'done',
         });
         nameCell.appendChild(nameInput);
-        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-info'], { 'data-row': i, title: 'Статистика' }, 'ℹ'));
-        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-edit'], { 'data-row': i, title: 'Редактировать' }, '✎'));
-        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-del'],  { 'data-row': i, title: 'Удалить' }, '✕'));
+        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-info'], { 'data-key': key, title: 'Статистика' }, 'ℹ'));
+        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-edit'], { 'data-key': key, title: 'Редактировать' }, '✎'));
+        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-del'],  { 'data-key': key, title: 'Удалить' }, '✕'));
 
         // Received: total, new, stars
         appendElement(tr, 'td', ['td-num', 'td-recv'], {}, String(t.recv_total_count));
@@ -151,32 +150,32 @@ function renderTable() {
         // Note
         const tdNote = appendElement(tr, 'td', ['td-note']);
         tdNote.appendChild(createElement('input', ['inp', 'inp-note'], {
-            'data-row': i, value: p.note, placeholder: '…', inputmode: 'text',
+            'data-key': key, value: p.note || '', placeholder: '…', inputmode: 'text',
         }));
 
         tbody.appendChild(tr);
 
         // Events
-        nameInput.addEventListener('focus',   onNameFocus);
+        nameInput.addEventListener('focus',   () => setActivePlayer(key));
         nameInput.addEventListener('blur',    onNameBlur);
         nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
 
-        tdNote.querySelector('.inp-note').addEventListener('focus', () => setActiveRow(i));
+        tdNote.querySelector('.inp-note').addEventListener('focus', () => setActivePlayer(key));
         tdNote.querySelector('.inp-note').addEventListener('blur',  onNoteBlur);
         tdNote.querySelector('.inp-note').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
 
-        tr.addEventListener('click', () => setActiveRow(i));
-        tdName.querySelector('.btn-info').addEventListener('click', e => { e.stopPropagation(); openStatsModal(i); });
-        tdName.querySelector('.btn-edit').addEventListener('click', e => { e.stopPropagation(); openEditModal(i); });
-        tdName.querySelector('.btn-del').addEventListener('click',  e => { e.stopPropagation(); deleteRow(i); });
-    });
+        tr.addEventListener('click', () => setActivePlayer(key));
+        tdName.querySelector('.btn-info').addEventListener('click', e => { e.stopPropagation(); openStatsModal(key); });
+        tdName.querySelector('.btn-edit').addEventListener('click', e => { e.stopPropagation(); openEditModal(key); });
+        tdName.querySelector('.btn-del').addEventListener('click',  e => { e.stopPropagation(); deletePlayer(key); });
+    }
 
     renderTotalsRow(tbody);
 }
 
 function renderTotalsRow(tbody) {
-    if (state.players.length === 0) return;
-    const t = playerTotals(aggregateRecords(state.players));
+    if (Object.keys(state.current.players).length === 0) return;
+    const t  = playerTotals(aggregatePlayers(state.current.players));
     const tr = createElement('tr', ['totals-row']);
 
     appendElement(tr, 'td', ['td-name', 'totals-label'], {}, 'Итого');
@@ -192,7 +191,8 @@ function renderTotalsRow(tbody) {
 }
 
 function renderPanel() {
-    const player = state.activeRow !== null ? state.players[state.activeRow] : null;
+    const key    = state.activePlayer;
+    const player = key ? state.current.players[key] : null;
     document.getElementById('panel-player').textContent =
         player ? (player.name || '(без имени)') : 'Выберите игрока';
     const disabled = !player;
@@ -201,173 +201,216 @@ function renderPanel() {
     document.getElementById('btn-undo').disabled   = disabled || !state.lastAction;
 }
 
-// ── Active row ────────────────────────────────────────────────
-function setActiveRow(i) {
-    state.activeRow = i;
-    document.querySelectorAll('#tbody tr').forEach((tr, idx) =>
-        tr.classList.toggle('active-row', idx === i)
-    );
+// ── Active player ─────────────────────────────────────────────
+function setActivePlayer(key) {
+    state.activePlayer = key;
+    document.querySelectorAll('#tbody tr').forEach(tr => {
+        const inp = tr.querySelector('.inp-name');
+        tr.classList.toggle('active-row', inp ? inp.dataset.key === key : false);
+    });
     renderPanel();
 }
 
 // ── Name handling ─────────────────────────────────────────────
-function onNameFocus(e) { setActiveRow(+e.target.dataset.row); }
-
 async function onNameBlur(e) {
-    const i       = +e.target.dataset.row;
+    const oldKey  = e.target.dataset.key;
     const newName = e.target.value.trim();
-    const oldName = (state.players[i].name || '').trim();
+    const p       = state.current.players[oldKey];
+    if (!p) return;
+    const oldName = p.name.trim();
     if (newName === oldName) return;
-    if (oldName) await handleRename(i, oldName, newName, e.target);
-    else         await handleNewName(i, newName, e.target);
-}
 
-async function handleNewName(i, newName, inputEl) {
-    if (!newName) return;
-    if ((state.history[norm(newName)] || []).length > 0) {
-        const ok = await showConfirm(
-            `В истории найден игрок «${newName}».\nЭто тот же человек?`,
-            'Да, тот же', 'Нет, другой'
-        );
-        if (!ok) {
-            inputEl.value = '';
-            state.players[i].name = '';
-            setTimeout(() => inputEl.focus(), 50);
-            return;
+    if (!newName) { e.target.value = oldName; return; }
+
+    const newKey = norm(newName);
+
+    if (newKey === oldKey) {
+        // Same key, just casing change
+        p.name = newName;
+        // Update name in all history seasons too
+        for (const season of state.history) {
+            if (season.players[oldKey]) season.players[oldKey].name = newName;
         }
+        save(); render(); return;
     }
-    state.players[i].name = newName;
-    save(); render();
-}
 
-async function handleRename(i, oldName, newName, inputEl) {
-    if (!newName) { inputEl.value = oldName; return; }
-    const normOld = norm(oldName), normNew = norm(newName);
-    if (normOld === normNew) { state.players[i].name = newName; save(); render(); return; }
+    // Different key — check if newKey already exists anywhere
+    const existsInCurrent = !!state.current.players[newKey];
+    const existsInHistory = state.history.some(s => !!s.players[newKey]);
 
-    if ((state.history[normNew] || []).length > 0) {
+    if (existsInCurrent || existsInHistory) {
         const ok = await showConfirm(
-            `Игрок «${newName}» уже есть в истории. Объединить данные?`,
+            `Игрок «${newName}» уже есть в данных. Объединить?`,
             'Да, объединить', 'Нет, изменить имя'
         );
-        if (!ok) {
-            inputEl.value = oldName;
-            state.players[i].name = oldName;
-            setTimeout(() => inputEl.focus(), 50);
-            return;
-        }
-        if (state.history[normOld]) {
-            state.history[normNew] = mergeSeasonArrays(state.history[normNew] || [], state.history[normOld]);
-            delete state.history[normOld];
-        }
-    } else {
-        if (state.history[normOld]) {
-            state.history[normNew] = state.history[normOld];
-            delete state.history[normOld];
-        }
+        if (!ok) { e.target.value = oldName; setTimeout(() => e.target.focus(), 50); return; }
     }
-    state.players[i].name = newName;
+
+    renamePlayerKey(oldKey, newKey, newName);
     save(); render();
+}
+
+function renamePlayerKey(oldKey, newKey, newName) {
+    // Current season
+    const p = state.current.players[oldKey];
+    if (state.current.players[newKey]) {
+        // Merge into existing
+        const target = state.current.players[newKey];
+        target.received_new    = arrAdd(target.received_new,    p.received_new);
+        target.received_double = arrAdd(target.received_double, p.received_double);
+        target.sent            = arrAdd(target.sent,            p.sent);
+        target.note            = target.note || p.note;
+    } else {
+        state.current.players[newKey] = { ...p, name: newName };
+    }
+    delete state.current.players[oldKey];
+
+    if (state.activePlayer === oldKey) state.activePlayer = newKey;
+    if (state.lastAction?.playerKey === oldKey) state.lastAction.playerKey = newKey;
+
+    // History
+    for (const season of state.history) {
+        const hp = season.players[oldKey];
+        if (!hp) continue;
+        if (season.players[newKey]) {
+            const ht = season.players[newKey];
+            ht.received_new    = arrAdd(ht.received_new,    hp.received_new);
+            ht.received_double = arrAdd(ht.received_double, hp.received_double);
+            ht.sent            = arrAdd(ht.sent,            hp.sent);
+        } else {
+            season.players[newKey] = { ...hp, name: newName };
+        }
+        delete season.players[oldKey];
+    }
 }
 
 function onNoteBlur(e) {
-    state.players[+e.target.dataset.row].note = e.target.value;
+    const key = e.target.dataset.key;
+    if (state.current.players[key]) state.current.players[key].note = e.target.value;
     save();
 }
 
+// ── Add new player ────────────────────────────────────────────
+async function addRow() {
+    // Create with empty name — user will type it
+    const tempKey = '__new__' + Date.now();
+    state.current.players[tempKey] = newPlayerData('');
+    state.activePlayer = tempKey;
+    save(); render();
+    setTimeout(() => {
+        const inputs = document.querySelectorAll('.inp-name');
+        // Focus the one with data-key = tempKey
+        for (const inp of inputs) {
+            if (inp.dataset.key === tempKey) { inp.focus(); break; }
+        }
+    }, 50);
+}
+
+// Special handling: when a temp-key player gets a name, re-key it
+// This is handled in onNameBlur via renamePlayerKey
+
 // ── Quick Panel ───────────────────────────────────────────────
 function quickAdd(direction, starIndex) {
-    if (state.activeRow === null) return;
-    const p = state.players[state.activeRow];
+    const key = state.activePlayer;
+    if (!key) return;
+    const p = state.current.players[key];
+    if (!p) return;
     const group = direction === 'recv'
         ? (state.isNewCard ? 'received_new' : 'received_double')
         : 'sent';
     p[group][starIndex]++;
-    state.lastAction = { playerIndex: state.activeRow, group, starIndex, delta: 1 };
+    state.lastAction = { playerKey: key, group, starIndex, delta: 1 };
     save(); render();
-    flashRow(state.activeRow);
+    flashPlayerRow(key);
 }
 
 function undoLast() {
     if (!state.lastAction) return;
-    const { playerIndex, group, starIndex, delta } = state.lastAction;
-    const p = state.players[playerIndex];
+    const { playerKey, group, starIndex, delta } = state.lastAction;
+    const p = state.current.players[playerKey];
     if (p) p[group][starIndex] = Math.max(0, p[group][starIndex] - delta);
     state.lastAction = null;
     save(); render();
 }
 
-function flashRow(i) {
-    const rows = document.querySelectorAll('#tbody tr');
-    if (rows[i]) {
-        rows[i].classList.add('flash');
-        setTimeout(() => rows[i].classList.remove('flash'), 300);
-    }
+function flashPlayerRow(key) {
+    document.querySelectorAll('#tbody tr').forEach(tr => {
+        const inp = tr.querySelector('.inp-name');
+        if (inp && inp.dataset.key === key) {
+            tr.classList.add('flash');
+            setTimeout(() => tr.classList.remove('flash'), 300);
+        }
+    });
 }
 
-// ── Delete / Add row ──────────────────────────────────────────
-async function deleteRow(i) {
-    const name = state.players[i].name || '(без имени)';
+// ── Delete player ─────────────────────────────────────────────
+async function deletePlayer(key) {
+    const name = state.current.players[key]?.name || '(без имени)';
     const ok = await showConfirm(
         `Удалить игрока «${name}»?\n\nИстория за все сезоны сохранится.`,
         'Удалить', 'Отмена'
     );
     if (!ok) return;
-    if (state.activeRow === i) state.activeRow = null;
-    else if (state.activeRow > i) state.activeRow--;
-    if (state.lastAction?.playerIndex === i) state.lastAction = null;
-    state.players.splice(i, 1);
+    delete state.current.players[key];
+    if (state.activePlayer === key) state.activePlayer = null;
+    if (state.lastAction?.playerKey === key) state.lastAction = null;
     save(); render();
-}
-
-function addRow() {
-    state.players.push(newPlayer());
-    save(); render();
-    setTimeout(() => {
-        const inputs = document.querySelectorAll('.inp-name');
-        if (inputs.length) inputs[inputs.length - 1].focus();
-    }, 50);
 }
 
 // ── New Season ────────────────────────────────────────────────
 async function newSeason() {
     const ok = await showConfirm(
-        `Начать новый сезон?\n\nДанные «${state.currentSeason}» сохранятся в историю, счётчики обнулятся. Игроки останутся.`,
+        `Начать новый сезон?\n\nДанные «${state.current.name}» сохранятся в историю, счётчики обнулятся. Игроки останутся.`,
         'Начать новый сезон', 'Отмена'
     );
     if (!ok) return;
 
-    const finishedSeason = state.currentSeason;
-    for (const p of state.players) {
-        if (!p.name) continue;
-        const key = norm(p.name);
-        if (!state.history[key]) state.history[key] = [];
-        state.history[key].push({
-            season:          finishedSeason,
+    const now = new Date().toISOString();
+
+    // Archive current season
+    const archived = {
+        name:       state.current.name,
+        start_date: state.current.start_date,
+        end_date:   now,
+        players:    {},
+    };
+    for (const [key, p] of Object.entries(state.current.players)) {
+        archived.players[key] = {
+            name:            p.name,
             received_new:    [...p.received_new],
             received_double: [...p.received_double],
             sent:            [...p.sent],
-        });
+        };
+    }
+    state.history.push(archived);
+
+    // Increment season name
+    const m = state.current.name.match(/^(.*?)(\d+)$/);
+    const newName = m ? m[1] + (parseInt(m[2]) + 1) : state.current.name + ' 2';
+
+    // Reset current season, keep players
+    for (const p of Object.values(state.current.players)) {
         p.received_new    = zeroes();
         p.received_double = zeroes();
         p.sent            = zeroes();
         p.note            = '';
     }
-    const m = state.currentSeason.match(/^(.*?)(\d+)$/);
-    state.currentSeason = m ? m[1] + (parseInt(m[2]) + 1) : state.currentSeason + ' 2';
-    state.activeRow  = null;
-    state.lastAction = null;
+    state.current.name       = newName;
+    state.current.start_date = now;
+    state.activePlayer  = null;
+    state.lastAction    = null;
+
     save(); render();
-    document.getElementById('season-label').textContent = state.currentSeason;
-    openStatsModal(null, finishedSeason);
+    document.getElementById('season-label').textContent = state.current.name;
+    openStatsModal(null, archived.name);
 }
 
 // ── Edit Modal ────────────────────────────────────────────────
-let editTarget = null;
+let editTarget = null; // player key
 
-function openEditModal(i) {
-    editTarget = i;
-    const p = state.players[i];
+function openEditModal(key) {
+    editTarget = key;
+    const p = state.current.players[key];
     document.getElementById('edit-title').textContent = p.name || '(без имени)';
     for (let s = 0; s < STARS; s++) {
         document.getElementById(`edit-rn-${s}`).value = p.received_new[s]    || 0;
@@ -395,7 +438,7 @@ function updateEditSummary() {
     document.getElementById('edit-recv-summary').textContent =
         `${rtc} (новых — ${rnc}, дублей — ${rdc}) = ${rs}★`;
     document.getElementById('edit-sent-summary').textContent =
-        `${stc} (новых — ${rnc}) = ${ss}★`;
+        `${stc} = ${ss}★`;
 
     const balEl = document.getElementById('edit-balance');
     balEl.textContent = (bal > 0 ? '+' : '') + bal + '★';
@@ -403,8 +446,9 @@ function updateEditSummary() {
 }
 
 function saveEdit() {
-    if (editTarget === null) return;
-    const p = state.players[editTarget];
+    if (!editTarget) return;
+    const p = state.current.players[editTarget];
+    if (!p) return;
     for (let s = 0; s < STARS; s++) {
         p.received_new[s]    = Math.max(0, parseInt(document.getElementById(`edit-rn-${s}`).value, 10) || 0);
         p.received_double[s] = Math.max(0, parseInt(document.getElementById(`edit-rd-${s}`).value, 10) || 0);
@@ -416,12 +460,12 @@ function saveEdit() {
 }
 
 // ── Stats Modal ───────────────────────────────────────────────
-let statsMode = null;
+let statsPlayerKey = null; // null = all players
 
-function openStatsModal(playerIndex, preselectSeason = null) {
-    statsMode = playerIndex;
+function openStatsModal(playerKey, preselectSeason = null) {
+    statsPlayerKey = playerKey;
     document.getElementById('stats-title').textContent =
-        playerIndex !== null ? (state.players[playerIndex]?.name || '(без имени)') : 'Все игроки';
+        playerKey ? (state.current.players[playerKey]?.name || '(без имени)') : 'Все игроки';
     buildSeasonList(preselectSeason);
     openModal('modal-stats');
 }
@@ -430,38 +474,30 @@ function buildSeasonList(preselectSeason) {
     const list = document.getElementById('stats-season-list');
     list.innerHTML = '';
 
-    const seasonNames = getSeasonNames();
-
-    const liCurr = createElement('li', ['stats-season-item'],
-        { 'data-season': 'current' }, state.currentSeason + ' (текущий)');
+    // Current season
+    const liCurr = createElement('li', ['stats-season-item'], { 'data-season': '__current__' });
+    liCurr.appendChild(document.createTextNode(state.current.name + ' (текущий)'));
     list.appendChild(liCurr);
-    liCurr.addEventListener('click', () => selectStatsSeason('current'));
+    liCurr.addEventListener('click', () => selectStatsSeason('__current__'));
 
-    for (const sname of seasonNames) {
-        const li = createElement('li', ['stats-season-item'], { 'data-season': sname }, sname);
+    // Past seasons sorted by start_date descending
+    const pastSeasons = [...state.history].sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+    for (const s of pastSeasons) {
+        const li = createElement('li', ['stats-season-item'], { 'data-season': s.name });
+        li.appendChild(document.createTextNode(s.name));
         list.appendChild(li);
-        li.addEventListener('click', () => selectStatsSeason(sname));
+        li.addEventListener('click', () => selectStatsSeason(s.name));
     }
 
-    if (seasonNames.length > 0) {
-        const liAll = createElement('li', ['stats-season-item'], { 'data-season': 'all' }, 'За всё время');
+    // All time
+    if (state.history.length > 0) {
+        const liAll = createElement('li', ['stats-season-item'], { 'data-season': '__all__' });
+        liAll.appendChild(document.createTextNode('За всё время'));
         list.appendChild(liAll);
-        liAll.addEventListener('click', () => selectStatsSeason('all'));
+        liAll.addEventListener('click', () => selectStatsSeason('__all__'));
     }
 
-    selectStatsSeason(preselectSeason || 'current');
-}
-
-function getSeasonNames() {
-    const names = new Set();
-    if (statsMode !== null) {
-        const p = state.players[statsMode];
-        for (const h of (state.history[norm(p?.name || '')] || [])) names.add(h.season);
-    } else {
-        for (const seasons of Object.values(state.history))
-            for (const h of seasons) names.add(h.season);
-    }
-    return [...names];
+    selectStatsSeason(preselectSeason || '__current__');
 }
 
 function selectStatsSeason(seasonKey) {
@@ -469,37 +505,52 @@ function selectStatsSeason(seasonKey) {
         li.classList.toggle('selected', li.dataset.season === seasonKey)
     );
 
-    let data;
-    if (seasonKey === 'current') {
-        data = statsMode !== null
-            ? state.players[statsMode]
-            : aggregateRecords(state.players.filter(p => p.name));
-    } else if (seasonKey === 'all') {
-        if (statsMode !== null) {
-            const p = state.players[statsMode];
-            data = aggregateRecords([...(state.history[norm(p?.name || '')] || []), p]);
-        } else {
-            const all = [];
-            for (const seasons of Object.values(state.history)) all.push(...seasons);
-            for (const p of state.players) if (p.name) all.push(p);
-            data = aggregateRecords(all);
-        }
-    } else {
-        if (statsMode !== null) {
-            const p   = state.players[statsMode];
-            const rec = (state.history[norm(p?.name || '')] || []).find(h => h.season === seasonKey);
-            data = rec || { received_new: zeroes(), received_double: zeroes(), sent: zeroes() };
-        } else {
-            const recs = [];
-            for (const seasons of Object.values(state.history)) {
-                const r = seasons.find(h => h.season === seasonKey);
-                if (r) recs.push(r);
-            }
-            data = aggregateRecords(recs);
+    // Update date in modal title
+    let datePart = '';
+    if (seasonKey === '__current__') {
+        const d = formatDate(state.current.start_date);
+        if (d) datePart = ` (с ${d})`;
+    } else if (seasonKey !== '__all__') {
+        const s = state.history.find(h => h.name === seasonKey);
+        if (s) {
+            const d1 = formatDate(s.start_date), d2 = formatDate(s.end_date);
+            if (d1 && d2) datePart = ` (${d1} — ${d2})`;
+            else if (d1)  datePart = ` (с ${d1})`;
         }
     }
+    const baseTitle = statsPlayerKey
+        ? (state.current.players[statsPlayerKey]?.name || '(без имени)')
+        : 'Все игроки';
+    document.getElementById('stats-title').textContent = baseTitle + datePart;
 
-    renderStatsDetail(playerTotals(data));
+    renderStatsDetail(playerTotals(getStatsData(seasonKey)));
+}
+
+function getStatsData(seasonKey) {
+    if (seasonKey === '__current__') {
+        return statsPlayerKey
+            ? (state.current.players[statsPlayerKey] || newPlayerData())
+            : aggregatePlayers(state.current.players);
+    }
+    if (seasonKey === '__all__') {
+        const allDicts = [state.current.players, ...state.history.map(s => s.players)];
+        const merged = {};
+        for (const dict of allDicts) {
+            for (const [key, p] of Object.entries(dict)) {
+                if (!merged[key]) merged[key] = { received_new: zeroes(), received_double: zeroes(), sent: zeroes() };
+                merged[key].received_new    = arrAdd(merged[key].received_new,    p.received_new    || zeroes());
+                merged[key].received_double = arrAdd(merged[key].received_double, p.received_double || zeroes());
+                merged[key].sent            = arrAdd(merged[key].sent,            p.sent            || zeroes());
+            }
+        }
+        return statsPlayerKey ? (merged[statsPlayerKey] || newPlayerData()) : aggregatePlayers(merged);
+    }
+    // Specific past season
+    const s = state.history.find(h => h.name === seasonKey);
+    if (!s) return newPlayerData();
+    return statsPlayerKey
+        ? (s.players[statsPlayerKey] || newPlayerData())
+        : aggregatePlayers(s.players);
 }
 
 function renderStatsDetail(t) {
@@ -508,31 +559,31 @@ function renderStatsDetail(t) {
         document.getElementById(`sd-rd-${s}`).textContent = t.recv_dbl[s];
         document.getElementById(`sd-st-${s}`).textContent = t.sent[s];
     }
-
     document.getElementById('sd-recv-summary').textContent =
         `${t.recv_total_count} (новых — ${t.recv_new_count}, дублей — ${t.recv_dbl_count}) = ${t.recv_stars}★`;
     document.getElementById('sd-sent-summary').textContent =
         `${t.sent_count} = ${t.sent_stars}★`;
-
     const balEl = document.getElementById('sd-balance');
     balEl.textContent = (t.balance > 0 ? '+' : '') + t.balance + '★';
     balEl.className = 'sd-bal-val ' + (t.balance > 0 ? 'pos' : t.balance < 0 ? 'neg' : '');
 }
 
 // ── Import / Export ───────────────────────────────────────────
-function exportData() { return JSON.stringify({ version: 2, ...state }, null, 2); }
+function exportData() { return JSON.stringify({ version: 3, ...state }, null, 2); }
 
 function importData(json) {
     try {
         const data = JSON.parse(json);
-        if (!data.players || !data.history) throw new Error('Неверный формат');
-        state.currentSeason = data.currentSeason || 'Сезон 1';
-        state.players       = data.players;
-        state.history       = data.history;
-        state.activeRow     = null;
-        state.lastAction    = null;
+        if (!data.current || !data.history) throw new Error('Неверный формат');
+        state.current     = data.current;
+        state.history     = data.history;
+        state.lang        = data.lang        || 'ru';
+        state.isNewCard   = data.isNewCard   || false;
+        state.activePlayer = null;
+        state.lastAction  = null;
         save(); render();
-        document.getElementById('season-label').textContent = state.currentSeason;
+        document.getElementById('season-label').textContent = state.current.name;
+        document.getElementById('toggle-new').checked = state.isNewCard;
         return true;
     } catch (e) { alert('Ошибка импорта: ' + e.message); return false; }
 }
@@ -542,17 +593,12 @@ function downloadFile() {
         href:     URL.createObjectURL(new Blob([exportData()], { type: 'application/json' })),
         download: 'hs-exchange.json',
     });
-    a.click();
-    closeMenu();
+    a.click(); closeMenu();
 }
 
 async function copyToClipboard() {
-    try {
-        await navigator.clipboard.writeText(exportData());
-        showToast('Скопировано в буфер обмена');
-    } catch (e) {
-        showToast('Не удалось скопировать: ' + e.message);
-    }
+    try { await navigator.clipboard.writeText(exportData()); showToast('Скопировано в буфер обмена'); }
+    catch (e) { showToast('Не удалось скопировать: ' + e.message); }
     closeMenu();
 }
 
@@ -560,21 +606,17 @@ async function pasteFromClipboard() {
     try {
         const text = await navigator.clipboard.readText();
         if (importData(text)) showToast('Данные загружены из буфера');
-    } catch {
-        openModal('modal-paste');
-    }
+    } catch { openModal('modal-paste'); }
     closeMenu();
 }
 
 function triggerFileImport() { document.getElementById('file-input').click(); closeMenu(); }
 
 function onFileImport(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = ev => { if (importData(ev.target.result)) showToast('Данные загружены'); };
-    reader.readAsText(file);
-    e.target.value = '';
+    reader.readAsText(file); e.target.value = '';
 }
 
 function importFromTextarea() {
@@ -606,7 +648,6 @@ function showConfirm(message, okText, cancelText) {
         document.getElementById('confirm-ok').textContent     = okText;
         document.getElementById('confirm-cancel').textContent = cancelText;
         openModal('modal-confirm');
-
         function onOk()     { cleanup(); resolve(true);  }
         function onCancel() { cleanup(); resolve(false); }
         function cleanup()  {
@@ -621,8 +662,7 @@ function showConfirm(message, okText, cancelText) {
 
 function showToast(msg) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
+    t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2500);
 }
 
@@ -635,15 +675,15 @@ function editSeason() {
     document.getElementById('season-label').style.display = 'none';
     const inp = document.getElementById('season-input');
     inp.style.display = 'inline-block';
-    inp.value = state.currentSeason;
+    inp.value = state.current.name;
     inp.focus(); inp.select();
 }
 
 function onSeasonBlur() {
     const inp = document.getElementById('season-input');
     const val = inp.value.trim();
-    if (val) state.currentSeason = val;
-    document.getElementById('season-label').textContent = state.currentSeason;
+    if (val) state.current.name = val;
+    document.getElementById('season-label').textContent = state.current.name;
     document.getElementById('season-label').style.display = '';
     inp.style.display = 'none';
     save();
@@ -652,53 +692,47 @@ function onSeasonBlur() {
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     load();
-    document.getElementById('season-label').textContent = state.currentSeason;
+    document.getElementById('season-label').textContent = state.current.name;
     document.getElementById('toggle-new').checked = state.isNewCard;
 
-    // Bulk handlers
     const handlers = [
-        ['btn-add-row',       'click', addRow],
-        ['btn-new-season',    'click', () => { closeMenu(); newSeason(); }],
-        ['btn-stats-all',     'click', () => { closeMenu(); openStatsModal(null); }],
-        ['btn-menu',          'click', e => { e.stopPropagation(); toggleMenu(); }],
-        ['menu-export-file',  'click', downloadFile],
-        ['menu-export-clip',  'click', copyToClipboard],
-        ['menu-import-file',  'click', triggerFileImport],
-        ['menu-import-clip',  'click', pasteFromClipboard],
-        ['file-input',        'change', onFileImport],
-        ['toggle-new',        'change', e => { state.isNewCard = e.target.checked; save(); }],
-        ['btn-undo',          'click', undoLast],
-        ['season-label',      'click', editSeason],
-        ['season-input',      'blur',  onSeasonBlur],
-        ['season-input',      'keydown', e => { if (e.key === 'Enter') e.target.blur(); }],
-        ['btn-edit-save',     'click', saveEdit],
-        ['btn-paste-import',  'click', importFromTextarea],
+        ['btn-add-row',      'click', addRow],
+        ['btn-new-season',   'click', () => { closeMenu(); newSeason(); }],
+        ['btn-stats-all',    'click', () => { closeMenu(); openStatsModal(null); }],
+        ['btn-menu',         'click', e => { e.stopPropagation(); toggleMenu(); }],
+        ['menu-export-file', 'click', downloadFile],
+        ['menu-export-clip', 'click', copyToClipboard],
+        ['menu-import-file', 'click', triggerFileImport],
+        ['menu-import-clip', 'click', pasteFromClipboard],
+        ['file-input',       'change', onFileImport],
+        ['toggle-new',       'change', e => { state.isNewCard = e.target.checked; save(); }],
+        ['btn-undo',         'click', undoLast],
+        ['season-label',     'click', editSeason],
+        ['season-input',     'blur',  onSeasonBlur],
+        ['season-input',     'keydown', e => { if (e.key === 'Enter') e.target.blur(); }],
+        ['btn-edit-save',    'click', saveEdit],
+        ['btn-paste-import', 'click', importFromTextarea],
     ];
     handlers.forEach(([id, type, fn]) => addHandler(id, type, fn));
 
-    // Star buttons
     document.querySelectorAll('.star-btn').forEach(btn =>
         btn.addEventListener('click', () => quickAdd(btn.dataset.dir, +btn.dataset.stars - 1))
     );
 
-    // Edit inputs live summary
     document.querySelectorAll('.edit-inp').forEach(inp => {
         inp.addEventListener('input', updateEditSummary);
         inp.addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
     });
 
-    // Close buttons via data-closes attribute
     document.querySelectorAll('[data-closes]').forEach(btn =>
         btn.addEventListener('click', () => closeModal(btn.dataset.closes))
     );
 
-    // Overlay closes modals (except confirm)
     document.getElementById('overlay').addEventListener('click', () => {
         if (document.getElementById('modal-confirm').classList.contains('open')) return;
         closeAllModals();
     });
 
-    // Close menu on outside click
     document.addEventListener('click', e => {
         if (!e.target.closest('#menu-dropdown') && !e.target.closest('#btn-menu')) closeMenu();
     });
