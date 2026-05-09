@@ -128,29 +128,20 @@ function renderTable() {
         const nameInput = createElement('input', ['inp', 'inp-name'], {
             'data-key': key, value: p.name, placeholder: 'Игрок',
             autocomplete: 'off', inputmode: 'text', enterkeyhint: 'done',
+            'aria-label': 'Имя игрока',
         });
         nameCell.appendChild(nameInput);
         nameCell.appendChild(createElement('button', ['btn-icon', 'btn-info'], { 'data-key': key, title: 'Статистика' }, 'ℹ'));
         nameCell.appendChild(createElement('button', ['btn-icon', 'btn-edit'], { 'data-key': key, title: 'Редактировать' }, '✎'));
         nameCell.appendChild(createElement('button', ['btn-icon', 'btn-del'],  { 'data-key': key, title: 'Удалить' }, '✕'));
 
-        // Received: total, new, stars
-        appendElement(tr, 'td', ['td-num', 'td-recv'], {}, String(t.recv_total_count));
-        appendElement(tr, 'td', ['td-num', 'td-recv'], {}, String(t.recv_new_count));
-        appendElement(tr, 'td', ['td-num', 'td-recv', 'td-stars'], {}, String(t.recv_stars));
-
-        // Sent: total, stars
-        appendElement(tr, 'td', ['td-num', 'td-sent'], {}, String(t.sent_count));
-        appendElement(tr, 'td', ['td-num', 'td-sent', 'td-stars'], {}, String(t.sent_stars));
-
-        // Balance
-        const bc = t.balance > 0 ? 'pos' : t.balance < 0 ? 'neg' : '';
-        appendElement(tr, 'td', ['td-num', 'td-bal', bc], {}, String(t.balance));
+        appendDataCells(tr, t);
 
         // Note
         const tdNote = appendElement(tr, 'td', ['td-note']);
         tdNote.appendChild(createElement('input', ['inp', 'inp-note'], {
             'data-key': key, value: p.note || '', placeholder: '…', inputmode: 'text',
+            'aria-label': 'Примечание',
         }));
 
         tbody.appendChild(tr);
@@ -167,18 +158,13 @@ function renderTable() {
         tr.addEventListener('click', () => setActivePlayer(key));
         tdName.querySelector('.btn-info').addEventListener('click', e => { e.stopPropagation(); openStatsModal(key); });
         tdName.querySelector('.btn-edit').addEventListener('click', e => { e.stopPropagation(); openEditModal(key); });
-        tdName.querySelector('.btn-del').addEventListener('click',  e => { e.stopPropagation(); deletePlayer(key); });
+        tdName.querySelector('.btn-del').addEventListener('click',  e => { e.stopPropagation(); void deletePlayer(key); });
     }
 
     renderTotalsRow(tbody);
 }
 
-function renderTotalsRow(tbody) {
-    if (Object.keys(state.current.players).length === 0) return;
-    const t  = playerTotals(aggregatePlayers(state.current.players));
-    const tr = createElement('tr', ['totals-row']);
-
-    appendElement(tr, 'td', ['td-name', 'totals-label'], {}, 'Итого');
+function appendDataCells(tr, t) {
     appendElement(tr, 'td', ['td-num', 'td-recv'], {}, String(t.recv_total_count));
     appendElement(tr, 'td', ['td-num', 'td-recv'], {}, String(t.recv_new_count));
     appendElement(tr, 'td', ['td-num', 'td-recv', 'td-stars'], {}, String(t.recv_stars));
@@ -186,6 +172,14 @@ function renderTotalsRow(tbody) {
     appendElement(tr, 'td', ['td-num', 'td-sent', 'td-stars'], {}, String(t.sent_stars));
     const bc = t.balance > 0 ? 'pos' : t.balance < 0 ? 'neg' : '';
     appendElement(tr, 'td', ['td-num', 'td-bal', bc], {}, String(t.balance));
+}
+
+function renderTotalsRow(tbody) {
+    if (Object.keys(state.current.players).length === 0) return;
+    const t  = playerTotals(aggregatePlayers(state.current.players));
+    const tr = createElement('tr', ['totals-row']);
+    appendElement(tr, 'td', ['td-name', 'totals-label'], {}, 'Итого');
+    appendDataCells(tr, t);
     appendElement(tr, 'td', ['td-note']);
     tbody.appendChild(tr);
 }
@@ -533,9 +527,9 @@ function getStatsData(seasonKey) {
             : aggregatePlayers(state.current.players);
     }
     if (seasonKey === '__all__') {
-        const allDicts = [state.current.players, ...state.history.map(s => s.players)];
+        const allPlayers = [state.current.players, ...state.history.map(s => s.players)];
         const merged = {};
-        for (const dict of allDicts) {
+        for (const dict of allPlayers) {
             for (const [key, p] of Object.entries(dict)) {
                 if (!merged[key]) merged[key] = { received_new: zeroes(), received_double: zeroes(), sent: zeroes() };
                 merged[key].received_new    = arrAdd(merged[key].received_new,    p.received_new    || zeroes());
@@ -574,7 +568,7 @@ function exportData() { return JSON.stringify({ version: 3, ...state }, null, 2)
 function importData(json) {
     try {
         const data = JSON.parse(json);
-        if (!data.current || !data.history) throw new Error('Неверный формат');
+        if (!data.current || !data.history) { alert('Ошибка импорта: неверный формат'); return false; }
         state.current     = data.current;
         state.history     = data.history;
         state.lang        = data.lang        || 'ru';
@@ -585,7 +579,7 @@ function importData(json) {
         document.getElementById('season-label').textContent = state.current.name;
         document.getElementById('toggle-new').checked = state.isNewCard;
         return true;
-    } catch (e) { alert('Ошибка импорта: ' + e.message); return false; }
+    } catch (e) { alert('Ошибка импорта: ' + e.message); return false; }  // catches JSON.parse errors
 }
 
 function downloadFile() {
@@ -697,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handlers = [
         ['btn-add-row',      'click', addRow],
-        ['btn-new-season',   'click', () => { closeMenu(); newSeason(); }],
+        ['btn-new-season',   'click', () => { closeMenu(); void newSeason(); }],
         ['btn-stats-all',    'click', () => { closeMenu(); openStatsModal(null); }],
         ['btn-menu',         'click', e => { e.stopPropagation(); toggleMenu(); }],
         ['menu-export-file', 'click', downloadFile],

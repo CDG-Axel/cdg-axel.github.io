@@ -15,7 +15,7 @@
         Обмен картами
     </div>
     <span id="season-label"></span>
-    <input id="season-input" type="text" maxlength="40" enterkeyhint="done">
+    <input id="season-input" type="text" maxlength="40" enterkeyhint="done" aria-label="Название сезона">
     <div class="menu-wrap">
         <button id="btn-menu" title="Меню">☰</button>
         <div id="menu-dropdown">
@@ -79,7 +79,7 @@
             <div class="panel-controls">
                 <div class="toggle-wrap">
                     <label for="toggle-new">Новая карта</label>
-                    <input type="checkbox" id="toggle-new">
+                    <input type="checkbox" id="toggle-new" aria-label="Новая карта">
                     <label class="toggle-slider" for="toggle-new"></label>
                 </div>
                 <button id="btn-undo" class="btn-undo" title="Отменить последнее действие" disabled>↩ Отмена</button>
@@ -135,27 +135,27 @@
             <tbody>
             <tr>
                 <td class="edit-row-label recv-lbl">Получено новых</td>
-                <td><input class="edit-inp" id="edit-rn-0" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-rn-1" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-rn-2" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-rn-3" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-rn-4" type="number" min="0" value="0"></td>
+                <td><input class="edit-inp" id="edit-rn-0" type="number" min="0" value="0" aria-label="Получено новых 1★"></td>
+                <td><input class="edit-inp" id="edit-rn-1" type="number" min="0" value="0" aria-label="Получено новых 2★"></td>
+                <td><input class="edit-inp" id="edit-rn-2" type="number" min="0" value="0" aria-label="Получено новых 3★"></td>
+                <td><input class="edit-inp" id="edit-rn-3" type="number" min="0" value="0" aria-label="Получено новых 4★"></td>
+                <td><input class="edit-inp" id="edit-rn-4" type="number" min="0" value="0" aria-label="Получено новых 5★"></td>
             </tr>
             <tr>
                 <td class="edit-row-label recv-lbl">Получено дублей</td>
-                <td><input class="edit-inp" id="edit-rd-0" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-rd-1" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-rd-2" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-rd-3" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-rd-4" type="number" min="0" value="0"></td>
+                <td><input class="edit-inp" id="edit-rd-0" type="number" min="0" value="0" aria-label="Получено дублей 1★"></td>
+                <td><input class="edit-inp" id="edit-rd-1" type="number" min="0" value="0" aria-label="Получено дублей 2★"></td>
+                <td><input class="edit-inp" id="edit-rd-2" type="number" min="0" value="0" aria-label="Получено дублей 3★"></td>
+                <td><input class="edit-inp" id="edit-rd-3" type="number" min="0" value="0" aria-label="Получено дублей 4★"></td>
+                <td><input class="edit-inp" id="edit-rd-4" type="number" min="0" value="0" aria-label="Получено дублей 5★"></td>
             </tr>
             <tr>
                 <td class="edit-row-label sent-lbl">Подарено</td>
-                <td><input class="edit-inp" id="edit-st-0" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-st-1" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-st-2" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-st-3" type="number" min="0" value="0"></td>
-                <td><input class="edit-inp" id="edit-st-4" type="number" min="0" value="0"></td>
+                <td><input class="edit-inp" id="edit-st-0" type="number" min="0" value="0" aria-label="Подарено 1★"></td>
+                <td><input class="edit-inp" id="edit-st-1" type="number" min="0" value="0" aria-label="Подарено 2★"></td>
+                <td><input class="edit-inp" id="edit-st-2" type="number" min="0" value="0" aria-label="Подарено 3★"></td>
+                <td><input class="edit-inp" id="edit-st-3" type="number" min="0" value="0" aria-label="Подарено 4★"></td>
+                <td><input class="edit-inp" id="edit-st-4" type="number" min="0" value="0" aria-label="Подарено 5★"></td>
             </tr>
             </tbody>
         </table>
@@ -237,7 +237,7 @@
         <button class="modal-close" data-closes="modal-paste">✕</button>
     </div>
     <p class="modal-hint">Вставьте скопированные данные в поле ниже (Ctrl+V / ⌘+V) и нажмите «Импортировать».</p>
-    <textarea id="paste-area" placeholder="Вставьте данные сюда…"></textarea>
+    <textarea id="paste-area" placeholder="Вставьте данные сюда…" aria-label="Данные для импорта"></textarea>
     <div class="modal-btns">
         <button class="btn-secondary" data-closes="modal-paste">Отмена</button>
         <button class="btn-primary" id="btn-paste-import">Импортировать</button>
