@@ -191,36 +191,40 @@
             <ul id="stats-season-list" class="stats-season-list"></ul>
         </div>
         <div class="stats-right">
-            <table class="stats-detail-table">
-                <colgroup>
-                    <col class="sdt-col-label">
-                    <col class="sdt-col-star"><col class="sdt-col-star">
-                    <col class="sdt-col-star"><col class="sdt-col-star"><col class="sdt-col-star">
-                </colgroup>
-                <thead>
-                <tr>
-                    <th class="sdt-label"></th>
-                    <th>1★</th><th>2★</th><th>3★</th><th>4★</th><th>5★</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td class="sdt-label recv-lbl">Получено новых</td>
-                    <td id="sd-rn-0">0</td><td id="sd-rn-1">0</td>
-                    <td id="sd-rn-2">0</td><td id="sd-rn-3">0</td><td id="sd-rn-4">0</td>
-                </tr>
-                <tr>
-                    <td class="sdt-label recv-lbl">Получено дублей</td>
-                    <td id="sd-rd-0">0</td><td id="sd-rd-1">0</td>
-                    <td id="sd-rd-2">0</td><td id="sd-rd-3">0</td><td id="sd-rd-4">0</td>
-                </tr>
-                <tr>
-                    <td class="sdt-label sent-lbl">Подарено</td>
-                    <td id="sd-st-0">0</td><td id="sd-st-1">0</td>
-                    <td id="sd-st-2">0</td><td id="sd-st-3">0</td><td id="sd-st-4">0</td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="sdt-grid">
+                <div class="sdt-header-row">
+                    <div class="sdt-h-label"></div>
+                    <div class="sdt-h-star">1★</div>
+                    <div class="sdt-h-star">2★</div>
+                    <div class="sdt-h-star">3★</div>
+                    <div class="sdt-h-star">4★</div>
+                    <div class="sdt-h-star">5★</div>
+                </div>
+                <div class="sdt-data-row">
+                    <div class="sdt-row-label recv-lbl">Получено новых</div>
+                    <div class="sdt-cell" id="sd-rn-0">0</div>
+                    <div class="sdt-cell" id="sd-rn-1">0</div>
+                    <div class="sdt-cell" id="sd-rn-2">0</div>
+                    <div class="sdt-cell" id="sd-rn-3">0</div>
+                    <div class="sdt-cell" id="sd-rn-4">0</div>
+                </div>
+                <div class="sdt-data-row">
+                    <div class="sdt-row-label recv-lbl">Получено дублей</div>
+                    <div class="sdt-cell" id="sd-rd-0">0</div>
+                    <div class="sdt-cell" id="sd-rd-1">0</div>
+                    <div class="sdt-cell" id="sd-rd-2">0</div>
+                    <div class="sdt-cell" id="sd-rd-3">0</div>
+                    <div class="sdt-cell" id="sd-rd-4">0</div>
+                </div>
+                <div class="sdt-data-row">
+                    <div class="sdt-row-label sent-lbl">Подарено</div>
+                    <div class="sdt-cell" id="sd-st-0">0</div>
+                    <div class="sdt-cell" id="sd-st-1">0</div>
+                    <div class="sdt-cell" id="sd-st-2">0</div>
+                    <div class="sdt-cell" id="sd-st-3">0</div>
+                    <div class="sdt-cell" id="sd-st-4">0</div>
+                </div>
+            </div>
             <div class="stats-summary">
                 <div class="stats-sum-row">
                     <span class="stats-sum-label recv-lbl">Получено карт —</span>

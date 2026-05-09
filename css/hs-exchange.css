@@ -377,27 +377,37 @@ td { padding: 3px 4px; text-align: center; vertical-align: middle; }
 
 .stats-right { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 
-.stats-detail-table { width: 100%; border-collapse: collapse; }
-.stats-detail-table col.sdt-col-label { width: 42%; }
-.stats-detail-table col.sdt-col-star  { width: 11.6%; }
-.stats-detail-table th {
-    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--gold); padding: 5px 4px; text-align: center;
-    border-bottom: 1px solid var(--border);
+/* Stats detail grid */
+.sdt-grid { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+.sdt-header-row, .sdt-data-row {
+    display: grid;
+    grid-template-columns: 1fr 44px 44px 44px 44px 44px;
+    align-items: center;
 }
-.stats-detail-table td {
+.sdt-header-row {
+    background: var(--bg3);
+    border-bottom: 2px solid var(--border2);
+}
+.sdt-data-row { border-bottom: 1px solid var(--border); }
+.sdt-data-row:last-child { border-bottom: none; }
+
+.sdt-h-label { padding: 6px 10px; }
+.sdt-h-star {
+    font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--gold);
+    padding: 6px 4px; text-align: center;
+}
+.sdt-row-label {
+    font-size: 12px; font-weight: 600; color: var(--text2);
+    padding: 7px 10px; white-space: nowrap;
+}
+.sdt-row-label.recv-lbl { color: var(--green); }
+.sdt-row-label.sent-lbl { color: #f08080; }
+.sdt-cell {
     font-family: var(--font-mono); font-size: 13px;
-    padding: 5px 4px; text-align: center; color: var(--text);
+    color: var(--text); text-align: center; padding: 7px 4px;
 }
-.sdt-label {
-    font-family: var(--font-main) !important; font-size: 12px !important;
-    font-weight: 600; color: var(--text2); text-align: left !important;
-    width: 100px;
-    padding-right: 6px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.sdt-label.recv-lbl { color: var(--green); }
-.sdt-label.sent-lbl { color: #f08080; }
-.sdt-total-row td { font-weight: 700; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 
 .stats-summary {
     display: flex; flex-direction: column; gap: 6px;

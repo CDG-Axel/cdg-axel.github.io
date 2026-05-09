@@ -666,7 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ['menu-import-file',  'click', triggerFileImport],
         ['menu-import-clip',  'click', pasteFromClipboard],
         ['file-input',        'change', onFileImport],
-        ['toggle-new',        'change', e => { state.isNewCard = e.target.checked; }],
+        ['toggle-new',        'change', e => { state.isNewCard = e.target.checked; save(); }],
         ['btn-undo',          'click', undoLast],
         ['season-label',      'click', editSeason],
         ['season-input',      'blur',  onSeasonBlur],
