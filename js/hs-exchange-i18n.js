@@ -3,6 +3,21 @@
 // ============================================================
 
 const i18n = {
+    'menu-section-season': {
+        en: 'Season',
+        ru: 'Сезон',
+        de: 'Saison',
+    },
+    'menu-section-export': {
+        en: 'Export',
+        ru: 'Экспорт',
+        de: 'Export',
+    },
+    'menu-section-import': {
+        en: 'Import',
+        ru: 'Импорт',
+        de: 'Import',
+    },
     'btn-new-season': {
         en: '🔄 New season',
         ru: '🔄 Новый сезон',
@@ -219,21 +234,81 @@ const i18n = {
         ru: 'Закрыть',
         de: 'Schließen',
     },
-    'edit-rn-0.aria': { en: 'Received new 1★', ru: 'Получено новых 1★', de: 'Erhalten neu 1★' },
-    'edit-rn-1.aria': { en: 'Received new 2★', ru: 'Получено новых 2★', de: 'Erhalten neu 2★' },
-    'edit-rn-2.aria': { en: 'Received new 3★', ru: 'Получено новых 3★', de: 'Erhalten neu 3★' },
-    'edit-rn-3.aria': { en: 'Received new 4★', ru: 'Получено новых 4★', de: 'Erhalten neu 4★' },
-    'edit-rn-4.aria': { en: 'Received new 5★', ru: 'Получено новых 5★', de: 'Erhalten neu 5★' },
-    'edit-rd-0.aria': { en: 'Received doubles 1★', ru: 'Получено дублей 1★', de: 'Erhalten doppelt 1★' },
-    'edit-rd-1.aria': { en: 'Received doubles 2★', ru: 'Получено дублей 2★', de: 'Erhalten doppelt 2★' },
-    'edit-rd-2.aria': { en: 'Received doubles 3★', ru: 'Получено дублей 3★', de: 'Erhalten doppelt 3★' },
-    'edit-rd-3.aria': { en: 'Received doubles 4★', ru: 'Получено дублей 4★', de: 'Erhalten doppelt 4★' },
-    'edit-rd-4.aria': { en: 'Received doubles 5★', ru: 'Получено дублей 5★', de: 'Erhalten doppelt 5★' },
-    'edit-st-0.aria': { en: 'Gifted 1★', ru: 'Подарено 1★', de: 'Verschenkt 1★' },
-    'edit-st-1.aria': { en: 'Gifted 2★', ru: 'Подарено 2★', de: 'Verschenkt 2★' },
-    'edit-st-2.aria': { en: 'Gifted 3★', ru: 'Подарено 3★', de: 'Verschenkt 3★' },
-    'edit-st-3.aria': { en: 'Gifted 4★', ru: 'Подарено 4★', de: 'Verschenkt 4★' },
-    'edit-st-4.aria': { en: 'Gifted 5★', ru: 'Подарено 5★', de: 'Verschenkt 5★' },
+    'edit-rn-0.aria': {
+        en: 'Received new 1★',
+        ru: 'Получено новых 1★',
+        de: 'Erhalten neu 1★',
+    },
+    'edit-rn-1.aria': {
+        en: 'Received new 2★',
+        ru: 'Получено новых 2★',
+        de: 'Erhalten neu 2★',
+    },
+    'edit-rn-2.aria': {
+        en: 'Received new 3★',
+        ru: 'Получено новых 3★',
+        de: 'Erhalten neu 3★',
+    },
+    'edit-rn-3.aria': {
+        en: 'Received new 4★',
+        ru: 'Получено новых 4★',
+        de: 'Erhalten neu 4★',
+    },
+    'edit-rn-4.aria': {
+        en: 'Received new 5★',
+        ru: 'Получено новых 5★',
+        de: 'Erhalten neu 5★',
+    },
+    'edit-rd-0.aria': {
+        en: 'Received doubles 1★',
+        ru: 'Получено дублей 1★',
+        de: 'Erhalten doppelt 1★',
+    },
+    'edit-rd-1.aria': {
+        en: 'Received doubles 2★',
+        ru: 'Получено дублей 2★',
+        de: 'Erhalten doppelt 2★',
+    },
+    'edit-rd-2.aria': {
+        en: 'Received doubles 3★',
+        ru: 'Получено дублей 3★',
+        de: 'Erhalten doppelt 3★',
+    },
+    'edit-rd-3.aria': {
+        en: 'Received doubles 4★',
+        ru: 'Получено дублей 4★',
+        de: 'Erhalten doppelt 4★',
+    },
+    'edit-rd-4.aria': {
+        en: 'Received doubles 5★',
+        ru: 'Получено дублей 5★',
+        de: 'Erhalten doppelt 5★',
+    },
+    'edit-st-0.aria': {
+        en: 'Gifted 1★',
+        ru: 'Подарено 1★',
+        de: 'Verschenkt 1★',
+    },
+    'edit-st-1.aria': {
+        en: 'Gifted 2★',
+        ru: 'Подарено 2★',
+        de: 'Verschenkt 2★',
+    },
+    'edit-st-2.aria': {
+        en: 'Gifted 3★',
+        ru: 'Подарено 3★',
+        de: 'Verschenkt 3★',
+    },
+    'edit-st-3.aria': {
+        en: 'Gifted 4★',
+        ru: 'Подарено 4★',
+        de: 'Verschenkt 4★',
+    },
+    'edit-st-4.aria': {
+        en: 'Gifted 5★',
+        ru: 'Подарено 5★',
+        de: 'Verschenkt 5★',
+    },
 
 };
 
