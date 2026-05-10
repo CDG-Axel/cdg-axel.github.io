@@ -15,10 +15,10 @@
         <span data-i18n="app-title">Card Exchange</span>
     </div>
     <span id="season-label"></span>
-    <input id="season-input" type="text" maxlength="40" enterkeyhint="done" aria-label="Название сезона">
+    <input id="season-input" type="text" maxlength="40" enterkeyhint="done" data-i18n title="Season name">
     <div class="menu-wrap">
-        <button id="btn-lang" class="btn-lang-toggle" title="Language">🌐</button>
-        <button id="btn-menu" title="Menu">☰</button>
+        <button id="btn-lang" class="btn-lang-toggle" data-i18n title="Language">🌐</button>
+        <button id="btn-menu" data-i18n title="Menu">☰</button>
         <div id="menu-dropdown">
             <div class="menu-section">
                 <div class="menu-section-label">Сезон</div>
@@ -85,10 +85,10 @@
             <div class="panel-controls">
                 <div class="toggle-wrap">
                     <label for="toggle-new" data-i18n="panel-toggle-new">New card</label>
-                    <input type="checkbox" id="toggle-new" aria-label="Новая карта">
+                    <input type="checkbox" id="toggle-new" data-i18n aria-label="New card">
                     <label class="toggle-slider" for="toggle-new"></label>
                 </div>
-                <button id="btn-undo" class="btn-undo" title="Отменить последнее действие" disabled>↩ Отмена</button>
+                <button id="btn-undo" class="btn-undo" data-i18n title="Undo last action" disabled>↩ Undo</button>
             </div>
         </div>
         <div class="panel-rows">
@@ -128,7 +128,7 @@
 <div class="modal modal-wide" id="modal-edit">
     <div class="modal-header">
         <span class="modal-title">✎ <span id="edit-title"></span></span>
-        <button class="modal-close" data-closes="modal-edit">✕</button>
+        <button class="modal-close" data-closes="modal-edit" data-i18n="modal-close-btn" aria-label="Close">✕</button>
     </div>
     <div class="edit-grid">
         <div class="edit-header-row">
@@ -137,27 +137,27 @@
         </div>
         <div class="edit-data-row">
             <div class="recv-lbl" data-i18n="edit-rn-label">Received new</div>
-            <input class="edit-inp" id="edit-rn-0" type="number" min="0" value="0" aria-label="Получено новых 1★">
-            <input class="edit-inp" id="edit-rn-1" type="number" min="0" value="0" aria-label="Получено новых 2★">
-            <input class="edit-inp" id="edit-rn-2" type="number" min="0" value="0" aria-label="Получено новых 3★">
-            <input class="edit-inp" id="edit-rn-3" type="number" min="0" value="0" aria-label="Получено новых 4★">
-            <input class="edit-inp" id="edit-rn-4" type="number" min="0" value="0" aria-label="Получено новых 5★">
+            <input class="edit-inp" id="edit-rn-0" data-i18n type="number" min="0" value="0" aria-label="Received new 1★">
+            <input class="edit-inp" id="edit-rn-1" data-i18n type="number" min="0" value="0" aria-label="Received new 2★">
+            <input class="edit-inp" id="edit-rn-2" data-i18n type="number" min="0" value="0" aria-label="Received new 3★">
+            <input class="edit-inp" id="edit-rn-3" data-i18n type="number" min="0" value="0" aria-label="Received new 4★">
+            <input class="edit-inp" id="edit-rn-4" data-i18n type="number" min="0" value="0" aria-label="Received new 5★">
         </div>
         <div class="edit-data-row">
             <div class="recv-lbl" data-i18n="edit-rd-label">Received doubles</div>
-            <input class="edit-inp" id="edit-rd-0" type="number" min="0" value="0" aria-label="Получено дублей 1★">
-            <input class="edit-inp" id="edit-rd-1" type="number" min="0" value="0" aria-label="Получено дублей 2★">
-            <input class="edit-inp" id="edit-rd-2" type="number" min="0" value="0" aria-label="Получено дублей 3★">
-            <input class="edit-inp" id="edit-rd-3" type="number" min="0" value="0" aria-label="Получено дублей 4★">
-            <input class="edit-inp" id="edit-rd-4" type="number" min="0" value="0" aria-label="Получено дублей 5★">
+            <input class="edit-inp" id="edit-rd-0" data-i18n type="number" min="0" value="0" aria-label="Received doubles 1★">
+            <input class="edit-inp" id="edit-rd-1" data-i18n type="number" min="0" value="0" aria-label="Received doubles 2★">
+            <input class="edit-inp" id="edit-rd-2" data-i18n type="number" min="0" value="0" aria-label="Received doubles 3★">
+            <input class="edit-inp" id="edit-rd-3" data-i18n type="number" min="0" value="0" aria-label="Received doubles 4★">
+            <input class="edit-inp" id="edit-rd-4" data-i18n type="number" min="0" value="0" aria-label="Received doubles 5★">
         </div>
         <div class="edit-data-row">
             <div class="sent-lbl" data-i18n="edit-st-label">Gifted</div>
-            <input class="edit-inp" id="edit-st-0" type="number" min="0" value="0" aria-label="Подарено 1★">
-            <input class="edit-inp" id="edit-st-1" type="number" min="0" value="0" aria-label="Подарено 2★">
-            <input class="edit-inp" id="edit-st-2" type="number" min="0" value="0" aria-label="Подарено 3★">
-            <input class="edit-inp" id="edit-st-3" type="number" min="0" value="0" aria-label="Подарено 4★">
-            <input class="edit-inp" id="edit-st-4" type="number" min="0" value="0" aria-label="Подарено 5★">
+            <input class="edit-inp" id="edit-st-0" data-i18n type="number" min="0" value="0" aria-label="Gifted 1★">
+            <input class="edit-inp" id="edit-st-1" data-i18n type="number" min="0" value="0" aria-label="Gifted 2★">
+            <input class="edit-inp" id="edit-st-2" data-i18n type="number" min="0" value="0" aria-label="Gifted 3★">
+            <input class="edit-inp" id="edit-st-3" data-i18n type="number" min="0" value="0" aria-label="Gifted 4★">
+            <input class="edit-inp" id="edit-st-4" data-i18n type="number" min="0" value="0" aria-label="Gifted 5★">
         </div>
     </div>
     <div class="edit-summary">
@@ -184,7 +184,7 @@
 <div class="modal modal-stats-modal" id="modal-stats">
     <div class="modal-header">
         <span class="modal-title">📊 <span id="stats-title"></span></span>
-        <button class="modal-close" data-closes="modal-stats" aria-label="Close">✕</button>
+        <button class="modal-close" data-closes="modal-stats" data-i18n="modal-close-btn" aria-label="Close">✕</button>
     </div>
     <div class="stats-body">
         <div class="stats-left">
@@ -234,10 +234,10 @@
 <div class="modal" id="modal-paste">
     <div class="modal-header">
         <span class="modal-title" data-i18n="paste-modal-title">Paste data</span>
-        <button class="modal-close" data-closes="modal-paste">✕</button>
+        <button class="modal-close" data-closes="modal-paste" data-i18n="modal-close-btn" aria-label="Close">✕</button>
     </div>
     <p class="modal-hint" data-i18n="paste-modal-hint">Paste clipboard contents below (Ctrl+V / ⌘+V) and click Import.</p>
-    <textarea id="paste-area" placeholder="Вставьте данные сюда…" aria-label="Данные для импорта"></textarea>
+    <textarea id="paste-area" data-i18n aria-label="Paste data here"></textarea>
     <div class="modal-btns">
         <button class="btn-secondary" data-closes="modal-paste" data-i18n="confirm_cancel">Cancel</button>
         <button class="btn-primary" id="btn-paste-import" data-i18n>Import</button>

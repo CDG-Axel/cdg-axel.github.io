@@ -19,6 +19,7 @@ function loadLang() {
 function setLang(lang) {
     currentLang = lang;
     localStorage.setItem(LANG_KEY, lang);
+    closeLangMenu();
     applyTranslations();
     render();
     document.querySelectorAll('.lang-btn').forEach(b =>
@@ -36,10 +37,20 @@ function t(entry, vars = {}) {
 // Apply i18n to all [data-i18n] elements in DOM
 function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key  = el.dataset.i18n || el.id;
+        const key = el.dataset.i18n || el.id;
         const text = i18n[key]?.[currentLang] ?? i18n[key]?.en;
         if (text !== undefined) el.textContent = text;
+        if (el.hasAttribute('title')) {
+            const titleText = i18n[key + '.title']?.[currentLang] ?? i18n[key + '.title']?.en;
+            if (titleText) el.setAttribute('title', titleText);
+        }
+        if (el.hasAttribute('aria-label') && !el.hasAttribute('title')) {
+            const ariaText = i18n[key + '.aria']?.[currentLang] ?? i18n[key + '.aria']?.en;
+            if (ariaText) el.setAttribute('aria-label', ariaText);
+        }
     });
+    // Paste area placeholder (one-off, handled here)
+    document.getElementById('paste-area').placeholder = t(strings.paste_area_placeholder);
 }
 
 // ── State ────────────────────────────────────────────────────
@@ -164,12 +175,15 @@ function renderTable() {
         const nameInput = createElement('input', ['inp', 'inp-name'], {
             'data-key': key, value: p.name, placeholder: t(i18n['th-player']),
             autocomplete: 'off', inputmode: 'text', enterkeyhint: 'done',
-            'aria-label': 'Имя игрока',
+            'aria-label': t(strings.inp_player_aria),
         });
         nameCell.appendChild(nameInput);
-        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-info'], { 'data-key': key, title: 'Статистика' }, 'ℹ'));
-        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-edit'], { 'data-key': key, title: 'Редактировать' }, '✎'));
-        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-del'],  { 'data-key': key, title: 'Удалить' }, '✕'));
+        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-info'],
+            { 'data-key': key, title: t(strings.btn_info_aria) }, 'ℹ'));
+        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-edit'],
+            { 'data-key': key, title: t(strings.btn_edit_aria) }, '✎'));
+        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-del'],
+            { 'data-key': key, title: t(strings.btn_del_aria)  }, '✕'));
 
         appendDataCells(tr, pt);
 
@@ -177,7 +191,7 @@ function renderTable() {
         const tdNote = appendElement(tr, 'td', ['td-note']);
         tdNote.appendChild(createElement('input', ['inp', 'inp-note'], {
             'data-key': key, value: p.note || '', placeholder: '…', inputmode: 'text',
-            'aria-label': 'Примечание',
+            'aria-label': t(strings.inp_note_aria),
         }));
 
         tbody.appendChild(tr);
@@ -468,7 +482,7 @@ function updateEditSummary() {
     document.getElementById('edit-recv-summary').textContent =
         t(strings.recv_summary, { total: rtc, new: rnc, dbl: rdc, stars: rs });
     document.getElementById('edit-sent-summary').textContent =
-        t(strings.sent_summary, { total: stc, stars: ss });
+        `${stc} = ${ss}★`;
 
     const balEl = document.getElementById('edit-balance');
     balEl.textContent = (bal > 0 ? '+' : '') + bal + '★';
@@ -592,7 +606,7 @@ function renderStatsDetail(totals) {
     document.getElementById('sd-recv-summary').textContent =
         t(strings.recv_summary, { total: totals.recv_total_count, new: totals.recv_new_count, dbl: totals.recv_dbl_count, stars: totals.recv_stars });
     document.getElementById('sd-sent-summary').textContent =
-        t(strings.sent_summary, { total: totals.sent_count, stars: totals.sent_stars });
+        `${totals.sent_count} = ${totals.sent_stars}★`;
     const balEl = document.getElementById('sd-balance');
     balEl.textContent = (totals.balance > 0 ? '+' : '') + totals.balance + '★';
     balEl.className = 'sd-bal-val ' + (totals.balance > 0 ? 'pos' : totals.balance < 0 ? 'neg' : '');
@@ -737,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ['btn-add-row',      'click', addRow],
         ['btn-new-season',   'click', () => { closeMenu(); void newSeason(); }],
         ['btn-stats-all',    'click', () => { closeMenu(); openStatsModal(null); }],
-        ['btn-lang',         'click', e => { e.stopPropagation(); closeLangMenu() || toggleLangMenu(); }],
+        ['btn-lang',         'click', e => { e.stopPropagation(); toggleLangMenu(); }],
         ['btn-menu',         'click', e => { e.stopPropagation(); toggleMenu(); }],
         ['menu-export-file', 'click', downloadFile],
         ['menu-export-clip', 'click', copyToClipboard],
