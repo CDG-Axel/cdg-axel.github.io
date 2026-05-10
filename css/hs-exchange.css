@@ -318,8 +318,8 @@ td { padding: 3px 4px; text-align: center; vertical-align: middle; }
 .edit-header-row, .edit-data-row {
     display: grid;
     grid-template-columns: 1fr 60px 60px 60px 60px 60px;
-    padding: 3px 0;
     align-items: center;
+    padding: 3px 0;
 }
 .edit-header-row {
     background: var(--bg3);
@@ -328,7 +328,7 @@ td { padding: 3px 4px; text-align: center; vertical-align: middle; }
 .edit-data-row { border-bottom: 1px solid var(--border); }
 .edit-data-row:last-child { border-bottom: none; }
 
-.edit-header-row {
+.edit-header-row > * {
     font-size: 11px; font-weight: 700; letter-spacing: .06em;
     text-transform: uppercase; color: var(--gold);
     padding: 6px 4px; text-align: center;
@@ -340,8 +340,7 @@ td { padding: 3px 4px; text-align: center; vertical-align: middle; }
 .edit-data-row > :first-child.recv-lbl { color: var(--green); }
 .edit-data-row > :first-child.sent-lbl { color: #f08080; }
 .edit-inp {
-    width: 90%;
-    text-align: center;
+    width: 90%; text-align: center;
     background: var(--bg3); border: 1px solid var(--border2);
     border-radius: 5px; color: var(--text);
     font-family: var(--font-mono), monospace; font-size: 13px; font-weight: 500;
