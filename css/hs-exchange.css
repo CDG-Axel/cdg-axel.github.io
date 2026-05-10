@@ -72,6 +72,32 @@ header {
     padding: 3px 8px; width: 120px; outline: none;
 }
 
+/* ── Lang switcher ───────────────────────────────────────── */
+.btn-lang-toggle {
+    background: none; border: none; cursor: pointer;
+    font-size: 18px; padding: 4px 6px;
+    border-radius: var(--radius); transition: background .15s;
+}
+.btn-lang-toggle:hover { background: var(--bg3); }
+
+#lang-dropdown {
+    display: none; position: absolute; right: 40px; top: calc(100% + 6px);
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: var(--radius); overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,.4); z-index: 200;
+}
+#lang-dropdown.open { display: flex; flex-direction: column; }
+
+.lang-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text2); font-family: var(--font-main), sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 9px 20px; text-align: left;
+    transition: background .12s, color .12s;
+}
+.lang-btn:hover { background: var(--bg3); color: var(--text); }
+.lang-btn.active { color: var(--accent); }
+
 /* ── Menu ─────────────────────────────────────────────────── */
 .menu-wrap { position: relative; }
 #btn-menu {

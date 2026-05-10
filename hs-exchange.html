@@ -12,28 +12,34 @@
 <header>
     <div class="header-title">
         <span class="star-deco">★</span>
-        Обмен картами
+        <span data-i18n="app-title">Card Exchange</span>
     </div>
     <span id="season-label"></span>
     <input id="season-input" type="text" maxlength="40" enterkeyhint="done" aria-label="Название сезона">
     <div class="menu-wrap">
-        <button id="btn-menu" title="Меню">☰</button>
+        <button id="btn-lang" class="btn-lang-toggle" title="Language">🌐</button>
+        <button id="btn-menu" title="Menu">☰</button>
         <div id="menu-dropdown">
             <div class="menu-section">
                 <div class="menu-section-label">Сезон</div>
-                <button class="menu-item" id="btn-new-season">🔄 Новый сезон</button>
-                <button class="menu-item" id="btn-stats-all">📊 Статистика по сезонам</button>
+                <button class="menu-item" id="btn-new-season" data-i18n>🔄 New season</button>
+                <button class="menu-item" id="btn-stats-all" data-i18n>📊 Season statistics</button>
             </div>
             <div class="menu-section">
                 <div class="menu-section-label">Экспорт</div>
-                <button class="menu-item" id="menu-export-file">💾 Скачать JSON-файл</button>
-                <button class="menu-item" id="menu-export-clip">📋 Копировать в буфер</button>
+                <button class="menu-item" id="menu-export-file" data-i18n>💾 Download JSON file</button>
+                <button class="menu-item" id="menu-export-clip" data-i18n>📋 Copy to clipboard</button>
             </div>
             <div class="menu-section">
                 <div class="menu-section-label">Импорт</div>
-                <button class="menu-item" id="menu-import-file">📂 Загрузить JSON-файл</button>
-                <button class="menu-item" id="menu-import-clip">📋 Вставить из буфера</button>
+                <button class="menu-item" id="menu-import-file" data-i18n>📂 Load JSON file</button>
+                <button class="menu-item" id="menu-import-clip" data-i18n>📋 Paste from clipboard</button>
             </div>
+        </div>
+        <div id="lang-dropdown">
+            <button class="lang-btn" data-lang="en">English</button>
+            <button class="lang-btn" data-lang="de">Deutsch</button>
+            <button class="lang-btn" data-lang="ru">Русский</button>
         </div>
     </div>
 </header>
@@ -50,24 +56,24 @@
         </colgroup>
         <thead>
         <tr>
-            <th rowspan="2" class="th-name">Игрок</th>
-            <th colspan="3" class="th-group th-recv">Получено</th>
-            <th colspan="2" class="th-group th-sent">Отдано</th>
-            <th rowspan="2" class="th-bal">Баланс ★</th>
-            <th rowspan="2" class="th-note">Примечание</th>
+            <th rowspan="2" class="th-name" data-i18n="th-player">Player</th>
+            <th colspan="3" class="th-group th-recv" data-i18n="th-received">Received</th>
+            <th colspan="2" class="th-group th-sent" data-i18n="th-sent">Sent</th>
+            <th rowspan="2" class="th-bal" data-i18n="th-balance">Balance ★</th>
+            <th rowspan="2" class="th-note" data-i18n="th-note">Note</th>
         </tr>
         <tr>
-            <th class="th-recv">Всего</th>
-            <th class="th-recv">Новых</th>
+            <th class="th-recv" data-i18n="th-recv-total">Total</th>
+            <th class="th-recv" data-i18n="th-recv-new">New</th>
             <th class="th-recv">★</th>
-            <th class="th-sent">Всего</th>
+            <th class="th-sent" data-i18n="th-recv-total">Total</th>
             <th class="th-sent">★</th>
         </tr>
         </thead>
         <tbody id="tbody"></tbody>
     </table>
     <div class="add-row-wrap">
-        <button id="btn-add-row">＋ Добавить игрока</button>
+        <button id="btn-add-row" data-i18n>＋ Add player</button>
     </div>
 </div>
 
@@ -78,7 +84,7 @@
             <span id="panel-player">Выберите игрока</span>
             <div class="panel-controls">
                 <div class="toggle-wrap">
-                    <label for="toggle-new">Новая карта</label>
+                    <label for="toggle-new" data-i18n="panel-toggle-new">New card</label>
                     <input type="checkbox" id="toggle-new" aria-label="Новая карта">
                     <label class="toggle-slider" for="toggle-new"></label>
                 </div>
@@ -87,7 +93,7 @@
         </div>
         <div class="panel-rows">
             <div class="panel-row">
-                <span class="panel-row-label recv-lbl">Получено:</span>
+                <span class="panel-row-label recv-lbl" data-i18n="panel-recv">Received:</span>
                 <button class="star-btn" data-dir="recv" data-stars="1" disabled>1★</button>
                 <button class="star-btn" data-dir="recv" data-stars="2" disabled>2★</button>
                 <button class="star-btn" data-dir="recv" data-stars="3" disabled>3★</button>
@@ -95,7 +101,7 @@
                 <button class="star-btn" data-dir="recv" data-stars="5" disabled>5★</button>
             </div>
             <div class="panel-row">
-                <span class="panel-row-label sent-lbl">Отдано:</span>
+                <span class="panel-row-label sent-lbl" data-i18n="panel-sent">Sent:</span>
                 <button class="star-btn" data-dir="sent" data-stars="1" disabled>1★</button>
                 <button class="star-btn" data-dir="sent" data-stars="2" disabled>2★</button>
                 <button class="star-btn" data-dir="sent" data-stars="3" disabled>3★</button>
@@ -130,7 +136,7 @@
             <div>1★</div><div>2★</div><div>3★</div><div>4★</div><div>5★</div>
         </div>
         <div class="edit-data-row">
-            <div class="recv-lbl">Получено новых</div>
+            <div class="recv-lbl" data-i18n="edit-rn-label">Received new</div>
             <input class="edit-inp" id="edit-rn-0" type="number" min="0" value="0" aria-label="Получено новых 1★">
             <input class="edit-inp" id="edit-rn-1" type="number" min="0" value="0" aria-label="Получено новых 2★">
             <input class="edit-inp" id="edit-rn-2" type="number" min="0" value="0" aria-label="Получено новых 3★">
@@ -138,7 +144,7 @@
             <input class="edit-inp" id="edit-rn-4" type="number" min="0" value="0" aria-label="Получено новых 5★">
         </div>
         <div class="edit-data-row">
-            <div class="recv-lbl">Получено дублей</div>
+            <div class="recv-lbl" data-i18n="edit-rd-label">Received doubles</div>
             <input class="edit-inp" id="edit-rd-0" type="number" min="0" value="0" aria-label="Получено дублей 1★">
             <input class="edit-inp" id="edit-rd-1" type="number" min="0" value="0" aria-label="Получено дублей 2★">
             <input class="edit-inp" id="edit-rd-2" type="number" min="0" value="0" aria-label="Получено дублей 3★">
@@ -146,7 +152,7 @@
             <input class="edit-inp" id="edit-rd-4" type="number" min="0" value="0" aria-label="Получено дублей 5★">
         </div>
         <div class="edit-data-row">
-            <div class="sent-lbl">Подарено</div>
+            <div class="sent-lbl" data-i18n="edit-st-label">Gifted</div>
             <input class="edit-inp" id="edit-st-0" type="number" min="0" value="0" aria-label="Подарено 1★">
             <input class="edit-inp" id="edit-st-1" type="number" min="0" value="0" aria-label="Подарено 2★">
             <input class="edit-inp" id="edit-st-2" type="number" min="0" value="0" aria-label="Подарено 3★">
@@ -156,21 +162,21 @@
     </div>
     <div class="edit-summary">
         <div class="edit-sum-row">
-            <span class="edit-sum-label recv-lbl">Получено карт —</span>
+            <span class="edit-sum-label recv-lbl" data-i18n="edit-recv-label">Received —</span>
             <span id="edit-recv-summary" class="edit-sum-val">0</span>
         </div>
         <div class="edit-sum-row">
-            <span class="edit-sum-label sent-lbl">Подарено карт —</span>
+            <span class="edit-sum-label sent-lbl" data-i18n="edit-sent-label">Gifted —</span>
             <span id="edit-sent-summary" class="edit-sum-val">0</span>
         </div>
         <div class="edit-sum-row edit-sum-balance-row">
-            <span class="edit-sum-label">Баланс —</span>
+            <span class="edit-sum-label" data-i18n="edit-balance-label">Balance —</span>
             <span id="edit-balance" class="edit-bal-val">0★</span>
         </div>
     </div>
     <div class="modal-btns">
-        <button class="btn-secondary" data-closes="modal-edit">Отмена</button>
-        <button class="btn-primary" id="btn-edit-save">Сохранить</button>
+        <button class="btn-secondary" data-closes="modal-edit" data-i18n="confirm_cancel">Cancel</button>
+        <button class="btn-primary" id="btn-edit-save" data-i18n>Save</button>
     </div>
 </div>
 
@@ -178,7 +184,7 @@
 <div class="modal modal-stats-modal" id="modal-stats">
     <div class="modal-header">
         <span class="modal-title">📊 <span id="stats-title"></span></span>
-        <button class="modal-close" data-closes="modal-stats">✕</button>
+        <button class="modal-close" data-closes="modal-stats" aria-label="Close">✕</button>
     </div>
     <div class="stats-body">
         <div class="stats-left">
@@ -191,32 +197,32 @@
                     <div>1★</div><div>2★</div><div>3★</div><div>4★</div><div>5★</div>
                 </div>
                 <div class="sdt-data-row">
-                    <div class="recv-lbl">Получено новых</div>
+                    <div class="recv-lbl" data-i18n="stats-rn-label">Received new</div>
                     <div id="sd-rn-0">0</div><div id="sd-rn-1">0</div>
                     <div id="sd-rn-2">0</div><div id="sd-rn-3">0</div><div id="sd-rn-4">0</div>
                 </div>
                 <div class="sdt-data-row">
-                    <div class="recv-lbl">Получено дублей</div>
+                    <div class="recv-lbl" data-i18n="stats-rd-label">Received doubles</div>
                     <div id="sd-rd-0">0</div><div id="sd-rd-1">0</div>
                     <div id="sd-rd-2">0</div><div id="sd-rd-3">0</div><div id="sd-rd-4">0</div>
                 </div>
                 <div class="sdt-data-row">
-                    <div class="sent-lbl">Подарено</div>
+                    <div class="sent-lbl" data-i18n="stats-st-label">Gifted</div>
                     <div id="sd-st-0">0</div><div id="sd-st-1">0</div>
                     <div id="sd-st-2">0</div><div id="sd-st-3">0</div><div id="sd-st-4">0</div>
                 </div>
             </div>
             <div class="stats-summary">
                 <div class="stats-sum-row">
-                    <span class="stats-sum-label recv-lbl">Получено карт —</span>
+                    <span class="stats-sum-label recv-lbl" data-i18n="stats-recv-label">Received —</span>
                     <span id="sd-recv-summary" class="stats-sum-val">0</span>
                 </div>
                 <div class="stats-sum-row">
-                    <span class="stats-sum-label sent-lbl">Подарено карт —</span>
+                    <span class="stats-sum-label sent-lbl" data-i18n="stats-sent-label">Gifted —</span>
                     <span id="sd-sent-summary" class="stats-sum-val">0</span>
                 </div>
                 <div class="stats-sum-row stats-sum-balance">
-                    <span class="stats-sum-label">Баланс —</span>
+                    <span class="stats-sum-label" data-i18n="stats-balance-label">Balance —</span>
                     <span id="sd-balance" class="sd-bal-val">0★</span>
                 </div>
             </div>
@@ -227,14 +233,14 @@
 <!-- ── Modal: Paste ───────────────────────────────────────── -->
 <div class="modal" id="modal-paste">
     <div class="modal-header">
-        <span class="modal-title">Вставить данные</span>
+        <span class="modal-title" data-i18n="paste-modal-title">Paste data</span>
         <button class="modal-close" data-closes="modal-paste">✕</button>
     </div>
-    <p class="modal-hint">Вставьте скопированные данные в поле ниже (Ctrl+V / ⌘+V) и нажмите «Импортировать».</p>
+    <p class="modal-hint" data-i18n="paste-modal-hint">Paste clipboard contents below (Ctrl+V / ⌘+V) and click Import.</p>
     <textarea id="paste-area" placeholder="Вставьте данные сюда…" aria-label="Данные для импорта"></textarea>
     <div class="modal-btns">
-        <button class="btn-secondary" data-closes="modal-paste">Отмена</button>
-        <button class="btn-primary" id="btn-paste-import">Импортировать</button>
+        <button class="btn-secondary" data-closes="modal-paste" data-i18n="confirm_cancel">Cancel</button>
+        <button class="btn-primary" id="btn-paste-import" data-i18n>Import</button>
     </div>
 </div>
 
@@ -244,6 +250,7 @@
 <!-- ── Toast ─────────────────────────────────────────────── -->
 <div id="toast"></div>
 
+<script src="js/hs-exchange-i18n.js"></script>
 <script src="js/hs-exchange.js"></script>
 </body>
 </html>
