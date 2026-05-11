@@ -139,19 +139,11 @@ function mergeAllPlayers() {
     return merged;
 }
 
-// Merge current + all history seasons into one players dict
-
-
-// Sorted player entries by balance descending
+// Sorted player entries by balance desc, then name asc
 function sortedPlayers() {
-    if (state.viewAll) {
-        return Object.entries(mergeAllPlayers())
-            .map(([key, p]) => ({ key, p, bal: playerTotals(p).balance }))
-            .sort((a, b) => b.bal - a.bal);
-    }
-    return Object.entries(state.current.players)
+    return Object.entries(state.viewAll ? mergeAllPlayers() : state.current.players)
         .map(([key, p]) => ({ key, p, bal: playerTotals(p).balance }))
-        .sort((a, b) => b.bal - a.bal);
+        .sort((a, b) => b.bal - a.bal || a.p.name.localeCompare(b.p.name));
 }
 
 function formatDate(iso) {
@@ -195,9 +187,6 @@ function renderTable() {
     const tbody   = document.getElementById('tbody');
     tbody.innerHTML = '';
     const players = sortedPlayers();
-    const table = document.querySelector('#tbody').closest('table');
-    table.classList.toggle('view-all', state.viewAll);
-
     for (const { key, p } of players) {
         const pt       = playerTotals(p);
         const isActive = state.activePlayer === key;
@@ -225,10 +214,12 @@ function renderTable() {
 
         // Note
         const tdNote = appendElement(tr, 'td', ['td-note']);
-        tdNote.appendChild(createElement('input', ['inp', 'inp-note'], {
+        const noteAttrs = {
             'data-key': key, value: p.note || '', placeholder: '…', inputmode: 'text',
             'aria-label': t(strings.inp_note_aria),
-        }));
+        };
+        if (state.viewAll) noteAttrs.disabled = 'disabled';
+        tdNote.appendChild(createElement('input', ['inp', 'inp-note'], noteAttrs));
 
         tbody.appendChild(tr);
 
@@ -389,9 +380,6 @@ async function addRow() {
     }, 50);
 }
 
-// Special handling: when a temp-key player gets a name, re-key it
-// This is handled in onNameBlur via renamePlayerKey
-
 // ── Quick Panel ───────────────────────────────────────────────
 function quickAdd(direction, starIndex) {
     const key = state.activePlayer;
@@ -484,7 +472,6 @@ async function newSeason() {
     state.lastAction    = null;
 
     save(); render();
-    document.getElementById('season-label').textContent = state.current.name;
     openStatsModal(null, archived.name);
 }
 
@@ -656,7 +643,6 @@ function importData(json) {
         state.activePlayer = null;
         state.lastAction  = null;
         save(); render();
-        document.getElementById('season-label').textContent = state.current.name;
         document.getElementById('toggle-new').checked = state.isNewCard;
         return true;
     } catch (e) { alert(t(strings.import_error_prefix) + e.message); return false; }  // catches JSON.parse errors
@@ -756,36 +742,25 @@ function setViewAll(val) {
 }
 
 function updateSeasonWrap() {
-    const label  = document.getElementById('season-label');
+    const inp    = document.getElementById('season-input');
     const toggle = document.getElementById('btn-mode-toggle');
     if (state.viewAll) {
-        label.textContent = t(i18n['mode-all']);
-        label.classList.add('mode-all');
-        label.style.cursor = 'default';
+        inp.value    = t(i18n['mode-all']);
+        inp.readOnly = true;
     } else {
-        label.textContent = state.current.name;
-        label.classList.remove('mode-all');
-        label.style.cursor = 'pointer';
+        inp.value    = state.current.name;
+        inp.readOnly = false;
     }
     toggle.classList.toggle('mode-all', state.viewAll);
+    document.querySelector('header').classList.toggle('view-all', state.viewAll);
 }
 
-// ── Season label ──────────────────────────────────────────────
-function editSeason() {
-    if (state.viewAll) return;
-    document.getElementById('season-label').style.display = 'none';
-    const inp = document.getElementById('season-input');
-    inp.style.display = 'inline-block';
-    inp.value = state.current.name;
-    inp.focus(); inp.select();
-}
-
+// ── Season wrap ───────────────────────────────────────────────
 function onSeasonBlur() {
+    if (state.viewAll) return;
     const inp = document.getElementById('season-input');
     const val = inp.value.trim();
     if (val) state.current.name = val;
-    inp.style.display = 'none';
-    document.getElementById('season-label').style.display = '';
     updateSeasonWrap();
     save();
 }
@@ -794,15 +769,11 @@ function onSeasonBlur() {
 document.addEventListener('DOMContentLoaded', () => {
     loadLang();
     load();
-    document.getElementById('season-label').textContent = state.current.name;
     document.getElementById('toggle-new').checked = state.isNewCard;
 
     // Season wrap init
     updateSeasonWrap();
     if (state.viewAll) document.getElementById('quick-panel').style.display = 'none';
-    document.getElementById('season-label').addEventListener('click', () => {
-        if (!state.viewAll) editSeason();
-    });
     addHandler('btn-mode-toggle', 'click', () => setViewAll(!state.viewAll));
     applyTranslations();
     document.querySelectorAll('.lang-btn').forEach(b => {

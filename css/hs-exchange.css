@@ -57,21 +57,25 @@ header {
 }
 .star-deco { color: var(--gold); font-size: 18px; }
 
-/* Season label + mode toggle */
+/* Season field + mode toggle */
 #season-wrap {
-    display: flex; align-items: center; gap: 2px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 0; flex-shrink: 0;
 }
-#season-label {
+.season-field {
     font-family: var(--font-mono), monospace; font-size: 12px; font-weight: 500;
-    color: var(--accent); cursor: pointer; padding: 3px 8px;
+    color: var(--accent); cursor: pointer;
+    padding: 3px 8px; border: none; outline: none;
     border-radius: var(--radius) 0 0 var(--radius);
     background: color-mix(in srgb, var(--accent) 12%, transparent);
     transition: background .15s; white-space: nowrap;
+    width: 100px; min-width: 60px;
 }
-#season-label:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
-#season-label.mode-all {
-    color: var(--text2);
-    cursor: default;
+.season-field:focus {
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    cursor: text;
+}
+.season-field[readonly] {
+    color: var(--text2); cursor: default;
 }
 #btn-mode-toggle {
     background: color-mix(in srgb, var(--accent) 12%, transparent);
@@ -85,12 +89,7 @@ header {
     color: var(--accent);
 }
 #btn-mode-toggle.mode-all { color: var(--accent); }
-#season-input {
-    display: none; font-family: var(--font-mono), monospace; font-size: 12px;
-    color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
-    border: 1px solid var(--accent); border-radius: var(--radius);
-    padding: 3px 8px; width: 120px; outline: none;
-}
+
 
 /* ── Lang switcher ───────────────────────────────────────── */
 .btn-lang-toggle {
@@ -483,10 +482,6 @@ td { padding: 3px 4px; text-align: center; vertical-align: middle; }
 .stats-sum-val { color: var(--text); font-family: var(--font-mono), monospace; font-size: 12px; }
 .stats-sum-balance { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
 .sd-bal-val { font-family: var(--font-mono), monospace; font-size: 15px; font-weight: 700; }
-
-/* ── View-all mode: hide note column ─────────────────────── */
-table.view-all .td-note,
-table.view-all .th-note { display: none; }
 
 /* ── Responsive: narrow screens ───────────────────────────── */
 @media (max-width: 480px) {
