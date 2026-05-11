@@ -3,6 +3,11 @@
 // ============================================================
 
 const i18n = {
+    'btn-mode-toggle.title': {
+        en: 'Switch view mode',
+        ru: 'Переключить режим',
+        de: 'Ansichtsmodus wechseln',
+    },
     'menu-section-season': {
         en: 'Season',
         ru: 'Сезон',
@@ -17,6 +22,16 @@ const i18n = {
         en: 'Import',
         ru: 'Импорт',
         de: 'Import',
+    },
+    'mode-current': {
+        en: 'Current season',
+        ru: 'Текущий сезон',
+        de: 'Aktuelle Saison',
+    },
+    'mode-all': {
+        en: 'All seasons',
+        ru: 'Все сезоны',
+        de: 'Alle Saisons',
     },
     'btn-new-season': {
         en: '🔄 New season',

@@ -14,11 +14,19 @@
         <span class="star-deco">★</span>
         <span data-i18n="app-title">Card Exchange</span>
     </div>
-    <span id="season-label"></span>
-    <input id="season-input" type="text" maxlength="40" enterkeyhint="done" data-i18n title="Season name">
+    <div id="season-wrap">
+        <span id="season-label"></span>
+        <input id="season-input" type="text" maxlength="40" enterkeyhint="done" data-i18n title="Season name">
+        <button id="btn-mode-toggle" data-i18n title="Switch view mode">⟳</button>
+    </div>
     <div class="menu-wrap">
-        <button id="btn-lang" class="btn-lang-toggle" data-i18n title="Language">🌐</button>
         <button id="btn-menu" data-i18n title="Menu">☰</button>
+        <button id="btn-lang" class="btn-lang-toggle" data-i18n title="Language">🌐</button>
+        <div id="lang-dropdown">
+            <button class="lang-btn" data-lang="en">English</button>
+            <button class="lang-btn" data-lang="de">Deutsch</button>
+            <button class="lang-btn" data-lang="ru">Русский</button>
+        </div>
         <div id="menu-dropdown">
             <div class="menu-section">
                 <div class="menu-section-label" data-i18n="menu-section-season">Season</div>
@@ -35,11 +43,6 @@
                 <button class="menu-item" id="menu-import-file" data-i18n>📂 Load JSON file</button>
                 <button class="menu-item" id="menu-import-clip" data-i18n>📋 Paste from clipboard</button>
             </div>
-        </div>
-        <div id="lang-dropdown">
-            <button class="lang-btn" data-lang="en">English</button>
-            <button class="lang-btn" data-lang="de">Deutsch</button>
-            <button class="lang-btn" data-lang="ru">Русский</button>
         </div>
     </div>
 </header>

@@ -56,6 +56,7 @@ function applyTranslations() {
 // ── State ────────────────────────────────────────────────────
 let state = {
     isNewCard:    false,
+    viewAll:      false,  // true = aggregate all seasons
     activePlayer: null,  // normalized key
     lastAction:   null,  // { playerKey, group, starIndex, delta }
 
@@ -116,8 +117,38 @@ function aggregatePlayers(playersDict) {
     return out;
 }
 
+// Merge current season + all history into one players dict
+function mergeAllPlayers() {
+    const merged = {};
+    const allDicts = [state.current.players, ...state.history.map(s => s.players)];
+    for (const dict of allDicts) {
+        for (const [key, p] of Object.entries(dict)) {
+            if (!merged[key]) {
+                merged[key] = {
+                    name:            p.name,
+                    received_new:    zeroes(),
+                    received_double: zeroes(),
+                    sent:            zeroes(),
+                };
+            }
+            merged[key].received_new    = arrAdd(merged[key].received_new,    p.received_new    || zeroes());
+            merged[key].received_double = arrAdd(merged[key].received_double, p.received_double || zeroes());
+            merged[key].sent            = arrAdd(merged[key].sent,            p.sent            || zeroes());
+        }
+    }
+    return merged;
+}
+
+// Merge current + all history seasons into one players dict
+
+
 // Sorted player entries by balance descending
 function sortedPlayers() {
+    if (state.viewAll) {
+        return Object.entries(mergeAllPlayers())
+            .map(([key, p]) => ({ key, p, bal: playerTotals(p).balance }))
+            .sort((a, b) => b.bal - a.bal);
+    }
     return Object.entries(state.current.players)
         .map(([key, p]) => ({ key, p, bal: playerTotals(p).balance }))
         .sort((a, b) => b.bal - a.bal);
@@ -161,10 +192,13 @@ function load() {
 function render() { renderTable(); renderPanel(); }
 
 function renderTable() {
-    const tbody = document.getElementById('tbody');
+    const tbody   = document.getElementById('tbody');
     tbody.innerHTML = '';
+    const players = sortedPlayers();
+    const table = document.querySelector('#tbody').closest('table');
+    table.classList.toggle('view-all', state.viewAll);
 
-    for (const { key, p } of sortedPlayers()) {
+    for (const { key, p } of players) {
         const pt       = playerTotals(p);
         const isActive = state.activePlayer === key;
         const tr       = createElement('tr', isActive ? ['active-row'] : []);
@@ -180,10 +214,12 @@ function renderTable() {
         nameCell.appendChild(nameInput);
         nameCell.appendChild(createElement('button', ['btn-icon', 'btn-info'],
             { 'data-key': key, title: t(strings.btn_info_aria) }, 'ℹ'));
-        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-edit'],
-            { 'data-key': key, title: t(strings.btn_edit_aria) }, '✎'));
-        nameCell.appendChild(createElement('button', ['btn-icon', 'btn-del'],
-            { 'data-key': key, title: t(strings.btn_del_aria)  }, '✕'));
+        if (!state.viewAll) {
+            nameCell.appendChild(createElement('button', ['btn-icon', 'btn-edit'],
+                { 'data-key': key, title: t(strings.btn_edit_aria) }, '✎'));
+            nameCell.appendChild(createElement('button', ['btn-icon', 'btn-del'],
+                { 'data-key': key, title: t(strings.btn_del_aria)  }, '✕'));
+        }
 
         appendDataCells(tr, pt);
 
@@ -207,11 +243,13 @@ function renderTable() {
 
         tr.addEventListener('click', () => setActivePlayer(key));
         tdName.querySelector('.btn-info').addEventListener('click', e => { e.stopPropagation(); openStatsModal(key); });
-        tdName.querySelector('.btn-edit').addEventListener('click', e => { e.stopPropagation(); openEditModal(key); });
-        tdName.querySelector('.btn-del').addEventListener('click',  e => { e.stopPropagation(); void deletePlayer(key); });
+        if (!state.viewAll) {
+            tdName.querySelector('.btn-edit').addEventListener('click', e => { e.stopPropagation(); openEditModal(key); });
+            tdName.querySelector('.btn-del').addEventListener('click',  e => { e.stopPropagation(); void deletePlayer(key); });
+        }
     }
 
-    renderTotalsRow(tbody);
+    renderTotalsRow(tbody, players);
 }
 
 function appendDataCells(tr, t) {
@@ -224,10 +262,11 @@ function appendDataCells(tr, t) {
     appendElement(tr, 'td', ['td-num', 'td-bal', bc], {}, String(t.balance));
 }
 
-function renderTotalsRow(tbody) {
-    if (Object.keys(state.current.players).length === 0) return;
-    const pt = playerTotals(aggregatePlayers(state.current.players));
-    const tr = createElement('tr', ['totals-row']);
+function renderTotalsRow(tbody, players) {
+    if (!players || players.length === 0) return;
+    const agg = aggregatePlayers(Object.fromEntries(players.map(({ key, p }) => [key, p])));
+    const pt  = playerTotals(agg);
+    const tr  = createElement('tr', ['totals-row']);
     appendElement(tr, 'td', ['td-name', 'totals-label'], {}, t(strings.totals_label));
     appendDataCells(tr, pt);
     appendElement(tr, 'td', ['td-note']);
@@ -239,7 +278,7 @@ function renderPanel() {
     const player = key ? state.current.players[key] : null;
     document.getElementById('panel-player').textContent =
         player ? (player.name || t(strings.no_name)) : t(strings.select_player);
-    const disabled = !player;
+    const disabled = !player || state.viewAll;
     document.querySelectorAll('.star-btn').forEach(b => b.disabled = disabled);
     document.getElementById('toggle-new').disabled = disabled;
     document.getElementById('btn-undo').disabled   = disabled || !state.lastAction;
@@ -577,16 +616,7 @@ function getStatsData(seasonKey) {
             : aggregatePlayers(state.current.players);
     }
     if (seasonKey === '__all__') {
-        const allPlayers = [state.current.players, ...state.history.map(s => s.players)];
-        const merged = {};
-        for (const dict of allPlayers) {
-            for (const [key, p] of Object.entries(dict)) {
-                if (!merged[key]) merged[key] = { received_new: zeroes(), received_double: zeroes(), sent: zeroes() };
-                merged[key].received_new    = arrAdd(merged[key].received_new,    p.received_new    || zeroes());
-                merged[key].received_double = arrAdd(merged[key].received_double, p.received_double || zeroes());
-                merged[key].sent            = arrAdd(merged[key].sent,            p.sent            || zeroes());
-            }
-        }
+        const merged = mergeAllPlayers();
         return statsPlayerKey ? (merged[statsPlayerKey] || newPlayerData()) : aggregatePlayers(merged);
     }
     // Specific past season
@@ -716,8 +746,33 @@ function closeMenu()  { document.getElementById('menu-dropdown').classList.remov
 function toggleLangMenu() { document.getElementById('lang-dropdown').classList.toggle('open'); }
 function closeLangMenu()  { document.getElementById('lang-dropdown').classList.remove('open'); }
 
+function setViewAll(val) {
+    state.viewAll      = val;
+    state.activePlayer = null;
+    state.lastAction   = null;
+    updateSeasonWrap();
+    document.getElementById('quick-panel').style.display = val ? 'none' : '';
+    save(); render();
+}
+
+function updateSeasonWrap() {
+    const label  = document.getElementById('season-label');
+    const toggle = document.getElementById('btn-mode-toggle');
+    if (state.viewAll) {
+        label.textContent = t(i18n['mode-all']);
+        label.classList.add('mode-all');
+        label.style.cursor = 'default';
+    } else {
+        label.textContent = state.current.name;
+        label.classList.remove('mode-all');
+        label.style.cursor = 'pointer';
+    }
+    toggle.classList.toggle('mode-all', state.viewAll);
+}
+
 // ── Season label ──────────────────────────────────────────────
 function editSeason() {
+    if (state.viewAll) return;
     document.getElementById('season-label').style.display = 'none';
     const inp = document.getElementById('season-input');
     inp.style.display = 'inline-block';
@@ -729,9 +784,9 @@ function onSeasonBlur() {
     const inp = document.getElementById('season-input');
     const val = inp.value.trim();
     if (val) state.current.name = val;
-    document.getElementById('season-label').textContent = state.current.name;
-    document.getElementById('season-label').style.display = '';
     inp.style.display = 'none';
+    document.getElementById('season-label').style.display = '';
+    updateSeasonWrap();
     save();
 }
 
@@ -741,6 +796,14 @@ document.addEventListener('DOMContentLoaded', () => {
     load();
     document.getElementById('season-label').textContent = state.current.name;
     document.getElementById('toggle-new').checked = state.isNewCard;
+
+    // Season wrap init
+    updateSeasonWrap();
+    if (state.viewAll) document.getElementById('quick-panel').style.display = 'none';
+    document.getElementById('season-label').addEventListener('click', () => {
+        if (!state.viewAll) editSeason();
+    });
+    addHandler('btn-mode-toggle', 'click', () => setViewAll(!state.viewAll));
     applyTranslations();
     document.querySelectorAll('.lang-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.lang === currentLang);
@@ -760,7 +823,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ['file-input',       'change', onFileImport],
         ['toggle-new',       'change', e => { state.isNewCard = e.target.checked; save(); }],
         ['btn-undo',         'click', undoLast],
-        ['season-label',     'click', editSeason],
         ['season-input',     'blur',  onSeasonBlur],
         ['season-input',     'keydown', e => { if (e.key === 'Enter') e.target.blur(); }],
         ['btn-edit-save',    'click', saveEdit],
