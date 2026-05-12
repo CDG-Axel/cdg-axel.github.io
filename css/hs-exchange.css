@@ -68,7 +68,8 @@ header {
     border-radius: var(--radius) 0 0 var(--radius);
     background: color-mix(in srgb, var(--accent) 12%, transparent);
     transition: background .15s; white-space: nowrap;
-    width: 100px; min-width: 60px;
+    field-sizing: content;
+    width: 150px; max-width: 200px;
 }
 .season-field:focus {
     background: color-mix(in srgb, var(--accent) 20%, transparent);
