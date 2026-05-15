@@ -20,8 +20,8 @@
         <button id="btn-mode-toggle" data-i18n title="Switch view mode">⟳</button>
     </div>
     <div class="menu-wrap">
-        <button id="btn-menu" data-i18n title="Menu">☰</button>
         <button id="btn-lang" class="btn-lang-toggle" data-i18n title="Language">🌐</button>
+        <button id="btn-menu" data-i18n title="Menu">☰</button>
         <div id="lang-dropdown">
             <button class="lang-btn" data-lang="en">English</button>
             <button class="lang-btn" data-lang="de">Deutsch</button>
@@ -62,12 +62,12 @@
             <th rowspan="2" class="th-name" data-i18n="th-player">Player</th>
             <th colspan="3" class="th-group th-recv" data-i18n="th-received">Received</th>
             <th colspan="2" class="th-group th-sent" data-i18n="th-sent">Sent</th>
-            <th rowspan="2" class="th-bal" data-i18n="th-balance">Balance ★</th>
+            <th rowspan="2" class="th-bal th-sortable" data-i18n="th-balance" data-sort="balance">Balance ★</th>
             <th rowspan="2" class="th-note" data-i18n="th-note">Note</th>
         </tr>
         <tr>
             <th class="th-recv" data-i18n="th-recv-total">Total</th>
-            <th class="th-recv" data-i18n="th-recv-new">New</th>
+            <th class="th-recv th-sortable" data-i18n="th-recv-new" data-sort="new_cards">New</th>
             <th class="th-recv">★</th>
             <th class="th-sent" data-i18n="th-recv-total">Total</th>
             <th class="th-sent">★</th>

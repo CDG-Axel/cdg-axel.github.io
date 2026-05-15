@@ -57,6 +57,7 @@ function applyTranslations() {
 let state = {
     isNewCard:    false,
     viewAll:      false,  // true = aggregate all seasons
+    sortBy:       'balance', // 'balance' | 'new_cards'
     activePlayer: null,  // normalized key
     lastAction:   null,  // { playerKey, group, starIndex, delta }
 
@@ -139,11 +140,19 @@ function mergeAllPlayers() {
     return merged;
 }
 
-// Sorted player entries by balance desc, then name asc
+// Sorted player entries by sortBy desc, then name asc
 function sortedPlayers() {
     return Object.entries(state.viewAll ? mergeAllPlayers() : state.current.players)
-        .map(([key, p]) => ({ key, p, bal: playerTotals(p).balance }))
-        .sort((a, b) => b.bal - a.bal || a.p.name.localeCompare(b.p.name));
+        .map(([key, p]) => {
+            const pt = playerTotals(p);
+            return { key, p, bal: pt.balance, new_cards: pt.recv_new_count };
+        })
+        .sort((a, b) => {
+            const diff = state.sortBy === 'new_cards'
+                ? b.new_cards - a.new_cards
+                : b.bal - a.bal;
+            return diff || a.p.name.localeCompare(b.p.name);
+        });
 }
 
 function formatDate(iso) {
@@ -180,6 +189,11 @@ function load() {
     } catch (e) { console.warn('Load error', e); }
 }
 
+function setSortBy(key) {
+    state.sortBy = key;
+    save(); render();
+}
+
 // ── Render ────────────────────────────────────────────────────
 function render() { renderTable(); renderPanel(); }
 
@@ -187,6 +201,12 @@ function renderTable() {
     const tbody   = document.getElementById('tbody');
     tbody.innerHTML = '';
     const players = sortedPlayers();
+
+    // Update sortable header indicators
+    document.querySelectorAll('.th-sortable').forEach(th => {
+        th.classList.toggle('th-sort-active', state.sortBy === th.dataset.sort);
+    });
+
     for (const { key, p } of players) {
         const pt       = playerTotals(p);
         const isActive = state.activePlayer === key;
@@ -800,6 +820,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ['btn-paste-import', 'click', importFromTextarea],
     ];
     handlers.forEach(([id, type, fn]) => addHandler(id, type, fn));
+
+    document.querySelectorAll('.th-sortable').forEach(th =>
+        th.addEventListener('click', () => setSortBy(th.dataset.sort))
+    );
 
     document.querySelectorAll('.star-btn').forEach(btn =>
         btn.addEventListener('click', () => quickAdd(btn.dataset.dir, +btn.dataset.stars - 1))
