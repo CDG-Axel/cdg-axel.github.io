@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1117;
+            --bg2: #181c27;
+            --bg3: #1e2333;
+            --border: #2a3050;
+            --text: #e8ecf5;
+            --text2: #8b95b5;
+            --accent: #4f8ef7;
+            --accent2: #7c5cbf;
+            --done: #1a2a1a;
+            --done-text: #4a7a4a;
+            --current-bg: #1a2040;
+            --current-border: #4f8ef7;
+            --reward-energy: #4f8ef7;
+            --stat-bg: #181c27;
+            --input-bg: #1e2333;
+            --range-track: #2a3050;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --green: #4CAF50;
+            --blue: #2196F3;
+            --ruby: #e53935;
+            --gold: #FFC107;
+            --card-radius: 12px;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f0f3fa; --bg2: #ffffff; --bg3: #e8ecf5;
+                --border: #c8d0e8; --text: #1a2040; --text2: #5a6585;
+                --accent: #3b6fd4; --accent2: #6b45b0;
+                --done: #e8f5e8; --done-text: #357a35;
+                --current-bg: #e8eeff; --current-border: #3b6fd4;
+                --stat-bg: #ffffff; --input-bg: #ffffff;
+                --range-track: #c8d0e8;
+                --shadow: 0 4px 24px rgba(0,0,0,0.1);
+            }
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; }
+        h1 { font-family: 'Rajdhani', sans-serif; letter-spacing: 0.04em; }
+        .app { max-width: 900px; margin: 0 auto; }
+
+        /* HEADER */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+        .header h1 { font-size: 1.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; }
+
+        /* TOGGLE */
+        .toggle-wrap { display: flex; background: var(--bg3); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+        .toggle-btn { padding: 7px 18px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; letter-spacing: 0.05em; background: none; border: none; color: var(--text2); cursor: pointer; transition: background 0.2s, color 0.2s; }
+        .toggle-btn.active { background: var(--accent); color: #fff; }
+
+        /* CARD */
+        .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-radius); padding: 14px 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+        .card-title { font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+
+        /* END TIME top row: title + result inline */
+        .end-time-top {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        /* END TIME */
+        .end-time-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+        .inline-label { font-size: 0.88rem; color: var(--text2); white-space: nowrap; }
+        .days-btn { padding: 6px 14px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 700; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+        .days-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .days-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .btn-reset { padding: 6px 12px; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; font-weight: 600; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); cursor: pointer; transition: opacity 0.2s; }
+        .btn-reset:hover { opacity: 0.75; }
+        .end-time-result { font-size: 0.9rem; color: var(--text2); line-height: 1.5; }
+        .end-time-result strong { color: var(--text); }
+        .end-time-result .countdown { color: var(--accent); font-weight: 600; }
+
+        /* PROGRESS */
+        input[type="number"] {
+            background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text); font-family: 'Nunito', sans-serif; font-size: 0.95rem;
+            padding: 7px 10px; width: 68px; outline: none; transition: border-color 0.2s;
+            -moz-appearance: textfield;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+        input[type="number"]:focus { border-color: var(--accent); }
+
+        .progress-fields { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-bottom: 12px; align-items: center; }
+        .inline-field { display: flex; align-items: center; gap: 8px; }
+        .inline-field label { font-size: 0.88rem; color: var(--text2); white-space: nowrap; }
+
+        .range-block { display: flex; flex-direction: column; gap: 4px; }
+        .range-row { display: flex; align-items: center; gap: 10px; }
+        input[type="range"] { flex: 1; -webkit-appearance: none; height: 6px; border-radius: 3px; background: var(--range-track); outline: none; cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 6px rgba(79,142,247,0.5); }
+        input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
+        .range-val { font-size: 0.85rem; color: var(--accent); font-weight: 700; min-width: 40px; text-align: right; }
+        .range-label { font-size: 0.82rem; color: var(--text2); }
+
+        /* MAIN BODY */
+        .main-body { display: flex; gap: 12px; align-items: flex-start; }
+        .stats-col { flex: 0 0 220px; display: flex; flex-direction: column; gap: 8px; }
+        .table-col { flex: 1; min-width: 0; }
+        @media (max-width: 600px) {
+            .main-body { flex-direction: column; }
+            .stats-col { flex: none; width: 100%; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+            .stat-item { flex: 1 1 calc(50% - 4px); min-width: 130px; }
+        }
+
+        /* STATS */
+        .stat-item { background: var(--stat-bg); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; }
+        .stat-label { font-size: 0.76rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+        .stat-value { font-family: 'Rajdhani', sans-serif; font-size: 1.55rem; font-weight: 700; color: var(--accent); line-height: 1.1; }
+        .stat-sub { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+        .stat-item.highlight .stat-value { color: var(--accent2); }
+
+        /* TABLE */
+        .table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow); }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem; }
+
+        thead th {
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.82rem;
+            letter-spacing: 0.07em; text-transform: uppercase; color: var(--text2);
+            padding: 9px 10px; text-align: left; background: var(--bg3);
+            border-bottom: 2px solid var(--border);
+        }
+
+        tbody tr { }
+        tbody td { padding: 8px 10px; color: var(--text); vertical-align: middle; border-bottom: 1px solid var(--border); }
+        tbody tr:last-child td { border-bottom: none; }
+
+        /* done rows */
+        tbody tr.done td { background: var(--done); color: var(--done-text); }
+
+        /* current group — outline via box-shadow on cells to avoid collapse conflicts */
+        tbody tr.current-main td,
+        tbody tr.current-bar td { background: var(--current-bg); border-bottom: none; }
+
+        tbody tr.current-main td:first-child { box-shadow: inset 2px 0 0 var(--current-border), inset 0 2px 0 var(--current-border); }
+        tbody tr.current-main td:not(:first-child):not(:last-child) { box-shadow: inset 0 2px 0 var(--current-border); }
+        tbody tr.current-main td:last-child { box-shadow: inset -2px 0 0 var(--current-border), inset 0 2px 0 var(--current-border); }
+
+        /* current-bar has a single td[colspan=3] — it is simultaneously first, last, only */
+        tbody tr.current-bar td { box-shadow: inset 2px 0 0 var(--current-border), inset -2px 0 0 var(--current-border), inset 0 -2px 0 var(--current-border); }
+
+        tbody tr.current-main td { font-weight: 600; }
+
+        /* row right after current: restore top border */
+        tbody tr.after-current td { border-top: 1px solid var(--border); }
+
+        .mini-bar { height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; margin: 0 2px; }
+        .mini-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+        .bar-label { font-size: 0.75rem; color: var(--text2); text-align: right; padding-right: 4px; padding-bottom: 2px; }
+
+        .reward-energy { color: var(--reward-energy); font-weight: 600; }
+        .reward-color  { font-weight: 600; }
+        .reward-green  { color: var(--green); }
+        .reward-blue   { color: var(--blue); }
+        .reward-ruby   { color: var(--ruby); }
+        .reward-gold   { color: var(--gold); }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <div class="header">
+        <h1>⚡ Event Calc</h1>
+        <div class="toggle-wrap">
+            <button class="toggle-btn active" id="btn20" onclick="setMode(20)">20 уровней</button>
+            <button class="toggle-btn"        id="btn25" onclick="setMode(25)">25 уровней</button>
+        </div>
+    </div>
+
+    <!-- END TIME -->
+    <div class="card">
+        <div class="end-time-top">
+            <span class="card-title" style="margin-bottom:0">Время окончания события</span>
+            <span class="end-time-result" id="endTimeInfo"></span>
+        </div>
+        <div class="end-time-controls">
+            <span class="inline-label">Дней до конца:</span>
+            <button class="days-btn" id="daysBtn0" onclick="setEndTime(0)">0</button>
+            <button class="days-btn" id="daysBtn1" onclick="setEndTime(1)">1</button>
+            <button class="days-btn" id="daysBtn2" onclick="setEndTime(2)">2</button>
+            <button class="days-btn" id="daysBtn3" onclick="setEndTime(3)">3</button>
+            <button class="btn-reset" onclick="clearEndTime()">Сбросить</button>
+        </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="card">
+        <div class="card-title">Текущий прогресс</div>
+        <div class="progress-fields">
+            <div class="inline-field">
+                <label for="curLevel">Уровень события:</label>
+                <input type="number" id="curLevel" min="1" max="25" value="1" oninput="onManualProgress()">
+            </div>
+            <div class="inline-field">
+                <label for="curEnergy">Энергия в уровне:</label>
+                <input type="number" id="curEnergy" min="0" value="0" oninput="onManualProgress()">
+            </div>
+        </div>
+        <div class="range-block">
+            <div class="range-label">Суммарная потраченная энергия</div>
+            <div class="range-row">
+                <input type="range" id="totalRange" min="0" value="0" oninput="onRangeProgress()">
+                <span class="range-val" id="rangeVal">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS + TABLE -->
+    <div class="main-body">
+        <div class="stats-col">
+            <div class="stat-item">
+                <div class="stat-label">Осталось набрать</div>
+                <div class="stat-value" id="statTotal">—</div>
+                <div class="stat-sub">энергии всего</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Из наград уровней</div>
+                <div class="stat-value" id="statRewards">—</div>
+                <div class="stat-sub">за прохождение этапов</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">От таймера</div>
+                <div class="stat-value" id="statTimer">—</div>
+                <div class="stat-sub" id="statTimerSub">1 ед. каждые 3 мин.</div>
+            </div>
+            <div class="stat-item highlight">
+                <div class="stat-label">Нужно фармить</div>
+                <div class="stat-value" id="statFarm">—</div>
+                <div class="stat-sub">проходя игровые уровни</div>
+            </div>
+            <div class="stat-item highlight">
+                <div class="stat-label">Игровых уровней</div>
+                <div class="stat-value" id="statLevels">—</div>
+                <div class="stat-sub">среднее: ~9 энергии/уровень</div>
+            </div>
+        </div>
+
+        <div class="table-col">
+            <div class="table-card">
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>#</th><th>Энергия</th><th>Награда</th></tr></thead>
+                        <tbody id="evtBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+    const DATA = {
+        20: [
+            {level:1,  energy:60,  reward:'30'},  {level:2,  energy:75,  reward:'35'},
+            {level:3,  energy:90,  reward:'40'},  {level:4,  energy:120, reward:'50'},
+            {level:5,  energy:135, reward:'Green'},{level:6,  energy:120, reward:'30'},
+            {level:7,  energy:165, reward:'40'},  {level:8,  energy:195, reward:'50'},
+            {level:9,  energy:225, reward:'60'},  {level:10, energy:270, reward:'Green'},
+            {level:11, energy:135, reward:'30'},  {level:12, energy:165, reward:'40'},
+            {level:13, energy:180, reward:'50'},  {level:14, energy:210, reward:'60'},
+            {level:15, energy:300, reward:'Blue'},{level:16, energy:195, reward:'30'},
+            {level:17, energy:225, reward:'40'},  {level:18, energy:240, reward:'50'},
+            {level:19, energy:330, reward:'60'},  {level:20, energy:360, reward:'Ruby'},
+        ],
+        25: [
+            {level:1,  energy:60,  reward:'30'},  {level:2,  energy:75,  reward:'35'},
+            {level:3,  energy:90,  reward:'40'},  {level:4,  energy:120, reward:'50'},
+            {level:5,  energy:135, reward:'Green'},{level:6,  energy:120, reward:'30'},
+            {level:7,  energy:165, reward:'40'},  {level:8,  energy:195, reward:'50'},
+            {level:9,  energy:225, reward:'60'},  {level:10, energy:270, reward:'Green'},
+            {level:11, energy:135, reward:'30'},  {level:12, energy:165, reward:'40'},
+            {level:13, energy:180, reward:'50'},  {level:14, energy:210, reward:'60'},
+            {level:15, energy:300, reward:'Blue'},{level:16, energy:195, reward:'30'},
+            {level:17, energy:225, reward:'40'},  {level:18, energy:240, reward:'50'},
+            {level:19, energy:270, reward:'60'},  {level:20, energy:330, reward:'Blue'},
+            {level:21, energy:210, reward:'40'},  {level:22, energy:240, reward:'50'},
+            {level:23, energy:270, reward:'60'},  {level:24, energy:330, reward:'70'},
+            {level:25, energy:360, reward:'Ruby'},
+        ]
+    };
+
+    const COLOR_EMOJI = {
+        'Green': {emoji:'🟢', label:'Green', cls:'reward-green'},
+        'Blue':  {emoji:'🔵', label:'Blue',  cls:'reward-blue'},
+        'Ruby':  {emoji:'🔴', label:'Ruby',  cls:'reward-ruby'},
+        'Gold':  {emoji:'🟡', label:'Gold',  cls:'reward-gold'},
+    };
+
+    const AVG_ENERGY   = 9;
+    const STORAGE_KEY  = 'eventCalc_v4';
+    // event ends at 11:00 Helsinki (EEST = UTC+3) = 08:00 UTC
+    const END_HOUR_UTC = 8;
+
+    let state = { mode: 20, endTimestamp: null, endDays: null, curLevel: 1, curEnergy: 0 };
+
+    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function loadState() {
+        try { const s = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (s) state = {...state, ...s}; }
+        catch(e) {}
+    }
+
+    function getData() { return DATA[state.mode]; }
+    function totalEventEnergy() { return getData().reduce((s,r) => s + r.energy, 0); }
+
+    function spentFromProgress(lvl, inLvl) {
+        const d = getData(); let spent = 0;
+        for (let i = 0; i < lvl - 1; i++) spent += d[i].energy;
+        return spent + inLvl;
+    }
+
+    function progressFromSpent(spent) {
+        const d = getData(); let rem = spent;
+        for (let i = 0; i < d.length; i++) {
+            if (rem < d[i].energy) return {level: i+1, inLevel: Math.round(rem)};
+            rem -= d[i].energy;
+        }
+        return {level: d.length, inLevel: d[d.length-1].energy};
+    }
+
+    function isNum(r) { return !isNaN(parseFloat(r)); }
+
+    function calcRewardEnergy(curLvl) {
+        return getData().slice(curLvl - 1).reduce((s,r) => s + (isNum(r.reward) ? parseFloat(r.reward) : 0), 0);
+    }
+
+    function calcRemaining(curLvl, inLvl) {
+        const d = getData();
+        let total = d[curLvl-1].energy - inLvl;
+        for (let i = curLvl; i < d.length; i++) total += d[i].energy;
+        return Math.max(0, total);
+    }
+
+    // Compute end timestamp: nearest 09:00 UTC (= 11:00 GMT+2) + extraDays
+    function computeEndTimestamp(extraDays) {
+        const now = new Date();
+        const candidate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), END_HOUR_UTC, 0, 0, 0));
+        // if today's slot already passed, start from tomorrow
+        if (candidate.getTime() <= now.getTime()) {
+            candidate.setUTCDate(candidate.getUTCDate() + 1);
+        }
+        candidate.setUTCDate(candidate.getUTCDate() + extraDays);
+        return candidate.getTime();
+    }
+
+    function formatCountdown(ms) {
+        if (ms <= 0) return 'событие завершено';
+        const s = Math.floor(ms / 1000);
+        const d = Math.floor(s / 86400);
+        const h = Math.floor((s % 86400) / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        let out = '';
+        if (d > 0) out += `${d}д `;
+        if (h > 0 || d > 0) out += `${h}ч `;
+        out += `${m}м`;
+        return out.trim();
+    }
+
+    function formatDateTime(ts) {
+        const d = new Date(ts);
+        const p = n => String(n).padStart(2,'0');
+        return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+
+    function updateDayButtons() {
+        [0,1,2,3].forEach(n => {
+            document.getElementById(`daysBtn${n}`).classList.toggle('active', state.endDays === n);
+        });
+    }
+
+    let countdownInterval = null;
+    function startCountdown() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        renderEndTime();
+        countdownInterval = setInterval(() => { renderEndTime(); renderStats(); }, 60000);
+    }
+
+    function renderEndTime() {
+        const el = document.getElementById('endTimeInfo');
+        if (!state.endTimestamp) { el.textContent = ''; return; }
+        const left = state.endTimestamp - Date.now();
+        el.innerHTML = `<strong>${formatDateTime(state.endTimestamp)}</strong> <span class="countdown">(${formatCountdown(left)})</span>`;
+    }
+
+    function setMode(m) {
+        state.mode = m;
+        const d = getData();
+        state.curLevel  = Math.min(state.curLevel, d.length);
+        state.curEnergy = Math.min(state.curEnergy, d[state.curLevel-1].energy);
+        saveState();
+        document.getElementById('btn20').classList.toggle('active', m === 20);
+        document.getElementById('btn25').classList.toggle('active', m === 25);
+        renderAll();
+    }
+
+    function setEndTime(days) {
+        state.endDays      = days;
+        state.endTimestamp = computeEndTimestamp(days);
+        saveState();
+        updateDayButtons();
+        startCountdown();
+        renderStats();
+    }
+
+    function clearEndTime() {
+        state.endTimestamp = null;
+        state.endDays      = null;
+        saveState();
+        updateDayButtons();
+        if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+        renderEndTime();
+        renderStats();
+    }
+
+    function onManualProgress() {
+        const d = getData();
+        let lvl = parseInt(document.getElementById('curLevel').value) || 1;
+        lvl = Math.max(1, Math.min(lvl, d.length));
+        let nrg = parseInt(document.getElementById('curEnergy').value) || 0;
+        nrg = Math.max(0, Math.min(nrg, d[lvl-1].energy - 1));
+        state.curLevel = lvl; state.curEnergy = nrg;
+        const spent = spentFromProgress(lvl, nrg);
+        document.getElementById('totalRange').value = spent;
+        document.getElementById('rangeVal').textContent = spent;
+        saveState(); renderStats(); renderTable();
+    }
+
+    function onRangeProgress() {
+        const spent = parseInt(document.getElementById('totalRange').value);
+        document.getElementById('rangeVal').textContent = spent;
+        const {level, inLevel} = progressFromSpent(spent);
+        state.curLevel = level; state.curEnergy = inLevel;
+        document.getElementById('curLevel').value  = level;
+        document.getElementById('curEnergy').value = inLevel;
+        saveState(); renderStats(); renderTable();
+    }
+
+    function renderStats() {
+        const remaining    = calcRemaining(state.curLevel, state.curEnergy);
+        const rewardEnergy = calcRewardEnergy(state.curLevel);
+        let timerEnergy = 0;
+        if (state.endTimestamp) {
+            const minsLeft = Math.max(0, state.endTimestamp - Date.now()) / 60000;
+            timerEnergy = Math.floor(minsLeft / 3);
+        }
+        const farmNeeded = Math.max(0, remaining - rewardEnergy - timerEnergy);
+        const gameLevels = farmNeeded > 0 ? Math.ceil(farmNeeded / AVG_ENERGY) : 0;
+
+        document.getElementById('statTotal').textContent    = remaining;
+        document.getElementById('statRewards').textContent  = rewardEnergy;
+        document.getElementById('statTimer').textContent    = state.endTimestamp ? timerEnergy : '—';
+        document.getElementById('statTimerSub').textContent = state.endTimestamp ? '1 ед. каждые 3 мин.' : 'Укажите время окончания';
+        document.getElementById('statFarm').textContent     = state.endTimestamp ? farmNeeded : '—';
+        document.getElementById('statLevels').textContent   = state.endTimestamp ? `~${gameLevels}` : '—';
+    }
+
+    function rewardHTML(r) {
+        if (isNum(r)) return `<span class="reward-energy">⚡ ${r}</span>`;
+        const info = COLOR_EMOJI[r];
+        if (info) return `<span class="reward-color ${info.cls}">${info.emoji} ${info.label}</span>`;
+        return `<span class="reward-color">${r}</span>`;
+    }
+
+    function renderTable() {
+        const d = getData();
+        const tbody = document.getElementById('evtBody');
+        tbody.innerHTML = '';
+        for (let i = 0; i < d.length; i++) {
+            const row       = d[i];
+            const isDone    = i + 1 < state.curLevel;
+            const isCurrent = i + 1 === state.curLevel;
+            const isNext    = i + 1 === state.curLevel + 1;
+
+            if (isCurrent) {
+                const tr1 = document.createElement('tr');
+                tr1.className = 'current-main';
+                tr1.innerHTML = `<td><strong>${row.level}</strong></td><td>${row.energy}</td><td>${rewardHTML(row.reward)}</td>`;
+                tbody.appendChild(tr1);
+
+                const pct = row.energy > 0 ? Math.round((state.curEnergy / row.energy) * 100) : 0;
+                const tr2 = document.createElement('tr');
+                tr2.className = 'current-bar';
+                tr2.innerHTML = `<td colspan="3" style="padding:2px 10px 8px;">
+        <div class="bar-label">${state.curEnergy} / ${row.energy}</div>
+        <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+      </td>`;
+                tbody.appendChild(tr2);
+            } else {
+                const tr = document.createElement('tr');
+                if (isDone) tr.className = 'done';
+                if (isNext) tr.className = 'after-current';
+                tr.innerHTML = `<td><strong>${row.level}</strong></td><td>${row.energy}</td><td>${rewardHTML(row.reward)}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+    }
+
+    function renderProgress() {
+        const d     = getData();
+        const total = totalEventEnergy();
+        const range = document.getElementById('totalRange');
+        range.max   = total - 1;
+        const spent = spentFromProgress(state.curLevel, state.curEnergy);
+        range.value = spent;
+        document.getElementById('rangeVal').textContent  = spent;
+        document.getElementById('curLevel').value        = state.curLevel;
+        document.getElementById('curEnergy').value       = state.curEnergy;
+        document.getElementById('curLevel').max          = d.length;
+        document.getElementById('curEnergy').max         = d[state.curLevel - 1].energy - 1;
+    }
+
+    function renderAll() {
+        renderProgress(); renderStats(); renderTable(); renderEndTime(); updateDayButtons();
+    }
+
+    loadState();
+    document.getElementById('btn20').classList.toggle('active', state.mode === 20);
+    document.getElementById('btn25').classList.toggle('active', state.mode === 25);
+    renderAll();
+    if (state.endTimestamp) startCountdown();
+</script>
+</body>
+</html>
