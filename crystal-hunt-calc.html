@@ -76,7 +76,7 @@
         .days-btn { padding: 6px 14px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 700; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
         .days-btn:hover { border-color: var(--accent); color: var(--accent); }
         .days-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-        .btn-reset { padding: 6px 12px; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; font-weight: 600; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); cursor: pointer; transition: opacity 0.2s; }
+        .btn-reset { width: 32px; height: 32px; padding: 0; background: var(--bg3); border: 1px solid var(--border); border-radius: 50%; color: var(--text2); font-size: 1rem; line-height: 1; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .btn-reset:hover { opacity: 0.75; }
         .end-time-result { font-size: 0.9rem; color: var(--text2); line-height: 1.5; }
         .end-time-result strong { color: var(--text); }
@@ -113,6 +113,7 @@
             .main-body { flex-direction: column; }
             .stats-col { flex: none; width: 100%; flex-direction: row; flex-wrap: wrap; gap: 8px; }
             .stat-item { flex: 1 1 calc(50% - 4px); min-width: 130px; }
+            .table-col { width: 100%; }
         }
 
         /* STATS */
@@ -192,7 +193,7 @@
             <button class="days-btn" id="daysBtn1" onclick="setEndTime(1)">1</button>
             <button class="days-btn" id="daysBtn2" onclick="setEndTime(2)">2</button>
             <button class="days-btn" id="daysBtn3" onclick="setEndTime(3)">3</button>
-            <button class="btn-reset" onclick="clearEndTime()">Сбросить</button>
+            <button class="btn-reset" onclick="clearEndTime()" title="Сбросить">✕</button>
         </div>
     </div>
 
@@ -212,7 +213,7 @@
         <div class="range-block">
             <div class="range-label">Суммарная потраченная энергия</div>
             <div class="range-row">
-                <input type="range" id="totalRange" min="0" value="0" oninput="onRangeProgress()">
+                <input type="range" id="totalRange" min="0" value="0" aria-label="Суммарная потраченная энергия" oninput="onRangeProgress()">
                 <span class="range-val" id="rangeVal">0</span>
             </div>
         </div>
@@ -432,18 +433,18 @@
         nrg = Math.max(0, Math.min(nrg, d[lvl-1].energy - 1));
         state.curLevel = lvl; state.curEnergy = nrg;
         const spent = spentFromProgress(lvl, nrg);
-        document.getElementById('totalRange').value = spent;
-        document.getElementById('rangeVal').textContent = spent;
+        document.getElementById('totalRange').value = String(spent);
+        document.getElementById('rangeVal').textContent = String(spent);
         saveState(); renderStats(); renderTable();
     }
 
     function onRangeProgress() {
-        const spent = parseInt(document.getElementById('totalRange').value);
-        document.getElementById('rangeVal').textContent = spent;
-        const {level, inLevel} = progressFromSpent(spent);
+        const raw = document.getElementById('totalRange').value;
+        document.getElementById('rangeVal').textContent = raw;
+        const {level, inLevel} = progressFromSpent(parseInt(raw, 10));
         state.curLevel = level; state.curEnergy = inLevel;
-        document.getElementById('curLevel').value  = level;
-        document.getElementById('curEnergy').value = inLevel;
+        document.getElementById('curLevel').value  = String(level);
+        document.getElementById('curEnergy').value = String(inLevel);
         saveState(); renderStats(); renderTable();
     }
 
@@ -458,11 +459,11 @@
         const farmNeeded = Math.max(0, remaining - rewardEnergy - timerEnergy);
         const gameLevels = farmNeeded > 0 ? Math.ceil(farmNeeded / AVG_ENERGY) : 0;
 
-        document.getElementById('statTotal').textContent    = remaining;
-        document.getElementById('statRewards').textContent  = rewardEnergy;
-        document.getElementById('statTimer').textContent    = state.endTimestamp ? timerEnergy : '—';
+        document.getElementById('statTotal').textContent    = String(remaining);
+        document.getElementById('statRewards').textContent  = String(rewardEnergy);
+        document.getElementById('statTimer').textContent    = state.endTimestamp ? String(timerEnergy) : '—';
         document.getElementById('statTimerSub').textContent = state.endTimestamp ? '1 ед. каждые 3 мин.' : 'Укажите время окончания';
-        document.getElementById('statFarm').textContent     = state.endTimestamp ? farmNeeded : '—';
+        document.getElementById('statFarm').textContent     = state.endTimestamp ? String(farmNeeded) : '—';
         document.getElementById('statLevels').textContent   = state.endTimestamp ? `~${gameLevels}` : '—';
     }
 
