@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Calculator</title>
+    <title>Crystal Hunt Calculator</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -174,7 +175,7 @@
 <div class="app">
 
     <div class="header">
-        <h1>⚡ Event Calc</h1>
+        <h1>💎 Crystal Hunt Calculator</h1>
         <div class="toggle-wrap">
             <button class="toggle-btn active" id="btn20" onclick="setMode(20)">20 уровней</button>
             <button class="toggle-btn"        id="btn25" onclick="setMode(25)">25 уровней</button>
@@ -202,11 +203,11 @@
         <div class="card-title">Текущий прогресс</div>
         <div class="progress-fields">
             <div class="inline-field">
-                <label for="curLevel">Уровень события:</label>
+                <label for="curLevel">Этап:</label>
                 <input type="number" id="curLevel" min="1" max="25" value="1" oninput="onManualProgress()">
             </div>
             <div class="inline-field">
-                <label for="curEnergy">Энергия в уровне:</label>
+                <label for="curEnergy">Энергия:</label>
                 <input type="number" id="curEnergy" min="0" value="0" oninput="onManualProgress()">
             </div>
         </div>
@@ -478,18 +479,20 @@
         const d = getData();
         const tbody = document.getElementById('evtBody');
         tbody.innerHTML = '';
-        for (let i = 0; i < d.length; i++) {
-            const row       = d[i];
-            const isDone    = i + 1 < state.curLevel;
-            const isCurrent = i + 1 === state.curLevel;
-            const isNext    = i + 1 === state.curLevel + 1;
+        for (let i = 1; i <= d.length; i++) {
+            const row       = d[i - 1];
+            const isDone    = i < state.curLevel;
+            const isCurrent = i === state.curLevel;
+            const isNext    = i === state.curLevel + 1;
+
+            const tr = document.createElement('tr');
+            if (isCurrent) tr.className = 'current-main';
+            if (isDone)    tr.className = 'done';
+            if (isNext)    tr.className = 'after-current';
+            tr.innerHTML = `<td><strong>${row.level}</strong></td><td>${row.energy}</td><td>${rewardHTML(row.reward)}</td>`;
+            tbody.appendChild(tr);
 
             if (isCurrent) {
-                const tr1 = document.createElement('tr');
-                tr1.className = 'current-main';
-                tr1.innerHTML = `<td><strong>${row.level}</strong></td><td>${row.energy}</td><td>${rewardHTML(row.reward)}</td>`;
-                tbody.appendChild(tr1);
-
                 const pct = row.energy > 0 ? Math.round((state.curEnergy / row.energy) * 100) : 0;
                 const tr2 = document.createElement('tr');
                 tr2.className = 'current-bar';
@@ -498,12 +501,6 @@
         <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
       </td>`;
                 tbody.appendChild(tr2);
-            } else {
-                const tr = document.createElement('tr');
-                if (isDone) tr.className = 'done';
-                if (isNext) tr.className = 'after-current';
-                tr.innerHTML = `<td><strong>${row.level}</strong></td><td>${row.energy}</td><td>${rewardHTML(row.reward)}</td>`;
-                tbody.appendChild(tr);
             }
         }
     }
