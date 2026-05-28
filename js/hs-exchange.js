@@ -2,7 +2,7 @@
 //  Card Exchange Tracker — hs-exchange.js
 // ============================================================
 
-const STORAGE_KEY = 'cardTracker_v3';
+const STORAGE_KEY = 'cardTracker';
 const LANG_KEY    = 'hs-exchange-lang';
 const STARS = 5;
 const SUPPORTED_LANGS = ['en', 'ru', 'de'];
@@ -119,6 +119,22 @@ function aggregatePlayers(playersDict) {
 }
 
 // Merge current season + all history into one players dict
+// Recalculate season-level aggregates from players dict
+function recalcSeasonTotals(season) {
+    const agg = aggregatePlayers(season.players);
+    season.received_new    = agg.received_new;
+    season.received_double = agg.received_double;
+    season.sent            = agg.sent;
+}
+
+// Ensure all seasons have aggregate fields (migration + integrity check)
+function ensureSeasonTotals() {
+    if (!state.current.received_new) recalcSeasonTotals(state.current);
+    for (const s of state.history) {
+        if (!s.received_new) recalcSeasonTotals(s);
+    }
+}
+
 function mergeAllPlayers() {
     const merged = {};
     const allDicts = [state.current.players, ...state.history.map(s => s.players)];
@@ -361,6 +377,7 @@ function renamePlayerKey(oldKey, newKey, newName) {
 
     if (state.activePlayer === oldKey) state.activePlayer = newKey;
     if (state.lastAction?.playerKey === oldKey) state.lastAction.playerKey = newKey;
+    recalcSeasonTotals(state.current);
 
     // History
     for (const season of state.history) {
@@ -410,6 +427,7 @@ function quickAdd(direction, starIndex) {
         ? (state.isNewCard ? 'received_new' : 'received_double')
         : 'sent';
     p[group][starIndex]++;
+    state.current[group][starIndex]++;
     state.lastAction = { playerKey: key, group, starIndex, delta: 1 };
     save(); render();
     flashPlayerRow(key);
@@ -419,7 +437,10 @@ function undoLast() {
     if (!state.lastAction) return;
     const { playerKey, group, starIndex, delta } = state.lastAction;
     const p = state.current.players[playerKey];
-    if (p) p[group][starIndex] = Math.max(0, p[group][starIndex] - delta);
+    if (p) {
+        p[group][starIndex] = Math.max(0, p[group][starIndex] - delta);
+        state.current[group][starIndex] = Math.max(0, (state.current[group][starIndex] || 0) - delta);
+    }
     state.lastAction = null;
     save(); render();
 }
@@ -445,6 +466,7 @@ async function deletePlayer(key) {
     delete state.current.players[key];
     if (state.activePlayer === key) state.activePlayer = null;
     if (state.lastAction?.playerKey === key) state.lastAction = null;
+    recalcSeasonTotals(state.current);
     save(); render();
 }
 
@@ -486,8 +508,11 @@ async function newSeason() {
         p.sent            = zeroes();
         p.note            = '';
     }
-    state.current.name       = newName;
-    state.current.start_date = now;
+    state.current.name           = newName;
+    state.current.start_date     = now;
+    state.current.received_new    = zeroes();
+    state.current.received_double = zeroes();
+    state.current.sent            = zeroes();
     state.activePlayer  = null;
     state.lastAction    = null;
 
@@ -545,6 +570,7 @@ function saveEdit() {
         p.sent[s]            = Math.max(0, parseInt(document.getElementById(`edit-st-${s}`).value, 10) || 0);
     }
     state.lastAction = null;
+    recalcSeasonTotals(state.current);
     save(); render();
     closeModal('modal-edit');
 }
@@ -650,7 +676,7 @@ function renderStatsDetail(totals) {
 }
 
 // ── Import / Export ───────────────────────────────────────────
-function exportData(space = 2) { return JSON.stringify({ version: 3, ...state }, null, space); }
+function exportData(space = 2) { return JSON.stringify({ version: 4, ...state }, null, space); }
 
 function importData(json) {
     try {
@@ -662,6 +688,7 @@ function importData(json) {
         state.isNewCard   = data.isNewCard   || false;
         state.activePlayer = null;
         state.lastAction  = null;
+        ensureSeasonTotals();
         save(); render();
         document.getElementById('toggle-new').checked = state.isNewCard;
         return true;
@@ -789,6 +816,7 @@ function onSeasonBlur() {
 document.addEventListener('DOMContentLoaded', () => {
     loadLang();
     load();
+    ensureSeasonTotals();
     document.getElementById('toggle-new').checked = state.isNewCard;
 
     // Season wrap init
