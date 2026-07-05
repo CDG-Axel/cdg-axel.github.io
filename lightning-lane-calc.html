@@ -1,160 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lightning Lane Calculator</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0f1117; --bg2: #181c27; --bg3: #1e2333;
-    --border: #2a3050; --text: #e8ecf5; --text2: #8b95b5;
-    --accent: #f7c94f; --accent2: #7c5cbf;
-    --done: #1a2a1a; --done-text: #4a7a4a;
-    --current-bg: #1a2040; --current-border: #f7c94f;
-    --reward-energy: #4f8ef7;
-    --stat-bg: #181c27; --input-bg: #1e2333; --range-track: #2a3050;
-    --shadow: 0 4px 24px rgba(0,0,0,0.4);
-    --green: #4CAF50; --blue: #2196F3; --ruby: #e53935;
-    --orange: #FF9800; --gold: #FFD700;
-    --card-radius: 12px;
-  }
-  @media (prefers-color-scheme: light) {
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lightning Lane Calculator</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
     :root {
-      --bg: #f0f3fa; --bg2: #ffffff; --bg3: #e8ecf5;
-      --border: #c8d0e8; --text: #1a2040; --text2: #5a6585;
-      --accent: #c49a00; --accent2: #6b45b0;
-      --done: #e8f5e8; --done-text: #357a35;
-      --current-bg: #fffbe8; --current-border: #c49a00;
-      --stat-bg: #ffffff; --input-bg: #ffffff; --range-track: #c8d0e8;
-      --shadow: 0 4px 24px rgba(0,0,0,0.1);
+      --bg: #0f1117; --bg2: #181c27; --bg3: #1e2333;
+      --border: #2a3050; --text: #e8ecf5; --text2: #8b95b5;
+      --accent: #f7c94f; --accent2: #7c5cbf;
+      --done: #1a2a1a; --done-text: #4a7a4a;
+      --current-bg: #1a2040; --current-border: #f7c94f;
+      --reward-energy: #4f8ef7;
+      --stat-bg: #181c27; --input-bg: #1e2333; --range-track: #2a3050;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+      --green: #4CAF50; --blue: #2196F3; --ruby: #e53935;
+      --orange: #FF9800; --gold: #FFD700;
+      --card-radius: 12px;
     }
-  }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f0f3fa; --bg2: #ffffff; --bg3: #e8ecf5;
+        --border: #c8d0e8; --text: #1a2040; --text2: #5a6585;
+        --accent: #c49a00; --accent2: #6b45b0;
+        --done: #e8f5e8; --done-text: #357a35;
+        --current-bg: #fffbe8; --current-border: #c49a00;
+        --stat-bg: #ffffff; --input-bg: #ffffff; --range-track: #c8d0e8;
+        --shadow: 0 4px 24px rgba(0,0,0,0.1);
+      }
+    }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; }
-  h1 { font-family: 'Rajdhani', sans-serif; letter-spacing: 0.04em; }
-  .app { max-width: 960px; margin: 0 auto; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; }
+    h1 { font-family: 'Rajdhani', sans-serif; letter-spacing: 0.04em; }
+    .app { max-width: 960px; margin: 0 auto; }
 
-  /* HEADER */
-  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
-  .header h1 { font-size: 1.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; }
+    /* HEADER */
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+    .header h1 { font-size: 1.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; }
 
-  /* TOGGLE */
-  .toggle-wrap { display: flex; background: var(--bg3); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
-  .toggle-btn { padding: 7px 18px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; letter-spacing: 0.05em; background: none; border: none; color: var(--text2); cursor: pointer; transition: background 0.2s, color 0.2s; }
-  .toggle-btn.active { background: var(--accent); color: #1a1a1a; }
+    /* TOGGLE */
+    .toggle-wrap { display: flex; background: var(--bg3); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+    .toggle-btn { padding: 7px 18px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; letter-spacing: 0.05em; background: none; border: none; color: var(--text2); cursor: pointer; transition: background 0.2s, color 0.2s; }
+    .toggle-btn.active { background: var(--accent); color: #1a1a1a; }
 
-  /* CARD */
-  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-radius); padding: 14px 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
-  .card-title { font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+    /* CARD */
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-radius); padding: 14px 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+    .card-title { font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
 
-  /* SETTINGS */
-  .settings-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-  .end-time-result { font-size: 0.9rem; color: var(--text2); }
-  .end-time-result strong { color: var(--text); }
-  .end-time-result .countdown { color: var(--accent); font-weight: 600; }
+    /* SETTINGS */
+    .settings-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .end-time-result { font-size: 0.9rem; color: var(--text2); }
+    .end-time-result strong { color: var(--text); }
+    .end-time-result .countdown { color: var(--accent); font-weight: 600; }
 
-  .settings-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .inline-label { font-size: 0.88rem; color: var(--text2); white-space: nowrap; }
+    .settings-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .inline-label { font-size: 0.88rem; color: var(--text2); white-space: nowrap; }
 
-  input[type="number"] {
-    background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px;
-    color: var(--text); font-family: 'Nunito', sans-serif; font-size: 0.95rem;
-    padding: 7px 10px; outline: none; transition: border-color 0.2s;
-    -moz-appearance: textfield; width: 52px; text-align: center;
-  }
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-  input[type="number"]:focus { border-color: var(--accent); }
-  input[type="number"].wide { width: 110px; }
+    input[type="number"] {
+      background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: 'Nunito', sans-serif; font-size: 0.95rem;
+      padding: 7px 10px; outline: none; transition: border-color 0.2s;
+      -moz-appearance: textfield; width: 52px; text-align: center;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus { border-color: var(--accent); }
+    input[type="number"].wide { width: 110px; }
 
-  .icon-btn {
-    width: 32px; height: 32px; padding: 0; background: var(--bg3);
-    border: 1px solid var(--border); border-radius: 8px; color: var(--text);
-    font-size: 1rem; cursor: pointer; transition: border-color 0.2s, color 0.2s;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .icon-btn.reset { border-radius: 50%; color: var(--text2); }
-  .icon-btn.reset:hover { color: var(--ruby); border-color: var(--ruby); }
+    .icon-btn {
+      width: 32px; height: 32px; padding: 0; background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+      font-size: 1rem; cursor: pointer; transition: border-color 0.2s, color 0.2s;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .icon-btn.reset { border-radius: 50%; color: var(--text2); }
+    .icon-btn.reset:hover { color: var(--ruby); border-color: var(--ruby); }
 
-  .settings-sep { width: 1px; height: 24px; background: var(--border); margin: 0 2px; }
+    .settings-sep { width: 1px; height: 24px; background: var(--border); margin: 0 2px; }
 
-  /* VIP CHECKBOX */
-  .vip-label { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 0.88rem; color: var(--text2); user-select: none; }
-  .vip-label input[type="checkbox"] { display: none; }
-  .vip-check { width: 32px; height: 20px; border-radius: 10px; background: var(--bg3); border: 1px solid var(--border); position: relative; transition: background 0.2s, border-color 0.2s; flex-shrink: 0; }
-  .vip-check::after { content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--text2); top: 2px; left: 2px; transition: left 0.2s, background 0.2s; }
-  .vip-label input:checked + .vip-check { background: var(--accent); border-color: var(--accent); }
-  .vip-label input:checked + .vip-check::after { left: 14px; background: #1a1a1a; }
-  .vip-text { transition: color 0.2s; }
-  .vip-label input:checked ~ .vip-text { color: var(--accent); font-weight: 600; }
+    /* VIP CHECKBOX */
+    .vip-label { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 0.88rem; color: var(--text2); user-select: none; }
+    .vip-label input[type="checkbox"] { display: none; }
+    .vip-check { width: 32px; height: 20px; border-radius: 10px; background: var(--bg3); border: 1px solid var(--border); position: relative; transition: background 0.2s, border-color 0.2s; flex-shrink: 0; }
+    .vip-check::after { content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--text2); top: 2px; left: 2px; transition: left 0.2s, background 0.2s; }
+    .vip-label input:checked + .vip-check { background: var(--accent); border-color: var(--accent); }
+    .vip-label input:checked + .vip-check::after { left: 14px; background: #1a1a1a; }
+    .vip-text { transition: color 0.2s; }
+    .vip-label input:checked ~ .vip-text { color: var(--accent); font-weight: 600; }
 
-  /* PROGRESS */
-  .progress-fields { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-bottom: 12px; align-items: center; }
-  .inline-field { display: flex; align-items: center; gap: 8px; }
-  .inline-field label { font-size: 0.88rem; color: var(--text2); white-space: nowrap; }
+    /* PROGRESS */
+    .progress-fields { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-bottom: 12px; align-items: center; }
+    .inline-field { display: flex; align-items: center; gap: 8px; }
+    .inline-field label { font-size: 0.88rem; color: var(--text2); white-space: nowrap; }
 
-  .range-block { display: flex; flex-direction: column; gap: 4px; }
-  .range-row { display: flex; align-items: center; gap: 10px; }
-  input[type="range"] { flex: 1; -webkit-appearance: none; height: 6px; border-radius: 3px; background: var(--range-track); outline: none; cursor: pointer; }
-  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 6px rgba(247,201,79,0.5); }
-  input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
-  .range-val { font-size: 0.85rem; color: var(--accent); font-weight: 700; min-width: 48px; text-align: right; }
-  .range-label { font-size: 0.82rem; color: var(--text2); }
+    .range-block { display: flex; flex-direction: column; gap: 4px; }
+    .range-row { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; -webkit-appearance: none; height: 6px; border-radius: 3px; background: var(--range-track); outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 6px rgba(247,201,79,0.5); }
+    input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
+    .range-val { font-size: 0.85rem; color: var(--accent); font-weight: 700; min-width: 48px; text-align: right; }
+    .range-label { font-size: 0.82rem; color: var(--text2); }
 
-  /* MAIN BODY */
-  .main-body { display: flex; gap: 12px; align-items: flex-start; }
-  .stats-col { flex: 0 0 210px; display: flex; flex-direction: column; gap: 8px; }
-  .table-col { flex: 1; min-width: 0; }
-  @media (max-width: 620px) {
-    .main-body { flex-direction: column; }
-    .stats-col { flex: none; width: 100%; flex-direction: row; flex-wrap: wrap; gap: 8px; }
-    .stat-item { flex: 1 1 calc(50% - 4px); min-width: 130px; }
-    .table-col { width: 100%; }
-  }
+    /* MAIN BODY */
+    .main-body { display: flex; gap: 12px; align-items: flex-start; }
+    .stats-col { flex: 0 0 210px; display: flex; flex-direction: column; gap: 8px; }
+    .table-col { flex: 1; min-width: 0; }
+    @media (max-width: 620px) {
+      .main-body { flex-direction: column; }
+      .stats-col { flex: none; width: 100%; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+      .stat-item { flex: 1 1 calc(50% - 4px); min-width: 130px; }
+      .table-col { width: 100%; }
+    }
 
-  /* STATS */
-  .stat-item { background: var(--stat-bg); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; }
-  .stat-label { font-size: 0.76rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
-  .stat-value { font-family: 'Rajdhani', sans-serif; font-size: 1.55rem; font-weight: 700; color: var(--accent); line-height: 1.1; }
-  .stat-sub { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
-  .stat-item.highlight .stat-value { color: var(--accent2); }
+    /* STATS */
+    .stat-item { background: var(--stat-bg); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; }
+    .stat-label { font-size: 0.76rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .stat-value { font-family: 'Rajdhani', sans-serif; font-size: 1.55rem; font-weight: 700; color: var(--accent); line-height: 1.1; }
+    .stat-sub { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+    .stat-item.highlight .stat-value { color: var(--accent2); }
 
-  /* TABLE */
-  .table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow); }
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem; }
-  thead th {
-    font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.82rem;
-    letter-spacing: 0.07em; text-transform: uppercase; color: var(--text2);
-    padding: 9px 10px; text-align: left; background: var(--bg3);
-    border-bottom: 2px solid var(--border);
-  }
-  thead th.vip-col { color: var(--accent); }
-  tbody td { padding: 8px 10px; color: var(--text); vertical-align: middle; border-bottom: 1px solid var(--border); }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr.done td { background: var(--done); color: var(--done-text); }
-  tbody tr.current td {
-    background: var(--current-bg);
-    font-weight: 600;
-  }
-  tbody tr.current td:first-child { box-shadow: inset 2px 0 0 var(--current-border), inset 0 2px 0 var(--current-border), inset 0 -2px 0 var(--current-border); }
-  tbody tr.current td:not(:first-child):not(:last-child) { box-shadow: inset 0 2px 0 var(--current-border), inset 0 -2px 0 var(--current-border); }
-  tbody tr.current td:last-child { box-shadow: inset -2px 0 0 var(--current-border), inset 0 2px 0 var(--current-border), inset 0 -2px 0 var(--current-border); }
-  tbody tr.after-current td { border-top: 1px solid var(--border); }
+    /* TABLE */
+    .table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow); }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem; }
+    thead th {
+      font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.82rem;
+      letter-spacing: 0.07em; text-transform: uppercase; color: var(--text2);
+      padding: 9px 10px; text-align: left; background: var(--bg3);
+      border-bottom: 2px solid var(--border);
+    }
+    thead th.vip-col { color: var(--accent); }
+    tbody td { padding: 8px 10px; color: var(--text); vertical-align: middle; border-bottom: 1px solid var(--border); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.done td { background: var(--done); color: var(--done-text); }
+    tbody tr.current td {
+      background: var(--current-bg);
+      font-weight: 600;
+    }
+    tbody tr.current td:first-child { box-shadow: inset 2px 0 0 var(--current-border), inset 0 2px 0 var(--current-border), inset 0 -2px 0 var(--current-border); }
+    tbody tr.current td:not(:first-child):not(:last-child) { box-shadow: inset 0 2px 0 var(--current-border), inset 0 -2px 0 var(--current-border); }
+    tbody tr.current td:last-child { box-shadow: inset -2px 0 0 var(--current-border), inset 0 2px 0 var(--current-border), inset 0 -2px 0 var(--current-border); }
+    tbody tr.after-current td { border-top: 1px solid var(--border); }
 
-  .crystals-col { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1rem; color: var(--accent); }
-  .reward-energy { color: var(--reward-energy); font-weight: 600; }
-  .reward-color  { font-weight: 600; }
-  .reward-green  { color: var(--green); }
-  .reward-blue   { color: var(--blue); }
-  .reward-ruby   { color: var(--ruby); }
-  .reward-orange { color: var(--orange); }
-  .reward-gold   { color: var(--gold); }
-</style>
+    .crystals-col { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1rem; color: var(--accent); }
+    .reward-energy { color: var(--reward-energy); font-weight: 600; }
+    .reward-color  { font-weight: 600; }
+    .reward-green  { color: var(--green); }
+    .reward-blue   { color: var(--blue); }
+    .reward-ruby   { color: var(--ruby); }
+    .reward-orange { color: var(--orange); }
+    .reward-gold   { color: var(--gold); }
+  </style>
 </head>
 <body>
 <div class="app">
@@ -242,11 +242,11 @@
         <div class="table-wrap">
           <table>
             <thead>
-              <tr>
-                <th>💎</th>
-                <th>Energy</th>
-                <th class="vip-col">⭐ VIP</th>
-              </tr>
+            <tr>
+              <th>💎</th>
+              <th>Energy</th>
+              <th class="vip-col">⭐ VIP</th>
+            </tr>
             </thead>
             <tbody id="evtBody"></tbody>
           </table>
@@ -257,256 +257,257 @@
 
 </div>
 <script>
-// ─── DATA ────────────────────────────────────────────────
-// crystals = cumulative threshold; energy/vip = reward for reaching it
-const STAGES = [
-  {crystals:20,   energy:'30',      vip:'100'},
-  {crystals:50,   energy:'40',      vip:'Orange'},
-  {crystals:90,   energy:'50',      vip:'Booster'},
-  {crystals:150,  energy:'Booster', vip:'Gold'},
-  {crystals:230,  energy:'60',      vip:'Green'},
-  {crystals:340,  energy:'70',      vip:'Booster'},
-  {crystals:480,  energy:'80',      vip:'120'},
-  {crystals:700,  energy:'Orange',  vip:'Blue'},
-  {crystals:1000, energy:'90',      vip:'Booster'},
-  {crystals:1400, energy:'110',     vip:'Gold'},
-  {crystals:1900, energy:'130',     vip:'150'},
-  {crystals:2600, energy:'Green',   vip:'Blue'},
-  {crystals:3500, energy:'150',     vip:'170'},
-  {crystals:4650, energy:'160',     vip:'Gold'},
-  {crystals:6100, energy:'180',     vip:'Ruby'},
-  {crystals:8100, energy:'Blue',    vip:'Chest'},
-];
+  // ─── DATA ────────────────────────────────────────────────
+  // crystals = cumulative threshold; energy/vip = reward for reaching it
+  const STAGES = [
+    {crystals:20,   energy:'30',      vip:'100'},
+    {crystals:50,   energy:'40',      vip:'Orange'},
+    {crystals:90,   energy:'50',      vip:'Booster'},
+    {crystals:150,  energy:'Booster', vip:'Gold'},
+    {crystals:230,  energy:'60',      vip:'Green'},
+    {crystals:340,  energy:'70',      vip:'Booster'},
+    {crystals:480,  energy:'80',      vip:'120'},
+    {crystals:700,  energy:'Orange',  vip:'Blue'},
+    {crystals:1000, energy:'90',      vip:'Booster'},
+    {crystals:1400, energy:'110',     vip:'Gold'},
+    {crystals:1900, energy:'130',     vip:'150'},
+    {crystals:2600, energy:'Green',   vip:'Blue'},
+    {crystals:3500, energy:'150',     vip:'170'},
+    {crystals:4650, energy:'160',     vip:'Gold'},
+    {crystals:6100, energy:'180',     vip:'Ruby'},
+    {crystals:8100, energy:'Blue',    vip:'Chest'},
+  ];
 
-const MAX_CRYSTALS = STAGES[STAGES.length - 1].crystals;
+  const MAX_CRYSTALS = STAGES[STAGES.length - 1].crystals;
 
-const REWARD_DISPLAY = {
-  'Green':   {emoji:'🟢', cls:'reward-green'},
-  'Blue':    {emoji:'🔵', cls:'reward-blue'},
-  'Ruby':    {emoji:'🔴', cls:'reward-ruby'},
-  'Orange':  {emoji:'🟠', cls:'reward-orange'},
-  'Gold':    {emoji:'🪙', cls:'reward-gold'},
-  'Booster': {emoji:'🚀', cls:''},
-  'Chest':   {emoji:'🎁', cls:''},
-};
+  const REWARD_DISPLAY = {
+    'Green':   {emoji:'🟢', cls:'reward-green'},
+    'Blue':    {emoji:'🔵', cls:'reward-blue'},
+    'Ruby':    {emoji:'🔴', cls:'reward-ruby'},
+    'Orange':  {emoji:'🟠', cls:'reward-orange'},
+    'Gold':    {emoji:'🪙', cls:'reward-gold'},
+    'Booster': {emoji:'🚀', cls:''},
+    'Chest':   {emoji:'🎁', cls:''},
+  };
 
-const AVG_ENERGY   = 9;
-const END_HOUR_UTC = 8; // 11:00 Helsinki (EEST = UTC+3)
-const STORAGE_KEY  = 'lightningLane_v1';
+  const AVG_ENERGY   = 9;
+  const END_HOUR_UTC = 8; // 11:00 Helsinki (EEST = UTC+3)
+  const STORAGE_KEY  = 'lightningLane_v1';
 
-// ─── STATE ───────────────────────────────────────────────
-let state = {
-  endTimestamp: null,
-  endDays: null,
-  vip: false,
-  curCrystals: 0,
-};
+  // ─── STATE ───────────────────────────────────────────────
+  let state = {
+    endTimestamp: null,
+    endDays: null,
+    vip: false,
+    curCrystals: 0,
+  };
 
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-function loadState() {
-  try { const s = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (s) state = {...state, ...s}; }
-  catch(e) {}
-}
-
-// ─── HELPERS ─────────────────────────────────────────────
-function isNum(r) { return r !== undefined && r !== '' && !isNaN(parseFloat(r)); }
-
-// Current stage index (0-based): highest stage whose threshold <= curCrystals
-function currentStageIdx(crystals) {
-  let idx = -1;
-  for (let i = 0; i < STAGES.length; i++) {
-    if (crystals >= STAGES[i].crystals) idx = i;
-    else break;
+  function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function loadState() {
+    try { const s = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (s) state = {...state, ...s}; }
+    catch(e) {}
   }
-  return idx; // -1 = before first stage
-}
 
-// Sum of numeric energy rewards from stages not yet completed
-function calcRewardEnergy(crystals) {
-  let total = 0;
-  for (let i = 0; i < STAGES.length; i++) {
-    if (crystals < STAGES[i].crystals && isNum(STAGES[i].energy)) {
-      total += parseFloat(STAGES[i].energy);
+  // ─── HELPERS ─────────────────────────────────────────────
+  function isNum(r) { return r !== undefined && r !== '' && !isNaN(parseFloat(r)); }
+
+  // Current stage index (0-based): highest stage whose threshold <= curCrystals
+  function currentStageIdx(crystals) {
+    let idx = -1;
+    for (let i = 0; i < STAGES.length; i++) {
+      if (crystals >= STAGES[i].crystals) idx = i;
+      else break;
     }
+    return idx; // -1 = before first stage
   }
-  return total;
-}
 
-function calcRemaining(crystals) {
-  return Math.max(0, MAX_CRYSTALS - crystals);
-}
-
-// ─── END TIME ────────────────────────────────────────────
-function computeEndTimestamp(extraDays) {
-  const now = new Date();
-  const candidate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), END_HOUR_UTC, 0, 0, 0));
-  if (candidate.getTime() <= now.getTime()) candidate.setUTCDate(candidate.getUTCDate() + 1);
-  candidate.setUTCDate(candidate.getUTCDate() + extraDays);
-  return candidate.getTime();
-}
-
-function formatCountdown(ms) {
-  if (ms <= 0) return 'event ended';
-  const s = Math.floor(ms / 1000);
-  const d = Math.floor(s / 86400);
-  const h = Math.floor((s % 86400) / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  let out = '';
-  if (d > 0) out += `${d}d `;
-  if (h > 0 || d > 0) out += `${h}h `;
-  out += `${m}m`;
-  return out.trim();
-}
-
-function formatDateTime(ts) {
-  const d = new Date(ts);
-  const p = n => String(n).padStart(2,'0');
-  return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-
-let countdownInterval = null;
-function startCountdown() {
-  if (countdownInterval) clearInterval(countdownInterval);
-  renderEndTime();
-  countdownInterval = setInterval(() => { renderEndTime(); renderStats(); }, 60000);
-}
-
-function renderEndTime() {
-  const el = document.getElementById('endTimeInfo');
-  if (!state.endTimestamp) { el.textContent = ''; return; }
-  const left = state.endTimestamp - Date.now();
-  el.innerHTML = `<strong>${formatDateTime(state.endTimestamp)}</strong> <span class="countdown">(${formatCountdown(left)})</span>`;
-}
-
-function updateDaysInput() {
-  if (state.endDays !== null) document.getElementById('daysInput').value = String(state.endDays);
-}
-
-function setEndTime(days) {
-  state.endDays      = days;
-  state.endTimestamp = computeEndTimestamp(days);
-  document.getElementById('daysInput').value = String(days);
-  saveState(); startCountdown(); renderStats();
-}
-
-function setEndTimeFromInput() {
-  const days = Math.max(0, Math.min(6, parseInt(document.getElementById('daysInput').value) || 0));
-  setEndTime(days);
-}
-
-function clearEndTime() {
-  state.endTimestamp = null; state.endDays = null;
-  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-  saveState(); renderEndTime(); renderStats();
-}
-
-function onVipChange() {
-  state.vip = document.getElementById('vipCheck').checked;
-  saveState(); renderTable();
-}
-
-// ─── PROGRESS ────────────────────────────────────────────
-function onManualProgress() {
-  let val = parseInt(document.getElementById('curCrystals').value) || 0;
-  val = Math.max(0, Math.min(val, MAX_CRYSTALS));
-  state.curCrystals = val;
-  document.getElementById('totalRange').value = String(val);
-  document.getElementById('rangeVal').textContent = String(val);
-  saveState(); renderStats(); renderTable();
-}
-
-function onRangeProgress() {
-  const raw = document.getElementById('totalRange').value;
-  document.getElementById('rangeVal').textContent = raw;
-  const val = parseInt(raw, 10);
-  state.curCrystals = val;
-  document.getElementById('curCrystals').value = String(val);
-  saveState(); renderStats(); renderTable();
-}
-
-// ─── RENDER ──────────────────────────────────────────────
-function renderStats() {
-  const crystals     = state.curCrystals;
-  const remaining    = calcRemaining(crystals);
-  const rewardEnergy = calcRewardEnergy(crystals);
-
-  let timerEnergy = 0;
-  if (state.endTimestamp) {
-    const minsLeft = Math.max(0, state.endTimestamp - Date.now()) / 60000;
-    timerEnergy = Math.floor(minsLeft / 3);
+  // Sum of numeric energy rewards from stages not yet completed
+  function calcRewardEnergy(crystals) {
+    let total = 0;
+    for (let i = 0; i < STAGES.length; i++) {
+      if (crystals < STAGES[i].crystals) {
+        if (isNum(STAGES[i].energy)) total += parseFloat(STAGES[i].energy);
+        if (state.vip && isNum(STAGES[i].vip)) total += parseFloat(STAGES[i].vip);
+      }
+    }
+    return total;
   }
-  const farmNeeded = Math.max(0, remaining - rewardEnergy - timerEnergy);
-  const gameLevels = farmNeeded > 0 ? Math.ceil(farmNeeded / AVG_ENERGY) : 0;
 
-  document.getElementById('statTotal').textContent    = String(remaining);
-  document.getElementById('statRewards').textContent  = String(rewardEnergy);
-  document.getElementById('statTimer').textContent    = state.endTimestamp ? String(timerEnergy) : '—';
-  document.getElementById('statTimerSub').textContent = state.endTimestamp ? '1 per 3 min.' : 'Set end time first';
-  document.getElementById('statFarm').textContent     = state.endTimestamp ? String(farmNeeded) : '—';
-  document.getElementById('statLevels').textContent   = state.endTimestamp ? `~${gameLevels}` : '—';
-}
+  function calcRemaining(crystals) {
+    return Math.max(0, MAX_CRYSTALS - crystals);
+  }
 
-function rewardHTML(r) {
-  if (r === undefined || r === '') return '—';
-  if (isNum(r)) return `<span class="reward-energy">⚡ ${r}</span>`;
-  const info = REWARD_DISPLAY[r];
-  if (info) return `<span class="reward-color ${info.cls}">${info.emoji} ${r}</span>`;
-  return `<span>${r}</span>`;
-}
+  // ─── END TIME ────────────────────────────────────────────
+  function computeEndTimestamp(extraDays) {
+    const now = new Date();
+    const candidate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), END_HOUR_UTC, 0, 0, 0));
+    if (candidate.getTime() <= now.getTime()) candidate.setUTCDate(candidate.getUTCDate() + 1);
+    candidate.setUTCDate(candidate.getUTCDate() + extraDays);
+    return candidate.getTime();
+  }
 
-function renderTable() {
-  const tbody = document.getElementById('evtBody');
-  tbody.innerHTML = '';
-  const crystals = state.curCrystals;
+  function formatCountdown(ms) {
+    if (ms <= 0) return 'event ended';
+    const s = Math.floor(ms / 1000);
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    let out = '';
+    if (d > 0) out += `${d}d `;
+    if (h > 0 || d > 0) out += `${h}h `;
+    out += `${m}m`;
+    return out.trim();
+  }
 
-  for (let i = 0; i < STAGES.length; i++) {
-    const s         = STAGES[i];
-    const isDone    = crystals >= s.crystals;
-    const isCurrent = !isDone && (i === 0 || crystals >= STAGES[i-1].crystals);
-    const isNext    = !isDone && !isCurrent && i > 0 && crystals >= STAGES[i-1].crystals;
+  function formatDateTime(ts) {
+    const d = new Date(ts);
+    const p = n => String(n).padStart(2,'0');
+    return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
 
-    // Determine "current" more precisely: stage where previous threshold passed but this one not yet
-    // Recalculate: current = first stage not yet done
-    const stageIdx = currentStageIdx(crystals);
-    const trulyCurrent = (i === stageIdx + 1);
-    const trulyDone    = (i <= stageIdx);
-    const trulyNext    = (i === stageIdx + 2);
+  let countdownInterval = null;
+  function startCountdown() {
+    if (countdownInterval) clearInterval(countdownInterval);
+    renderEndTime();
+    countdownInterval = setInterval(() => { renderEndTime(); renderStats(); }, 60000);
+  }
 
-    const tr = document.createElement('tr');
-    if (trulyDone)    tr.className = 'done';
-    if (trulyCurrent) tr.className = 'current';
-    if (trulyNext)    tr.className = 'after-current';
+  function renderEndTime() {
+    const el = document.getElementById('endTimeInfo');
+    if (!state.endTimestamp) { el.textContent = ''; return; }
+    const left = state.endTimestamp - Date.now();
+    el.innerHTML = `<strong>${formatDateTime(state.endTimestamp)}</strong> <span class="countdown">(${formatCountdown(left)})</span>`;
+  }
 
-    const vipCell = state.vip ? `<td>${rewardHTML(s.vip)}</td>` : `<td>${rewardHTML(s.vip)}</td>`;
+  function updateDaysInput() {
+    if (state.endDays !== null) document.getElementById('daysInput').value = String(state.endDays);
+  }
 
-    tr.innerHTML = `
+  function setEndTime(days) {
+    state.endDays      = days;
+    state.endTimestamp = computeEndTimestamp(days);
+    document.getElementById('daysInput').value = String(days);
+    saveState(); startCountdown(); renderStats();
+  }
+
+  function setEndTimeFromInput() {
+    const days = Math.max(0, Math.min(6, parseInt(document.getElementById('daysInput').value) || 0));
+    setEndTime(days);
+  }
+
+  function clearEndTime() {
+    state.endTimestamp = null; state.endDays = null;
+    if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+    saveState(); renderEndTime(); renderStats();
+  }
+
+  function onVipChange() {
+    state.vip = document.getElementById('vipCheck').checked;
+    saveState(); renderStats(); renderTable();
+  }
+
+  // ─── PROGRESS ────────────────────────────────────────────
+  function onManualProgress() {
+    let val = parseInt(document.getElementById('curCrystals').value) || 0;
+    val = Math.max(0, Math.min(val, MAX_CRYSTALS));
+    state.curCrystals = val;
+    document.getElementById('totalRange').value = String(val);
+    document.getElementById('rangeVal').textContent = String(val);
+    saveState(); renderStats(); renderTable();
+  }
+
+  function onRangeProgress() {
+    const raw = document.getElementById('totalRange').value;
+    document.getElementById('rangeVal').textContent = raw;
+    const val = parseInt(raw, 10);
+    state.curCrystals = val;
+    document.getElementById('curCrystals').value = String(val);
+    saveState(); renderStats(); renderTable();
+  }
+
+  // ─── RENDER ──────────────────────────────────────────────
+  function renderStats() {
+    const crystals     = state.curCrystals;
+    const remaining    = calcRemaining(crystals);
+    const rewardEnergy = calcRewardEnergy(crystals);
+
+    let timerEnergy = 0;
+    if (state.endTimestamp) {
+      const minsLeft = Math.max(0, state.endTimestamp - Date.now()) / 60000;
+      timerEnergy = Math.floor(minsLeft / 3);
+    }
+    const farmNeeded = Math.max(0, remaining - rewardEnergy - timerEnergy);
+    const gameLevels = farmNeeded > 0 ? Math.ceil(farmNeeded / AVG_ENERGY) : 0;
+
+    document.getElementById('statTotal').textContent    = String(remaining);
+    document.getElementById('statRewards').textContent  = String(rewardEnergy);
+    document.getElementById('statTimer').textContent    = state.endTimestamp ? String(timerEnergy) : '—';
+    document.getElementById('statTimerSub').textContent = state.endTimestamp ? '1 per 3 min.' : 'Set end time first';
+    document.getElementById('statFarm').textContent     = state.endTimestamp ? String(farmNeeded) : '—';
+    document.getElementById('statLevels').textContent   = state.endTimestamp ? `~${gameLevels}` : '—';
+  }
+
+  function rewardHTML(r) {
+    if (r === undefined || r === '') return '—';
+    if (isNum(r)) return `<span class="reward-energy">⚡ ${r}</span>`;
+    const info = REWARD_DISPLAY[r];
+    if (info) return `<span class="reward-color ${info.cls}">${info.emoji} ${r}</span>`;
+    return `<span>${r}</span>`;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('evtBody');
+    tbody.innerHTML = '';
+    const crystals = state.curCrystals;
+
+    for (let i = 0; i < STAGES.length; i++) {
+      const s         = STAGES[i];
+      const isDone    = crystals >= s.crystals;
+      const isCurrent = !isDone && (i === 0 || crystals >= STAGES[i-1].crystals);
+      const isNext    = !isDone && !isCurrent && i > 0 && crystals >= STAGES[i-1].crystals;
+
+      // Determine "current" more precisely: stage where previous threshold passed but this one not yet
+      // Recalculate: current = first stage not yet done
+      const stageIdx = currentStageIdx(crystals);
+      const trulyCurrent = (i === stageIdx + 1);
+      const trulyDone    = (i <= stageIdx);
+      const trulyNext    = (i === stageIdx + 2);
+
+      const tr = document.createElement('tr');
+      if (trulyDone)    tr.className = 'done';
+      if (trulyCurrent) tr.className = 'current';
+      if (trulyNext)    tr.className = 'after-current';
+
+      const vipCell = state.vip ? `<td>${rewardHTML(s.vip)}</td>` : `<td>${rewardHTML(s.vip)}</td>`;
+
+      tr.innerHTML = `
       <td class="crystals-col">${s.crystals}</td>
       <td>${rewardHTML(s.energy)}</td>
       <td>${rewardHTML(s.vip)}</td>
     `;
-    tbody.appendChild(tr);
+      tbody.appendChild(tr);
+    }
   }
-}
 
-function renderProgress() {
-  const range = document.getElementById('totalRange');
-  range.max   = String(MAX_CRYSTALS);
-  range.value = String(state.curCrystals);
-  document.getElementById('rangeVal').textContent      = String(state.curCrystals);
-  document.getElementById('curCrystals').value         = String(state.curCrystals);
-}
+  function renderProgress() {
+    const range = document.getElementById('totalRange');
+    range.max   = String(MAX_CRYSTALS);
+    range.value = String(state.curCrystals);
+    document.getElementById('rangeVal').textContent      = String(state.curCrystals);
+    document.getElementById('curCrystals').value         = String(state.curCrystals);
+  }
 
-function renderAll() {
-  renderProgress(); renderStats(); renderTable(); renderEndTime(); updateDaysInput();
-  document.getElementById('vipCheck').checked = state.vip;
-}
+  function renderAll() {
+    renderProgress(); renderStats(); renderTable(); renderEndTime(); updateDaysInput();
+    document.getElementById('vipCheck').checked = state.vip;
+  }
 
-// ─── INIT ────────────────────────────────────────────────
-loadState();
-renderAll();
-if (state.endTimestamp) startCountdown();
+  // ─── INIT ────────────────────────────────────────────────
+  loadState();
+  renderAll();
+  if (state.endTimestamp) startCountdown();
 
-function setMode(m) {} // placeholder for potential future modes
+  function setMode(m) {} // placeholder for potential future modes
 </script>
 </body>
 </html>
