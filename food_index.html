@@ -27,6 +27,9 @@
   --med-bg:#F3E4C4;
   --high:#AD4C34;
   --high-bg:#F1DAD1;
+  --prot:#B14C74;
+  --fat:#A68B3C;
+  --carb:#3E7793;
   --shadow: 0 1px 2px rgba(34,48,31,0.06), 0 8px 24px rgba(34,48,31,0.05);
   --filter-bg: rgba(245,246,238,0.92);
   color-scheme: light;
@@ -49,6 +52,9 @@
     --med-bg:#3A2E17;
     --high:#E58269;
     --high-bg:#3B2119;
+    --prot:#E0A0BE;
+    --fat:#D6BC72;
+    --carb:#8FC2DC;
     --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
     --filter-bg: rgba(22,28,21,0.86);
     color-scheme: dark;
@@ -131,6 +137,15 @@ h1{
 .legend-dot.low{background:var(--low);}
 .legend-dot.med{background:var(--med);}
 .legend-dot.high{background:var(--high);}
+.legend-dot.prot{background:var(--prot);}
+.legend-dot.fat{background:var(--fat);}
+.legend-dot.carb{background:var(--carb);}
+.legend-sep{
+  width:1px;
+  align-self:stretch;
+  background:var(--line);
+  display:inline-block;
+}
 
 /* ---------- Sticky filter bar ---------- */
 .filter-bar{
@@ -338,6 +353,10 @@ td.num{
 }
 td.dash{color:var(--ink-faint);}
 
+.macro-prot{color:var(--prot); font-weight:600;}
+.macro-fat{color:var(--fat); font-weight:600;}
+.macro-carb{color:var(--carb); font-weight:600;}
+
 /* GI badge */
 .gi-badge{
   display:inline-flex;
@@ -438,14 +457,14 @@ footer{
 
   col.col-name{width:auto;}
   col.col-gi{width:32px;}
-  col.col-kcal{width:34px;}
+  col.col-kcal{width:33px;}
   col.col-prot,
   col.col-fat,
-  col.col-carb{width:23px;}
-  col.col-rate{width:26px;}
+  col.col-carb{width:34px;}
+  col.col-rate{width:18px;}
 
-  thead th{padding:8px 4px; font-size:9.5px;}
-  tbody td{padding:8px 4px; font-size:12px;}
+  thead th{padding:8px 3px; font-size:9.5px;}
+  tbody td{padding:8px 3px; font-size:12px;}
 
   th .th-full{display:none;}
   th .th-short{display:inline;}
@@ -460,9 +479,10 @@ footer{
 
   .gi-badge{min-width:0; gap:0;}
   .gi-bar{display:none;}
-  .gi-num{font-size:11.5px; padding:1px 5px;}
+  .gi-num{font-size:11px; padding:1px 4px;}
 
   td.num{font-size:11.5px;}
+  .macro-prot, .macro-fat, .macro-carb{font-size:11px;}
 
   .rate-dots{display:none;}
   .rate-compact{display:inline-flex;}
@@ -479,6 +499,10 @@ footer{
     <span class="legend-item"><span class="legend-dot low"></span>Низкий ГИ · ≤ 55</span>
     <span class="legend-item"><span class="legend-dot med"></span>Средний ГИ · 56–69</span>
     <span class="legend-item"><span class="legend-dot high"></span>Высокий ГИ · ≥ 70</span>
+    <span class="legend-sep"></span>
+    <span class="legend-item"><span class="legend-dot prot"></span>Белки</span>
+    <span class="legend-item"><span class="legend-dot fat"></span>Жиры</span>
+    <span class="legend-item"><span class="legend-dot carb"></span>Углеводы</span>
   </div>
 </div>
 
@@ -546,13 +570,18 @@ function renderNum(v){
   return f === null ? '<span class="dash">—</span>' : f;
 }
 
+function renderMacro(v, cls){
+  const f = fmt(v);
+  return f === null ? '<span class="dash">—</span>' : `<span class="${cls}">${f}</span>`;
+}
+
 function renderRate(r){
   if(r === undefined || r === null) return '<span class="dash">—</span>';
   let dots = '';
   for(let i=1;i<=5;i++){
     dots += `<i class="${i<=r ? 'on':''}"></i>`;
   }
-  return `<span class="rate rate-dots">${dots}</span><span class="rate rate-compact">★${r}</span>`;
+  return `<span class="rate rate-dots">${dots}</span><span class="rate rate-compact">${r}</span>`;
 }
 
 let totalCount = 0;
@@ -576,9 +605,9 @@ SECTION_META.forEach(meta => {
       <td class="name">${name}</td>
       <td class="num">${renderGi(p.gi)}</td>
       <td class="num">${renderNum(p.kcal)}</td>
-      <td class="num">${renderNum(p.prot)}</td>
-      <td class="num">${renderNum(p.fat)}</td>
-      <td class="num">${renderNum(p.carb)}</td>
+      <td class="num">${renderMacro(p.prot, 'macro-prot')}</td>
+      <td class="num">${renderMacro(p.fat, 'macro-fat')}</td>
+      <td class="num">${renderMacro(p.carb, 'macro-carb')}</td>
       <td class="num">${renderRate(p.rate)}</td>
     </tr>`;
   }).join('');
