@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="color-scheme" content="light dark">
+<title>Гликемический индекс и пищевая ценность продуктов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F6EE;
+  --paper-alt:#EBEEDF;
+  --card:#FFFFFF;
+  --ink:#22301F;
+  --ink-soft:#5B6656;
+  --ink-faint:#8B9482;
+  --forest:#2F5233;
+  --forest-deep:#1D3620;
+  --line:#DBDECC;
+  --line-soft:#E7E9DB;
+  --low:#4F7A3D;
+  --low-bg:#DFEBD4;
+  --med:#B9832C;
+  --med-bg:#F3E4C4;
+  --high:#AD4C34;
+  --high-bg:#F1DAD1;
+  --shadow: 0 1px 2px rgba(34,48,31,0.06), 0 8px 24px rgba(34,48,31,0.05);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#161C15;
+    --paper-alt:#1E251C;
+    --card:#1B221A;
+    --ink:#E7EBDF;
+    --ink-soft:#A7B29C;
+    --ink-faint:#6E7967;
+    --forest:#7FB56C;
+    --forest-deep:#A7D496;
+    --line:#33402E;
+    --line-soft:#293323;
+    --low:#8FC478;
+    --low-bg:#25361F;
+    --med:#E0AE58;
+    --med-bg:#3A2E17;
+    --high:#E58269;
+    --high-bg:#3B2119;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+  .filter-bar{background:rgba(22,28,21,0.86);}
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter', sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:80px;
+}
+
+/* ---------- Hero ---------- */
+.hero{
+  max-width:920px;
+  margin:0 auto;
+  padding:56px 24px 28px;
+  text-align:left;
+}
+.eyebrow{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--forest);
+  font-weight:500;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px;
+}
+.eyebrow::before{
+  content:"";
+  width:22px;
+  height:1px;
+  background:var(--forest);
+  display:inline-block;
+}
+h1{
+  font-family:'Fraunces', serif;
+  font-optical-sizing:auto;
+  font-weight:600;
+  font-size:clamp(30px, 4.4vw, 46px);
+  line-height:1.08;
+  margin:0 0 16px;
+  color:var(--forest-deep);
+  letter-spacing:-0.01em;
+}
+.hero p{
+  font-size:15.5px;
+  line-height:1.6;
+  color:var(--ink-soft);
+  max-width:640px;
+  margin:0 0 6px;
+}
+
+/* ---------- GI legend ---------- */
+.legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 18px;
+  margin-top:22px;
+}
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  color:var(--ink-soft);
+}
+.legend-dot{
+  width:9px;height:9px;border-radius:50%;
+  display:inline-block;
+}
+.legend-dot.low{background:var(--low);}
+.legend-dot.med{background:var(--med);}
+.legend-dot.high{background:var(--high);}
+
+/* ---------- Sticky filter bar ---------- */
+.filter-bar{
+  position:sticky;
+  top:0;
+  z-index:40;
+  background:rgba(245,246,238,0.92);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  padding:14px 24px;
+}
+.filter-inner{
+  max-width:920px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.search-wrap{
+  position:relative;
+  flex:1 1 280px;
+  min-width:220px;
+}
+.search-wrap svg{
+  position:absolute;
+  left:13px;
+  top:50%;
+  transform:translateY(-50%);
+  color:var(--ink-faint);
+  pointer-events:none;
+}
+#search{
+  width:100%;
+  padding:11px 14px 11px 38px;
+  border-radius:9px;
+  border:1px solid var(--line);
+  background:var(--card);
+  font-family:'Inter', sans-serif;
+  font-size:14.5px;
+  color:var(--ink);
+  outline:none;
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+#search::placeholder{color:var(--ink-faint);}
+#search:focus{
+  border-color:var(--forest);
+  box-shadow:0 0 0 3px rgba(47,82,51,0.12);
+}
+.result-count{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12.5px;
+  color:var(--ink-soft);
+  white-space:nowrap;
+}
+.result-count b{color:var(--forest-deep);}
+
+/* ---------- Section nav chips ---------- */
+.nav-chips{
+  max-width:920px;
+  margin:18px auto 0;
+  padding:0 24px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.chip{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  color:var(--ink-soft);
+  background:var(--paper-alt);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:6px 12px;
+  text-decoration:none;
+  transition:opacity .15s ease, background .15s ease;
+  white-space:nowrap;
+}
+.chip:hover{background:var(--card);border-color:var(--forest);}
+.chip span{color:var(--ink-faint);margin-left:4px;}
+.chip.chip-empty{
+  opacity:0.35;
+  pointer-events:none;
+}
+
+/* ---------- Sections ---------- */
+main{
+  max-width:920px;
+  margin:0 auto;
+  padding:0 24px;
+}
+.section{
+  margin-top:52px;
+  scroll-margin-top:76px;
+}
+.section.hidden{display:none;}
+.section-head{
+  display:flex;
+  align-items:baseline;
+  gap:12px;
+  margin-bottom:14px;
+  border-bottom:1px solid var(--line);
+  padding-bottom:10px;
+}
+.section-head h2{
+  font-family:'Fraunces', serif;
+  font-weight:600;
+  font-size:22px;
+  color:var(--forest-deep);
+  margin:0;
+}
+.section-count{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  color:var(--ink-faint);
+}
+
+.table-wrap{
+  overflow-x:auto;
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  background:var(--card);
+}
+table{
+  border-collapse:collapse;
+  width:100%;
+  min-width:640px;
+}
+thead th{
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:500;
+  font-size:11px;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  text-align:left;
+  padding:11px 14px;
+  border-bottom:1px solid var(--line);
+  background:var(--paper-alt);
+}
+thead th.num{text-align:center;}
+tbody td{
+  padding:10px 14px;
+  font-size:14px;
+  border-bottom:1px solid var(--line-soft);
+  color:var(--ink);
+  vertical-align:middle;
+}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.row-hidden{display:none;}
+tbody tr:hover td{background:var(--paper-alt);}
+td.name{font-weight:500;}
+td.num{
+  text-align:center;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13px;
+  color:var(--ink-soft);
+}
+td.dash{color:var(--ink-faint);}
+
+/* GI badge */
+.gi-badge{
+  display:inline-flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  min-width:44px;
+}
+.gi-num{
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:600;
+  font-size:13px;
+  padding:1px 8px;
+  border-radius:5px;
+}
+.gi-num.low{color:var(--low); background:var(--low-bg);}
+.gi-num.med{color:var(--med); background:var(--med-bg);}
+.gi-num.high{color:var(--high); background:var(--high-bg);}
+.gi-bar{
+  width:40px;height:3px;
+  background:var(--line);
+  border-radius:2px;
+  overflow:hidden;
+}
+.gi-bar i{
+  display:block;height:100%;
+  border-radius:2px;
+}
+.gi-bar i.low{background:var(--low);}
+.gi-bar i.med{background:var(--med);}
+.gi-bar i.high{background:var(--high);}
+
+/* rating dots */
+.rate{
+  display:inline-flex;
+  gap:3px;
+}
+.rate i{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--line);
+  display:inline-block;
+}
+.rate i.on{background:var(--forest);}
+
+/* empty state */
+.empty-state{
+  display:none;
+  max-width:920px;
+  margin:80px auto;
+  padding:0 24px;
+  text-align:center;
+}
+.empty-state.show{display:block;}
+.empty-state .glyph{
+  font-family:'Fraunces', serif;
+  font-size:40px;
+  color:var(--line);
+  margin-bottom:10px;
+}
+.empty-state p{
+  color:var(--ink-soft);
+  font-size:14.5px;
+}
+
+footer{
+  max-width:920px;
+  margin:70px auto 0;
+  padding:20px 24px 0;
+  border-top:1px solid var(--line);
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11.5px;
+  color:var(--ink-faint);
+}
+
+@media (max-width:640px){
+  .hero{padding:40px 18px 22px;}
+  .filter-bar{padding:12px 18px;}
+  .nav-chips{padding:0 18px;}
+  main{padding:0 18px;}
+  .section{margin-top:40px;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">Справочник питания</div>
+  <h1>Гликемический индекс и&nbsp;пищевая ценность продуктов</h1>
+  <p>Данные по калорийности, белкам, жирам и углеводам на 100&nbsp;г продукта, гликемическому индексу и общей оценке пользы — по девяти категориям.</p>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot low"></span>Низкий ГИ · ≤ 55</span>
+    <span class="legend-item"><span class="legend-dot med"></span>Средний ГИ · 56–69</span>
+    <span class="legend-item"><span class="legend-dot high"></span>Высокий ГИ · ≥ 70</span>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="search-wrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" id="search" placeholder="Найти продукт, например «яблоко»…" autocomplete="off"/>
+    </div>
+    <div class="result-count" id="resultCount"></div>
+  </div>
+</div>
+
+<nav class="nav-chips" id="navChips"></nav>
+
+<main id="sections"></main>
+
+<div class="empty-state" id="emptyState">
+  <div class="glyph">—</div>
+  <p>Ничего не найдено. Попробуйте изменить запрос.</p>
+</div>
+
+<footer>Значения указаны на 100 г продукта · оценка — по пятибалльной шкале</footer>
+
+<script>
+const DATA = {"vegetables": {"Петрушка, базилик": {"gi": 5, "kcal": 49, "prot": 3.7, "fat": 0.4, "carb": 8, "rate": 5}, "Укроп": {"gi": 15, "kcal": 31, "prot": 2.5, "fat": 0.5, "carb": 4.1, "rate": 5}, "Салат листовой": {"gi": 10, "kcal": 17, "prot": 1.5, "fat": 0.2, "carb": 2.3, "rate": 5}, "Помидоры свежие": {"gi": 10, "kcal": 23, "prot": 1.1, "fat": 0.2, "carb": 3.8, "rate": 5}, "Огурцы свежие": {"gi": 20, "kcal": 13, "prot": 0.6, "fat": 0.1, "carb": 1.8, "rate": 5}, "Лук репчатый сырой": {"gi": 10, "kcal": 48, "prot": 1.4, "carb": 10.4, "rate": 5}, "Шпинат": {"gi": 15, "kcal": 22, "prot": 2.9, "fat": 0.3, "carb": 2, "rate": 5}, "Спаржа": {"gi": 15, "kcal": 21, "prot": 1.9, "fat": 0.1, "carb": 3.2, "rate": 5}, "Брокколи": {"gi": 10, "kcal": 27, "prot": 3, "fat": 0.4, "carb": 4, "rate": 5}, "Редис": {"gi": 15, "kcal": 20, "prot": 1.2, "fat": 0.1, "carb": 3.4, "rate": 5}, "Капуста свежая": {"gi": 10, "kcal": 25, "prot": 2, "carb": 4.3, "rate": 5}, "Капуста квашенная": {"gi": 15, "kcal": 17, "prot": 1.8, "fat": 0.1, "carb": 2.2, "rate": 5}, "Капуста тушеная": {"gi": 15, "kcal": 75, "prot": 2, "fat": 3, "carb": 9.6, "rate": 5}, "Цветная капуста тушеная": {"gi": 15, "kcal": 29, "prot": 1.8, "fat": 0.3, "carb": 4, "rate": 5}, "Брюссельская капуста": {"gi": 15, "kcal": 43, "prot": 4.8, "carb": 5.9, "rate": 5}, "Лук-порей": {"gi": 15, "kcal": 33, "prot": 2, "carb": 6.5, "rate": 5}, "Грибы соленые": {"gi": 10, "kcal": 29, "prot": 3.7, "fat": 1.7, "carb": 1.1, "rate": 5}, "Перец зеленый": {"gi": 10, "kcal": 26, "prot": 1.3, "carb": 5.3, "rate": 5}, "Перец красный": {"gi": 15, "kcal": 31, "prot": 1.3, "fat": 0.3, "carb": 5.9, "rate": 5}, "Чеснок": {"gi": 30, "kcal": 46, "prot": 6.5, "carb": 5.2, "rate": 5}, "Морковь сырая": {"gi": 35, "kcal": 35, "prot": 1.3, "fat": 0.1, "carb": 7.2, "rate": 5}, "Зеленый горошек свежий": {"gi": 40, "kcal": 72, "prot": 5, "fat": 0.2, "carb": 12.8, "rate": 4}, "Чечевица отварная": {"gi": 25, "kcal": 128, "prot": 10.3, "fat": 0.4, "carb": 20.3, "rate": 4}, "Фасоль вареная": {"gi": 40, "kcal": 127, "prot": 9.6, "fat": 0.5, "carb": 0.2, "rate": 4}, "Рагу овощное": {"gi": 55, "kcal": 99, "prot": 2.1, "fat": 4.8, "carb": 7.1, "rate": 3}, "Баклажанная икра": {"gi": 40, "kcal": 146, "prot": 1.7, "fat": 13.3, "carb": 5.1, "rate": 3}, "Кабачковая икра": {"gi": 75, "kcal": 83, "prot": 1.3, "fat": 4.8, "carb": 8.1, "rate": 3}, "Свекла отварная": {"gi": 64, "kcal": 54, "prot": 1.9, "fat": 0.1, "carb": 10.8, "rate": 3}, "Тыква запеченая": {"gi": 75, "kcal": 23, "prot": 1.1, "fat": 0.1, "carb": 4.4, "rate": 3}, "Кабачки жареные": {"gi": 75, "kcal": 104, "prot": 1.3, "fat": 6, "carb": 10.3, "rate": 2}, "Цветная капуста жареная": {"gi": 35, "kcal": 120, "prot": 3, "fat": 10, "carb": 5.7, "rate": 2}, "Оливки зеленые": {"gi": 15, "kcal": 125, "prot": 1.4, "fat": 12.7, "carb": 1.3, "rate": 2}, "Кукуруза отварная": {"gi": 70, "kcal": 123, "prot": 4.1, "fat": 2.3, "carb": 22.5, "rate": 2}, "Маслины черные": {"gi": 15, "kcal": 361, "prot": 2.2, "fat": 32, "carb": 8.7, "rate": 1}, "Картофель вареный": {"gi": 65, "kcal": 75, "prot": 2, "fat": 0.4, "carb": 15.8, "rate": 1}, "Картофельное пюре": {"gi": 90, "kcal": 92, "prot": 2.1, "fat": 3.3, "carb": 13.7, "rate": 1}, "Картофель фри": {"gi": 95, "kcal": 266, "prot": 3.8, "fat": 15.1, "carb": 29, "rate": 1}, "Картофель жареный": {"gi": 95, "kcal": 184, "prot": 2.8, "fat": 9.5, "carb": 22, "rate": 1}, "Картофельные чипсы": {"gi": 85, "kcal": 538, "prot": 2.2, "fat": 37.6, "carb": 49.3, "rate": 1}}, "fruits_and_berries": {"Лимон": {"gi": 20, "kcal": 33, "prot": 0.9, "fat": 0.1, "carb": 3, "rate": 5}, "Грейпфрут": {"gi": 22, "kcal": 35, "prot": 0.7, "fat": 0.2, "carb": 6.5, "rate": 5}, "Малина": {"gi": 30, "kcal": 39, "prot": 0.8, "fat": 0.3, "carb": 8.3, "rate": 5}, "Яблоки": {"gi": 30, "kcal": 44, "prot": 0.4, "fat": 0.4, "carb": 9.8, "rate": 5}, "Ежевика": {"gi": 25, "kcal": 31, "prot": 2, "carb": 4.4, "rate": 5}, "Земляника": {"gi": 25, "kcal": 34, "prot": 0.8, "fat": 0.4, "carb": 6.3, "rate": 5}, "Черника": {"gi": 43, "kcal": 41, "prot": 1.1, "fat": 0.6, "carb": 8.4, "rate": 5}, "Голубика": {"gi": 42, "kcal": 34, "prot": 1, "fat": 0.1, "carb": 7.7, "rate": 5}, "Смородина красная": {"gi": 30, "kcal": 35, "prot": 1, "fat": 0.2, "carb": 7.3, "rate": 5}, "Смородина черная": {"gi": 15, "kcal": 38, "prot": 1, "fat": 0.2, "carb": 7.3, "rate": 5}, "Алыча": {"gi": 25, "kcal": 27, "prot": 0.2, "carb": 6.4, "rate": 5}, "Брусника": {"gi": 25, "kcal": 43, "prot": 0.7, "fat": 0.5, "carb": 8, "rate": 5}, "Абрикосы": {"gi": 20, "kcal": 40, "prot": 0.9, "fat": 0.1, "carb": 9, "rate": 5}, "Персики": {"gi": 30, "kcal": 42, "prot": 0.9, "fat": 0.1, "carb": 9.5, "rate": 5}, "Груши": {"gi": 34, "kcal": 42, "prot": 0.4, "fat": 0.3, "carb": 9.5, "rate": 5}, "Сливы": {"gi": 22, "kcal": 43, "prot": 0.8, "fat": 0.2, "carb": 9.6, "rate": 5}, "Клубника": {"gi": 32, "kcal": 32, "prot": 0.8, "fat": 0.4, "carb": 6.3, "rate": 5}, "Апельсины": {"gi": 35, "kcal": 38, "prot": 0.9, "fat": 0.2, "carb": 8.3, "rate": 5}, "Вишня": {"gi": 22, "kcal": 49, "prot": 0.8, "fat": 0.5, "carb": 10.3, "rate": 4}, "Гранат": {"gi": 35, "kcal": 52, "prot": 0.9, "carb": 11.2, "rate": 4}, "Нектарин": {"gi": 35, "kcal": 48, "prot": 0.9, "fat": 0.2, "carb": 11.8, "rate": 4}, "Клюква": {"gi": 45, "kcal": 26, "prot": 0.5, "carb": 3.8, "rate": 4}, "Киви": {"gi": 50, "kcal": 49, "prot": 0.4, "fat": 0.2, "carb": 11.5, "rate": 4}, "Облепиха": {"gi": 30, "kcal": 52, "prot": 0.9, "fat": 2.5, "carb": 5, "rate": 4}, "Черешня": {"gi": 25, "kcal": 50, "prot": 1.2, "fat": 0.4, "carb": 10.6, "rate": 4}, "Мандарины": {"gi": 40, "kcal": 38, "prot": 0.8, "fat": 0.3, "carb": 8.1, "rate": 3}, "Крыжовник": {"gi": 40, "kcal": 41, "prot": 0.7, "fat": 0.2, "carb": 9.1, "rate": 3}, "Хурма": {"gi": 55, "kcal": 55, "prot": 0.5, "carb": 13.2, "rate": 2}, "Манго": {"gi": 55, "kcal": 67, "prot": 0.5, "fat": 0.3, "carb": 13.5, "rate": 2}, "Дыня": {"gi": 60, "kcal": 39, "prot": 0.6, "carb": 9.1, "rate": 2}, "Бананы": {"gi": 60, "kcal": 91, "prot": 1.5, "fat": 0.1, "carb": 21, "rate": 2}, "Виноград": {"gi": 40, "kcal": 64, "prot": 0.6, "fat": 0.2, "carb": 16, "rate": 2}, "Ананасы": {"gi": 66, "kcal": 49, "prot": 0.5, "fat": 0.2, "carb": 11.6, "rate": 1}, "Арбуз": {"gi": 72, "kcal": 40, "prot": 0.7, "fat": 0.2, "carb": 8.8, "rate": 1}, "Изюм": {"gi": 65, "kcal": 271, "prot": 1.8, "carb": 66, "rate": 1}, "Чернослив": {"gi": 25, "kcal": 242, "prot": 2.3, "carb": 58.4, "rate": 1}, "Инжир": {"gi": 35, "kcal": 257, "prot": 3.1, "fat": 0.8, "carb": 57.9, "rate": 1}, "Курага": {"gi": 30, "kcal": 240, "prot": 5.2, "carb": 55, "rate": 1}, "Финики": {"gi": 146, "kcal": 306, "prot": 2, "fat": 0.5, "carb": 72.3, "rate": 1}}, "grains_and_flour_products": {"Клетчатка пищевая": {"gi": 30, "kcal": 205, "prot": 17, "fat": 3.9, "carb": 14, "rate": 5}, "Соевая мука обезжиренная": {"gi": 15, "kcal": 291, "prot": 48.9, "fat": 1, "carb": 21.7, "rate": 5}, "Отруби": {"gi": 51, "kcal": 191, "prot": 15.1, "fat": 3.8, "carb": 23.5, "rate": 4}, "Овсяные хлопья сырые": {"gi": 40, "kcal": 305, "prot": 11, "fat": 6.2, "carb": 50, "rate": 4}, "Перловая каша на воде": {"gi": 22, "kcal": 109, "prot": 3.1, "fat": 0.4, "carb": 22.2, "rate": 4}, "Овсяная каша на воде": {"gi": 66, "kcal": 49, "prot": 1.5, "fat": 1.1, "carb": 9, "rate": 3}, "Ячневая каша молочная": {"gi": 50, "kcal": 111, "prot": 3.6, "fat": 2, "carb": 19.8, "rate": 3}, "Рис нешлифованный отварной": {"gi": 65, "kcal": 125, "prot": 2.7, "fat": 0.7, "carb": 36, "rate": 3}, "Макароны из муки грубого помола": {"gi": 38, "kcal": 113, "prot": 4.7, "fat": 0.9, "carb": 23.2, "rate": 3}, "Хлеб зерновой": {"gi": 40, "kcal": 222, "prot": 8.6, "fat": 1.4, "carb": 43.9, "rate": 3}, "Хлебцы цельнозерновые": {"gi": 45, "kcal": 291, "prot": 11.3, "fat": 2.16, "carb": 56.5, "rate": 3}, "Хлеб \"Бородинский\"": {"gi": 45, "kcal": 202, "prot": 6.8, "fat": 1.3, "carb": 40.7, "rate": 3}, "Гречневая каша на воде": {"gi": 50, "kcal": 153, "prot": 5.9, "fat": 1.6, "carb": 29, "rate": 3}, "Овсяная каша молочная": {"gi": 60, "kcal": 116, "prot": 4.8, "fat": 5.1, "carb": 13.7, "rate": 3}, "Макароны из твердых сортов пшеницы": {"gi": 50, "kcal": 140, "prot": 5.5, "fat": 1.1, "carb": 27, "rate": 2}, "Манная каша молочная": {"gi": 65, "kcal": 122, "prot": 3, "fat": 5.4, "carb": 15.3, "rate": 2}, "Рисовая каша молочная": {"gi": 70, "kcal": 101, "prot": 2.9, "fat": 1.4, "carb": 18, "rate": 2}, "Хлеб ржано-пшеничный": {"gi": 65, "kcal": 214, "prot": 6.7, "fat": 1, "carb": 42.4, "rate": 2}, "Вареники с творогом": {"gi": 60, "kcal": 170, "prot": 10.9, "fat": 1, "carb": 36.4, "rate": 2}, "Пельмени": {"gi": 60, "kcal": 252, "prot": 14, "fat": 6.3, "carb": 37, "rate": 2}, "Пшенная каша на воде": {"gi": 70, "kcal": 134, "prot": 4.5, "fat": 1.3, "carb": 26.1, "rate": 1}, "Рисовая каша на воде": {"gi": 80, "kcal": 107, "prot": 2.4, "fat": 0.4, "carb": 63.5, "rate": 1}, "Блины из муки высшего сорта": {"gi": 69, "kcal": 185, "prot": 5.2, "fat": 3, "carb": 34.3, "rate": 1}, "Вареники с картофелем": {"gi": 66, "kcal": 234, "prot": 6, "fat": 3.6, "carb": 42, "rate": 1}, "Пицца с сыром": {"gi": 60, "kcal": 236, "prot": 6.6, "fat": 13.3, "carb": 22.7, "rate": 1}, "Хлеб из муки высшего сорта": {"gi": 80, "kcal": 232, "prot": 7.6, "fat": 0.8, "carb": 48.6, "rate": 1}, "Макароны высший сорт": {"gi": 85, "kcal": 344, "prot": 12.8, "fat": 0.4, "carb": 70, "rate": 1}, "Мюсли": {"gi": 80, "kcal": 352, "prot": 11.3, "fat": 13.4, "carb": 67.1, "rate": 1}, "Пирожок печеный с луком и яйцом": {"gi": 88, "kcal": 204, "prot": 6.1, "fat": 3.7, "carb": 36.7, "rate": 1}, "Пирожок жареный с повидлом": {"gi": 88, "kcal": 289, "prot": 4.7, "fat": 8.8, "carb": 47.8, "rate": 1}, "Сухарики": {"gi": 74, "kcal": 360, "prot": 11.5, "fat": 2, "carb": 74, "rate": 1}, "Печенье крекер": {"gi": 80, "kcal": 352, "prot": 11.3, "fat": 13.4, "carb": 67.1, "rate": 1}, "Булочка сдобная": {"gi": 88, "kcal": 292, "prot": 7.5, "fat": 4.9, "carb": 54.7, "rate": 1}, "Булочка для хот дога": {"gi": 92, "kcal": 287, "prot": 8.7, "fat": 3.1, "carb": 59, "rate": 1}, "Бублик пшеничный": {"gi": 103, "kcal": 276, "prot": 9.1, "fat": 1.1, "carb": 57.1, "rate": 1}, "Кукурузные хлопья": {"gi": 85, "kcal": 360, "prot": 4, "fat": 0.5, "carb": 80, "rate": 1}, "Гренки белые жареные": {"gi": 100, "kcal": 381, "prot": 8.8, "fat": 14.4, "carb": 54.2, "rate": 1}, "Хлеб белый (батон)": {"gi": 136, "kcal": 369, "prot": 7.4, "fat": 7.6, "carb": 68.1, "rate": 1}, "Вафли": {"gi": 80, "kcal": 545, "prot": 2.9, "fat": 32.6, "carb": 61.6, "rate": 1}, "Печенье, пирожные, торты": {"gi": 100, "kcal": 520, "prot": 4, "fat": 25, "carb": 70, "rate": 1}}, "dairy": {"Молоко обезжиренное": {"gi": 27, "kcal": 31, "prot": 3, "fat": 0.2, "carb": 4.7, "rate": 5}, "Творог нежирный": {"gi": 30, "kcal": 88, "prot": 18, "fat": 1, "carb": 1.2, "rate": 5}, "Молоко соевое": {"gi": 30, "kcal": 40, "prot": 3.8, "fat": 1.9, "carb": 0.8, "rate": 5}, "Кефир нежирный": {"gi": 25, "kcal": 30, "prot": 3, "fat": 0.1, "carb": 3.8, "rate": 5}, "Йогурт 1,5% натуральный": {"gi": 35, "kcal": 47, "prot": 5, "fat": 1.5, "carb": 3.5, "rate": 5}, "Сыр тофу": {"gi": 15, "kcal": 73, "prot": 8.1, "fat": 4.2, "carb": 0.6, "rate": 5}, "Молоко натуральное": {"gi": 32, "kcal": 60, "prot": 3.1, "fat": 4.2, "carb": 4.8, "rate": 4}, "Творог 9% жирности": {"gi": 30, "kcal": 185, "prot": 14, "fat": 9, "carb": 2, "rate": 3}, "Йогурт фруктовый": {"gi": 52, "kcal": 105, "prot": 5.1, "fat": 2.8, "carb": 15.7, "rate": 3}, "Брынза": {"kcal": 260, "prot": 17.9, "fat": 20.1, "rate": 2}, "Сыр фета": {"gi": 56, "kcal": 243, "prot": 11, "fat": 21, "carb": 2.5, "rate": 2}, "Творожная масса": {"gi": 45, "kcal": 340, "prot": 7, "fat": 23, "carb": 10, "rate": 1}, "Сырники из творога": {"gi": 70, "kcal": 220, "prot": 17.4, "fat": 12, "carb": 10.6, "rate": 1}, "Сыр сулугуни": {"kcal": 285, "prot": 19.5, "fat": 22, "rate": 1}, "Сыр плавленный": {"gi": 57, "kcal": 323, "prot": 20, "fat": 27, "carb": 3.8, "rate": 1}, "Сыры твердые": {"kcal": 360, "prot": 23, "fat": 30, "rate": 1}, "Сливки 10% жирности": {"gi": 30, "kcal": 118, "prot": 2.8, "fat": 10, "carb": 3.7, "rate": 1}, "Сметана 20% жирности": {"gi": 56, "kcal": 204, "prot": 2.8, "fat": 20, "carb": 3.2, "rate": 1}, "Мороженое": {"gi": 70, "kcal": 218, "prot": 4.2, "fat": 11.8, "carb": 23.7, "rate": 1}, "Молоко сгущеное с сахаром": {"gi": 80, "kcal": 329, "prot": 7.2, "fat": 8.5, "carb": 56, "rate": 1}}, "fish_and_seafood": {"Треска отварная": {"kcal": 76, "prot": 17, "fat": 0.7, "rate": 5}, "Щука отварная": {"kcal": 78, "prot": 18, "fat": 0.5, "rate": 5}, "Крабы отварные": {"kcal": 85, "prot": 18.7, "fat": 1.1, "rate": 5}, "Морская капуста": {"gi": 22, "kcal": 5, "prot": 0.9, "fat": 0.2, "carb": 0.3, "rate": 5}, "Хек отварной": {"kcal": 86, "prot": 16.6, "fat": 2.2, "rate": 5}, "Форель отварная": {"kcal": 89, "prot": 15.5, "fat": 3, "rate": 5}, "Креветки": {"kcal": 95, "prot": 20, "fat": 1.8, "rate": 5}, "Устрицы отварные": {"kcal": 95, "prot": 14, "fat": 3, "rate": 5}, "Тунец в собственном соку": {"kcal": 96, "prot": 21, "fat": 1, "rate": 5}, "Судак": {"kcal": 97, "prot": 21.3, "fat": 1.3, "rate": 5}, "Камбала": {"kcal": 105, "prot": 18.2, "fat": 2.3, "rate": 5}, "Кальмары отварные": {"kcal": 140, "prot": 30.4, "fat": 2.2, "rate": 5}, "Раки отварные": {"gi": 5, "kcal": 97, "prot": 20.3, "fat": 1.3, "carb": 1, "rate": 5}, "Кефаль отварная": {"kcal": 115, "prot": 19, "fat": 4.3, "rate": 4}, "Икра минтая": {"kcal": 131, "prot": 28.4, "fat": 1.9, "rate": 4}, "Белуга": {"kcal": 131, "prot": 23.8, "fat": 4, "rate": 4}, "Сельдь": {"kcal": 140, "prot": 15.5, "fat": 8.7, "rate": 3}, "Копченая треска": {"kcal": 111, "prot": 23.3, "fat": 0.9, "rate": 3}, "Горбуша горячего копчения": {"kcal": 161, "prot": 23.2, "fat": 7.6, "rate": 3}, "Окунь жареный": {"kcal": 158, "prot": 19, "fat": 8.9, "rate": 3}, "Карп жареный": {"kcal": 196, "prot": 18.3, "fat": 11.6, "rate": 3}, "Сардина отварная": {"kcal": 178, "prot": 20, "fat": 10.8, "rate": 3}, "Семга отварная": {"kcal": 210, "prot": 16.3, "fat": 15, "rate": 2}, "Икра красная": {"kcal": 261, "prot": 31.6, "fat": 13.8, "rate": 2}, "Скумбрия холодного копчения": {"kcal": 151, "prot": 23.4, "fat": 6.4, "rate": 2}, "Котлеты рыбные": {"gi": 50, "kcal": 168, "prot": 12.5, "fat": 6, "carb": 16.1, "rate": 2}, "Угорь копченый": {"kcal": 363, "prot": 17.7, "fat": 32.4, "rate": 1}, "Крабовые палочки": {"gi": 40, "kcal": 94, "prot": 5, "fat": 4.3, "carb": 9.5, "rate": 1}, "Печень трески": {"kcal": 613, "prot": 4.2, "fat": 65.7, "rate": 1}, "Сардина в масле": {"kcal": 249, "prot": 17.9, "fat": 19.7, "rate": 1}, "Скумбрия в масле": {"kcal": 278, "prot": 13.1, "fat": 25.1, "rate": 1}, "Сайра в масле": {"kcal": 283, "prot": 18.3, "fat": 23.3, "rate": 1}, "Шпроты в масле": {"kcal": 363, "prot": 17.4, "fat": 32.4, "rate": 1}}, "meat_products": {"Куриная грудка отварная": {"kcal": 137, "prot": 29.8, "fat": 1.8, "rate": 5}, "Телятина отварная": {"kcal": 134, "prot": 27.8, "fat": 3.1, "rate": 5}, "Индейка отварная": {"kcal": 195, "prot": 23.7, "fat": 10.4, "rate": 4}, "Говядина нежирная отварная": {"kcal": 175, "prot": 25.7, "fat": 8.1, "rate": 4}, "Кролик жареный": {"kcal": 212, "prot": 28.7, "fat": 10.8, "rate": 4}, "Почки тушеные": {"kcal": 156, "prot": 26.1, "fat": 5.8, "rate": 4}, "Говяжья печень жареная": {"gi": 50, "kcal": 199, "prot": 22.9, "fat": 10.2, "carb": 3.9, "rate": 4}, "Говяжий язык отварной": {"kcal": 231, "prot": 23.9, "fat": 15, "rate": 4}, "Говяжьи мозги": {"kcal": 124, "prot": 11.7, "fat": 8.6, "rate": 3}, "Омлет": {"gi": 49, "kcal": 210, "prot": 14, "fat": 15, "carb": 2.1, "rate": 3}, "Курица жареная": {"kcal": 262, "prot": 31.2, "fat": 15.3, "rate": 3}, "Свинина на гриле": {"kcal": 280, "prot": 19.9, "fat": 22, "rate": 3}, "Баранина отварная": {"kcal": 293, "prot": 21.9, "fat": 22.6, "rate": 3}, "Бефстроганов": {"gi": 56, "kcal": 207, "prot": 16.6, "fat": 13.1, "carb": 5.7, "rate": 2}, "Котлеты из свинины": {"gi": 50, "kcal": 262, "prot": 11.7, "fat": 19.6, "carb": 9.6, "rate": 2}, "Сосиски": {"gi": 28, "kcal": 266, "prot": 10.4, "fat": 24, "carb": 1.6, "rate": 1}, "Колбаса вареная": {"gi": 34, "kcal": 300, "prot": 12, "fat": 28, "carb": 3, "rate": 1}, "Гусь": {"kcal": 319, "prot": 29.3, "fat": 22.4, "rate": 1}, "Баранина": {"kcal": 300, "prot": 24, "fat": 25, "rate": 1}, "Утка жареная": {"kcal": 407, "prot": 23.2, "fat": 34.8, "rate": 1}, "Свинина жареная": {"kcal": 407, "prot": 17.7, "fat": 37.4, "rate": 1}}, "fats_oils_and_sauces": {"Соевый соус": {"gi": 20, "kcal": 12, "prot": 2, "carb": 1, "rate": 5}, "Кетчуп": {"gi": 15, "kcal": 90, "prot": 2.1, "carb": 14.9, "rate": 4}, "Горчица": {"gi": 35, "kcal": 143, "prot": 9.9, "fat": 12.7, "carb": 5.3, "rate": 3}, "Оливковое масло": {"kcal": 898, "fat": 99.8, "rate": 3}, "Растительное масло": {"kcal": 899, "fat": 99.9, "rate": 3}, "Майонез": {"gi": 60, "kcal": 621, "prot": 0.3, "fat": 67, "carb": 2.6, "rate": 2}, "Сливочное масло": {"gi": 51, "kcal": 748, "prot": 0.4, "fat": 82.5, "carb": 0.8, "rate": 2}, "Маргарин": {"gi": 55, "kcal": 743, "prot": 0.2, "fat": 82, "carb": 2.1, "rate": 1}, "Сало свиное": {"kcal": 841, "prot": 1.4, "fat": 90, "rate": 1}}, "drinks": {"Вода чистая негазированная": {"rate": 5}, "Чай зеленый (без сахара)": {"kcal": 0.1, "rate": 5}, "Сок томатный": {"gi": 15, "kcal": 18, "prot": 1, "carb": 3.5, "rate": 4}, "Сок морковный": {"gi": 40, "kcal": 28, "prot": 1.1, "fat": 0.1, "carb": 5.8, "rate": 3}, "Сок грейпфрутовый (без сахара)": {"gi": 48, "kcal": 33, "prot": 0.3, "carb": 8, "rate": 3}, "Сок яблочный (без сахара)": {"gi": 40, "kcal": 44, "prot": 0.5, "carb": 9.1, "rate": 3}, "Сок апельсиновый (без сахара)": {"gi": 40, "kcal": 54, "prot": 0.7, "carb": 12.8, "rate": 3}, "Сок ананасовый (без сахара)": {"gi": 46, "kcal": 53, "prot": 0.4, "carb": 13.4, "rate": 3}, "Сок виноградный (без сахара)": {"gi": 48, "kcal": 56.4, "prot": 0.3, "carb": 13.8, "rate": 3}, "Вино красное сухое": {"gi": 44, "kcal": 68, "prot": 0.2, "carb": 0.3, "rate": 3}, "Вино белое сухое": {"gi": 44, "kcal": 66, "prot": 0.1, "carb": 0.6, "rate": 2}, "Квас": {"gi": 30, "kcal": 20.8, "prot": 0.2, "carb": 5, "rate": 2}, "Кофе натуральный (без сахара)": {"gi": 52, "kcal": 1, "prot": 0.1, "fat": 0.1, "rate": 2}, "Какао на молоке (без сахара)": {"gi": 40, "kcal": 67, "prot": 3.2, "fat": 3.8, "carb": 5.1, "rate": 2}, "Сок в упаковке": {"gi": 70, "kcal": 54, "prot": 0.7, "carb": 12.8, "rate": 2}, "Компот из фруктов (без сахара)": {"gi": 60, "kcal": 60, "prot": 0.8, "carb": 14.2, "rate": 2}, "Десертное вино": {"gi": 30, "kcal": 150, "prot": 0.2, "carb": 20, "rate": 1}, "Кофе молотый": {"gi": 42, "kcal": 58, "prot": 0.7, "fat": 1, "carb": 11.2, "rate": 1}, "Газированные напитки": {"gi": 74, "kcal": 48, "carb": 11.7, "rate": 1}, "Пиво": {"gi": 110, "kcal": 42, "prot": 0.3, "carb": 4.6, "rate": 1}, "Шампанское сухое": {"gi": 46, "kcal": 88, "prot": 0.2, "carb": 5, "rate": 1}, "Джин с тоником": {"kcal": 63, "prot": 0.2, "carb": 0.2, "rate": 1}, "Ликер": {"gi": 30, "kcal": 322, "carb": 45, "rate": 1}, "Водка": {"kcal": 233, "carb": 0.1, "rate": 1}, "Коньяк": {"kcal": 239, "carb": 1.5, "rate": 1}}, "other": {"Белок одного яйца": {"gi": 48, "kcal": 17, "prot": 3.6, "carb": 0.4, "rate": 5}, "Яйцо (1 шт)": {"gi": 48, "kcal": 76, "prot": 6.3, "fat": 5.2, "carb": 0.7, "rate": 4}, "Желток одного яйца": {"gi": 50, "kcal": 59, "prot": 2.7, "fat": 5.2, "carb": 0.3, "rate": 1}, "Грецкие орехи": {"gi": 15, "kcal": 710, "prot": 15.6, "fat": 65.2, "carb": 15.2, "rate": 2}, "Фундук": {"gi": 15, "kcal": 706, "prot": 16.1, "fat": 66.9, "carb": 9.9, "rate": 2}, "Миндаль": {"gi": 25, "kcal": 648, "prot": 18.6, "fat": 57.7, "carb": 13.6, "rate": 2}, "Фисташки": {"gi": 15, "kcal": 577, "prot": 21, "fat": 50, "carb": 10.8, "rate": 2}, "Арахис": {"gi": 20, "kcal": 612, "prot": 20.9, "fat": 45.2, "carb": 10.8, "rate": 2}, "Семечки подсолнуха": {"gi": 8, "kcal": 572, "prot": 21, "fat": 53, "carb": 4, "rate": 2}, "Семечки тыквенные": {"gi": 25, "kcal": 600, "prot": 28, "fat": 46.7, "carb": 15.7, "rate": 2}, "Кокосовый орех": {"gi": 45, "kcal": 380, "prot": 3.4, "fat": 33.5, "carb": 29.5, "rate": 2}, "Шоколад темный": {"gi": 22, "kcal": 539, "prot": 6.2, "fat": 35.4, "carb": 48.2, "rate": 2}, "Мед": {"gi": 90, "kcal": 314, "prot": 0.8, "carb": 80.3, "rate": 2}, "Варенье": {"gi": 70, "kcal": 271, "prot": 0.3, "fat": 0.3, "carb": 70.9, "rate": 1}, "Шоколад молочный": {"gi": 70, "kcal": 550, "prot": 5, "fat": 34.7, "carb": 52.4, "rate": 1}, "Шоколадный батончики": {"gi": 70, "kcal": 500, "prot": 4, "fat": 25, "carb": 69, "rate": 1}, "Халва": {"gi": 70, "kcal": 522, "prot": 12.7, "fat": 29.9, "carb": 50.6, "rate": 1}, "Карамель, леденцы": {"gi": 80, "kcal": 375, "fat": 0.1, "carb": 97, "rate": 1}, "Мармелад": {"gi": 30, "kcal": 306, "prot": 0.4, "fat": 0.1, "carb": 76, "rate": 1}, "Сахар": {"gi": 70, "kcal": 374, "carb": 99.8, "rate": 1}, "Попкорн": {"gi": 85, "kcal": 480, "prot": 2.1, "fat": 20, "carb": 77.6, "rate": 1}, "Шаверма в лаваше (1шт)": {"gi": 70, "kcal": 628, "prot": 24.8, "fat": 29, "carb": 64, "rate": 1}, "Гамбургер (1 шт)": {"gi": 103, "kcal": 486, "prot": 25.8, "fat": 26.2, "carb": 36.7, "rate": 1}, "Хотдог (1 шт)": {"gi": 90, "kcal": 724, "prot": 17, "fat": 36, "carb": 79, "rate": 1}}};
+const SECTION_META = [{"key": "vegetables", "title": "Овощи"}, {"key": "fruits_and_berries", "title": "Фрукты и ягоды"}, {"key": "grains_and_flour_products", "title": "Зерновые продукты и изделия из муки"}, {"key": "dairy", "title": "Молочные продукты"}, {"key": "fish_and_seafood", "title": "Рыба и морепродукты"}, {"key": "meat_products", "title": "Мясные продукты"}, {"key": "fats_oils_and_sauces", "title": "Жиры, масла и соусы"}, {"key": "drinks", "title": "Напитки"}, {"key": "other", "title": "Прочее"}];
+
+const sectionsEl = document.getElementById('sections');
+const chipsEl = document.getElementById('navChips');
+const searchEl = document.getElementById('search');
+const resultCountEl = document.getElementById('resultCount');
+const emptyStateEl = document.getElementById('emptyState');
+
+function giCategory(gi){
+  if(gi === undefined || gi === null) return null;
+  if(gi <= 55) return 'low';
+  if(gi <= 69) return 'med';
+  return 'high';
+}
+
+function fmt(n){
+  if(n === undefined || n === null) return null;
+  return (Math.round(n*10)/10).toString().replace('.', ',');
+}
+
+function renderGi(gi){
+  if(gi === undefined || gi === null){
+    return '<span class="dash">—</span>';
+  }
+  const cat = giCategory(gi);
+  const pct = Math.max(4, Math.min(100, (gi/110)*100));
+  return `<span class="gi-badge">
+    <span class="gi-num ${cat}">${gi}</span>
+    <span class="gi-bar"><i class="${cat}" style="width:${pct}%"></i></span>
+  </span>`;
+}
+
+function renderNum(v){
+  const f = fmt(v);
+  return f === null ? '<span class="dash">—</span>' : f;
+}
+
+function renderRate(r){
+  if(r === undefined || r === null) return '<span class="dash">—</span>';
+  let dots = '';
+  for(let i=1;i<=5;i++){
+    dots += `<i class="${i<=r ? 'on':''}"></i>`;
+  }
+  return `<span class="rate">${dots}</span>`;
+}
+
+let totalCount = 0;
+const sectionEntries = [];
+
+SECTION_META.forEach(meta => {
+  const products = DATA[meta.key];
+  if(!products) return;
+  const names = Object.keys(products);
+  if(names.length === 0) return;
+
+  const sectionId = 'sec-' + meta.key;
+  const section = document.createElement('section');
+  section.className = 'section';
+  section.id = sectionId;
+
+  const rowsHtml = names.map(name => {
+    const p = products[name];
+    totalCount++;
+    return `<tr class="row" data-name="${name.toLowerCase()}">
+      <td class="name">${name}</td>
+      <td class="num">${renderGi(p.gi)}</td>
+      <td class="num">${renderNum(p.kcal)}</td>
+      <td class="num">${renderNum(p.prot)}</td>
+      <td class="num">${renderNum(p.fat)}</td>
+      <td class="num">${renderNum(p.carb)}</td>
+      <td class="num">${renderRate(p.rate)}</td>
+    </tr>`;
+  }).join('');
+
+  section.innerHTML = `
+    <div class="section-head">
+      <h2>${meta.title}</h2>
+      <span class="section-count" data-count>${names.length} продуктов</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Продукт</th>
+            <th class="num">ГИ</th>
+            <th class="num">Ккал</th>
+            <th class="num">Белки</th>
+            <th class="num">Жиры</th>
+            <th class="num">Углев.</th>
+            <th class="num">Оценка</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+  `;
+  sectionsEl.appendChild(section);
+
+  const chip = document.createElement('a');
+  chip.className = 'chip';
+  chip.href = '#' + sectionId;
+  chip.dataset.sectionId = sectionId;
+  chip.innerHTML = `${meta.title}<span>${names.length}</span>`;
+  chipsEl.appendChild(chip);
+
+  sectionEntries.push({ key: meta.key, sectionEl: section, chipEl: chip, total: names.length });
+});
+
+function normalize(str){
+  return str.toLowerCase().replace(/ё/g, 'е').trim();
+}
+
+function applyFilter(){
+  const query = normalize(searchEl.value);
+  let visibleTotal = 0;
+  let anySectionVisible = false;
+
+  sectionEntries.forEach(entry => {
+    const rows = entry.sectionEl.querySelectorAll('tbody tr.row');
+    let visibleInSection = 0;
+    rows.forEach(row => {
+      const matches = query === '' || normalize(row.dataset.name).includes(query);
+      row.classList.toggle('row-hidden', !matches);
+      if(matches) visibleInSection++;
+    });
+
+    const sectionVisible = visibleInSection > 0;
+    entry.sectionEl.classList.toggle('hidden', !sectionVisible);
+    entry.chipEl.classList.toggle('chip-empty', !sectionVisible);
+    entry.sectionEl.querySelector('[data-count]').textContent =
+      query === '' ? `${entry.total} продуктов` : `${visibleInSection} из ${entry.total}`;
+
+    visibleTotal += visibleInSection;
+    if(sectionVisible) anySectionVisible = true;
+  });
+
+  resultCountEl.innerHTML = query === ''
+    ? `Всего <b>${totalCount}</b> продуктов`
+    : `Найдено <b>${visibleTotal}</b> из ${totalCount}`;
+
+  emptyStateEl.classList.toggle('show', !anySectionVisible);
+}
+
+searchEl.addEventListener('input', applyFilter);
+applyFilter();
+</script>
+</body>
+</html>
