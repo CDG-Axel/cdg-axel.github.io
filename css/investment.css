@@ -49,7 +49,10 @@ main {
 .timeline-month :where(th:nth-child(n+3), td:nth-child(n+3)) {
     font-size: 0.9rem;
 }
-.monthly-sum    :where(th:nth-child(n+2), td:nth-child(n+2)) {
+.monthly-sum td:nth-child(2) {
+    text-align: right;
+}
+.monthly-sum    :where(th:nth-child(n+3), td:nth-child(n+3)) {
     font-weight: bold;
     font-size: 0.8rem;
 }

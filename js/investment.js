@@ -135,8 +135,25 @@ function generatePage() {
     const years = createElement('tr', ['timeline-year']);
     years.appendChild(createElement('th', [], {"colspan": 2}));
 
+    let totalSum = 0, totalIncome = 0;
+    config.incomes.forEach(source => {
+        if (source.type === "investment") {
+            totalSum += source.sum;
+            totalIncome += source.income;
+        }
+    });
+    const sumCell = createElement('td');
+    sumCell.append(
+        document.createTextNode(intl.format(totalSum)),
+        createElement('br'),
+        createElement('span', ['source-desc'], {}, '+ ' + intl.format(totalIncome))
+    );
+
     const sums = createElement('tr', ['monthly-sum']);
-    sums.appendChild(createElement('th', [], {"colspan": 2}, 'Сумма по месяцам'));
+    sums.append(
+        createElement('th', [], {}, 'Всего'),
+        sumCell
+    );
 
     const monthsPerYear = {};
     const sources = config.incomes.map(createSource);
