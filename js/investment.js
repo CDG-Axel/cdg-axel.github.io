@@ -1,5 +1,3 @@
-const USE_STATIC_CONTENT = false;
-
 import {loadFromStorage, saveToStorage, createElement, addElement, addHandlers} from "./hp_common.js";
 
 const lang = 'ru-RU'; // на время тестирования вместо navigator.language;
@@ -7,7 +5,7 @@ const lsPrefix = 'hp_inv_';
 const msPerDay = 24 * 60 * 60 * 1000;
 const WARNING_DAYS = 30; // порог "скоро заканчивается"
 
-const intl = new Intl.NumberFormat(lang,{minimumFractionDigits: 0, maximumFractionDigits: 1});
+const intl = new Intl.NumberFormat(lang, {minimumFractionDigits: 0, maximumFractionDigits: 1});
 
 /**
  * @typedef {{ name: string, sum: number, income?: number,
@@ -15,10 +13,10 @@ const intl = new Intl.NumberFormat(lang,{minimumFractionDigits: 0, maximumFracti
  *             start_date: Date, end_date?: Date }} IncomeSource
  * @type {{ incomes: IncomeSource[] }}
  */
-let config = { incomes: []};
+let config = { incomes: [] };
 
 let lastDeleted = null; // Последний удалённый источник для функции "Вернуть"
-let editingIndex = -1; // индекс в config.incomes, -1 для добавления
+let editingIndex = -1;  // индекс в config.incomes, -1 для добавления
 
 const dateFields = new Set(['start_date', 'end_date']);
 
@@ -42,7 +40,7 @@ function activityColor(source, now) {
     if (source.start_date > now) return 'gray';
     if (!source.end_date) return '';
     if (source.end_date < now) return 'red';
-    if (source.end_date - now < WARNING_DAYS * msPerDay) return  'yellow';
+    if (source.end_date - now < WARNING_DAYS * msPerDay) return 'yellow';
     return '';
 }
 
@@ -61,7 +59,7 @@ function calcMonthData(source, monthStart, now) {
         let barSt = Math.min(70, Math.round((activeStart.getDate() - 1) / daysInMonth * 100));
         let barEd = Math.max(30, Math.round(activeEnd.getDate() / daysInMonth * 100));
         if (barEd - barSt < 100) {
-            style = (barSt ? `left: ${barSt}%; `: '') + `width: ${barEd - barSt}%`;
+            style = (barSt ? `left: ${barSt}%; ` : '') + `width: ${barEd - barSt}%`;
         }
     }
 
@@ -75,7 +73,7 @@ function calcMonthData(source, monthStart, now) {
     const column = createElement('td');
     if (activeDays > 0) {
         const color = activityColor(source, now);
-        const attrs = style? {style} : {};
+        const attrs = style ? {style} : {};
         column.appendChild(createElement('div', ['income-bar', color], attrs, intl.format(income)));
     }
 
@@ -90,11 +88,12 @@ function pluralDays(n) {
 }
 
 function createSource(source, idx) {
-    const row = createElement('tr', ['timeline-row']);
+    // [1] Класс timeline-row--monthly для визуального выделения ежемесячных источников
+    const row = createElement('tr', ['timeline-row', source.type === 'monthly' ? 'timeline-row--monthly' : '']);
     const nameCell = createElement('td');
     const from = source.start_date.toLocaleDateString(lang);
-    const days = source.end_date? Math.round(1 + (source.end_date - source.start_date)/msPerDay): 0;
-    const end = days > 0? `по ${source.end_date.toLocaleDateString(lang)}, ${days} ${pluralDays(days)}`: '(бессрочно)';
+    const days = source.end_date ? Math.round(1 + (source.end_date - source.start_date) / msPerDay) : 0;
+    const end = days > 0 ? `по ${source.end_date.toLocaleDateString(lang)}, ${days} ${pluralDays(days)}` : '(бессрочно)';
     const period = `C ${from} ${end}`;
 
     const wrapper = createElement('div', ['d-flex', 'justify-content-between', 'align-items-center']);
@@ -104,11 +103,12 @@ function createSource(source, idx) {
         createElement('br'),
         createElement('span', ['source-desc'], {}, period)
     );
-    const editBtn = createElement('button', ['btn', 'flex-shrink-0', 'px-1'], {title: 'Редактировать / удалить  '}, '✎');
+    const editBtn = createElement('button', ['btn', 'flex-shrink-0', 'px-1'], {title: 'Редактировать / удалить'}, '✎');
     editBtn.addEventListener('click', () => openModal(idx));
 
     wrapper.append(textBlock, editBtn);
     nameCell.appendChild(wrapper);
+
     const sumCell = createElement('td');
     sumCell.appendChild(document.createTextNode(intl.format(source.sum)));
     if (source.income) {
@@ -119,12 +119,11 @@ function createSource(source, idx) {
     }
     row.append(nameCell, sumCell);
     return row;
-
 }
 
 function generatePage() {
     const now = new Date();
-    const attrScope = {scope: "col"};
+    const attrScope = {scope: 'col'};
 
     const months = createElement('tr', ['timeline-month']);
     months.append(
@@ -133,27 +132,25 @@ function generatePage() {
     );
 
     const years = createElement('tr', ['timeline-year']);
-    years.appendChild(createElement('th', [], {"colspan": 2}));
+    years.appendChild(createElement('th', [], {colspan: 2}));
 
-    let totalSum = 0, totalIncome = 0;
-    config.incomes.forEach(source => {
-        if (source.type === "investment") {
-            totalSum += source.sum;
-            totalIncome += source.income;
-        }
-    });
-    const sumCell = createElement('td');
-    sumCell.append(
-        document.createTextNode(intl.format(totalSum)),
-        createElement('br'),
-        createElement('span', ['source-desc'], {}, '+ ' + intl.format(totalIncome))
-    );
+    // [2] Строка разбита на две ячейки: метка + суммы по investment-источникам.
+    //     monthly-источники не суммируются — у них нет вложенной суммы и дохода.
+    const investSources = config.incomes.filter(s => s.type === 'investment');
+    const totalInvestSum    = investSources.reduce((acc, s) => acc + s.sum, 0);
+    const totalInvestIncome = investSources.reduce((acc, s) => acc + (s.income ?? 0), 0);
+
+    const investCell = createElement('td');
+    investCell.appendChild(document.createTextNode(intl.format(totalInvestSum)));
+    if (totalInvestIncome > 0) {
+        investCell.append(
+            createElement('br'),
+            createElement('span', ['source-desc'], {}, '+ ' + intl.format(totalInvestIncome))
+        );
+    }
 
     const sums = createElement('tr', ['monthly-sum']);
-    sums.append(
-        createElement('th', [], {}, 'Всего'),
-        sumCell
-    );
+    sums.append(createElement('th', [], {}, 'Итого'), investCell);
 
     const monthsPerYear = {};
     const sources = config.incomes.map(createSource);
@@ -169,14 +166,14 @@ function generatePage() {
 
         let monthlyTotal = 0;
         config.incomes.forEach((source, idx) => {
-            const { income, column } = calcMonthData(source, monthStart, now);
+            const {income, column} = calcMonthData(source, monthStart, now);
             monthlyTotal += income;
             sources[idx].appendChild(column);
         });
 
         addElement(sums, 'td', intl.format(monthlyTotal));
         if (i === 0) document.getElementById('pIncomeCur').textContent = intl.format(monthlyTotal);
-        if (i === 3) document.getElementById('pIncome3m').textContent = intl.format(monthlyTotal);
+        if (i === 3) document.getElementById('pIncome3m').textContent  = intl.format(monthlyTotal);
     }
 
     for (const [year, colspan] of Object.entries(monthsPerYear)) {
@@ -224,7 +221,7 @@ function resetCfg() {
 function exportConfig() {
     const json = JSON.stringify(config, dateReplacer, 2);
     const anchor = document.createElement('a');
-    anchor.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    anchor.href = URL.createObjectURL(new Blob([json], {type: 'application/json'}));
     anchor.download = 'investment_config.json';
     anchor.click();
     URL.revokeObjectURL(anchor.href);
@@ -240,9 +237,7 @@ function importConfig() {
 
 function exportClipboard() {
     const json = JSON.stringify(config, dateReplacer, 2);
-    navigator.clipboard.writeText(json).then(() => {
-        alert('Настройки скопированы в буфер обмена');
-    });
+    navigator.clipboard.writeText(json).then(() => alert('Настройки скопированы в буфер обмена'));
 }
 
 function importClipboard() {
@@ -259,21 +254,20 @@ function importClipboard() {
 /* ---- модальная форма ---- */
 
 const sForm = {
-    modal: new bootstrap.Modal(document.getElementById('sourceModal')),
-    form: document.getElementById('sourceForm'),
-    title: document.getElementById('sourceModalTitle'),
-
-    name: document.getElementById('fName'),
-    type: document.getElementById('fType'),
-    sum: document.getElementById('fSum'),
-    income: document.getElementById('fIncome'),
-    start: document.getElementById('fStart'),
-    end: document.getElementById('fEnd'),
+    modal:       new bootstrap.Modal(document.getElementById('sourceModal')),
+    form:        document.getElementById('sourceForm'),
+    title:       document.getElementById('sourceModalTitle'),
+    name:        document.getElementById('fName'),
+    type:        document.getElementById('fType'),
+    sum:         document.getElementById('fSum'),
+    income:      document.getElementById('fIncome'),
+    start:       document.getElementById('fStart'),
+    end:         document.getElementById('fEnd'),
     incomeGroup: document.getElementById('fIncomeGroup'),
-    sumLabel: document.getElementById('fSumLabel'),
-    endLabel: document.getElementById('fEndLabel'),
+    sumLabel:    document.getElementById('fSumLabel'),
+    endLabel:    document.getElementById('fEndLabel'),
     endFeedback: document.getElementById('fEndFeedback'),
-    bDelete: document.getElementById('btnDelete')
+    bDelete:     document.getElementById('btnDelete')
 };
 
 function toInputDate(date) {
@@ -282,12 +276,12 @@ function toInputDate(date) {
 
 function updateFieldsByType() {
     const isInvestment = sForm.type.value === 'investment';
-    sForm.incomeGroup.style.display  = isInvestment ? '' : 'none';
-    sForm.income.required            = isInvestment;
-    sForm.end.required               = isInvestment;
-    sForm.sumLabel.textContent       = isInvestment ? 'Вложенная сумма, руб.' : 'Сумма в месяц, руб.';
-    sForm.endLabel.textContent       = isInvestment ? 'Дата окончания *' : 'Дата окончания';
-    sForm.endFeedback.textContent    = isInvestment ? 'Укажите дату окончания' : 'Дата окончания раньше даты начала';
+    sForm.incomeGroup.style.display = isInvestment ? '' : 'none';
+    sForm.income.required           = isInvestment;
+    sForm.end.required              = isInvestment;
+    sForm.sumLabel.textContent      = isInvestment ? 'Вложенная сумма, руб.' : 'Сумма в месяц, руб.';
+    sForm.endLabel.textContent      = isInvestment ? 'Дата окончания *' : 'Дата окончания';
+    sForm.endFeedback.textContent   = isInvestment ? 'Укажите дату окончания' : 'Дата окончания раньше даты начала';
 }
 
 function validateDates() {
@@ -305,17 +299,17 @@ function openModal(idx = -1) {
 
     if (idx === -1) {
         sForm.form.reset();
-        sForm.title.textContent = 'Новый источник дохода';
+        sForm.title.textContent     = 'Новый источник дохода';
         sForm.bDelete.style.display = 'none';
     } else {
         const s = config.incomes[idx];
-        sForm.name.value = s.name;
-        sForm.type.value = s.type;
-        sForm.sum.value = s.sum;
+        sForm.name.value  = s.name;
+        sForm.type.value  = s.type;
+        sForm.sum.value   = s.sum;
         sForm.income.value = s.income ?? '';
         sForm.start.value = toInputDate(s.start_date);
-        sForm.end.value = toInputDate(s.end_date);
-        sForm.title.textContent = 'Редактирование источника';
+        sForm.end.value   = toInputDate(s.end_date);
+        sForm.title.textContent     = 'Редактирование источника';
         sForm.bDelete.style.display = '';
     }
     updateFieldsByType();
@@ -328,19 +322,16 @@ function saveSource() {
     if (!sForm.form.checkValidity()) return;
 
     const source = {
-        name: sForm.name.value.trim(),
-        type: sForm.type.value,
-        sum: Number(sForm.sum.value),
+        name:       sForm.name.value.trim(),
+        type:       sForm.type.value,
+        sum:        Number(sForm.sum.value),
         start_date: new Date(sForm.start.value),
-        ...(sForm.income.value && { income: Number(sForm.income.value) }),
-        ...(sForm.end.value && { end_date: new Date(sForm.end.value) })
+        ...(sForm.income.value && {income: Number(sForm.income.value)}),
+        ...(sForm.end.value    && {end_date: new Date(sForm.end.value)})
     };
 
-    if (editingIndex === -1) {
-        config.incomes.push(source);
-    } else {
-        config.incomes[editingIndex] = source;
-    }
+    if (editingIndex === -1) config.incomes.push(source);
+    else config.incomes[editingIndex] = source;
 
     onConfigUpdate();
     sForm.modal.hide();
@@ -361,22 +352,18 @@ function restoreSource() {
     onConfigUpdate();
 }
 
-/* ---- конец кода для модальной формы ---- */
+/* ---- инициализация ---- */
 
 function init() {
-    if (USE_STATIC_CONTENT) {
-        document.querySelectorAll('.test-static').forEach(el => el.classList.remove('d-none'));
-        return;
-    }
     addHandlers({
-        'click-add': () => openModal(),
-        'click-restore': restoreSource,
-        'change-type': updateFieldsByType,
-        'change-dates': validateDates,
-        'click-save': saveSource,
-        'click-delete': deleteSource,
-        'click-export': exportConfig,
-        'click-import': importConfig,
+        'click-add':      () => openModal(),
+        'click-restore':  restoreSource,
+        'change-type':    updateFieldsByType,
+        'change-dates':   validateDates,
+        'click-save':     saveSource,
+        'click-delete':   deleteSource,
+        'click-export':   exportConfig,
+        'click-import':   importConfig,
         'click-exp-clip': exportClipboard,
         'click-imp-clip': importClipboard
     });

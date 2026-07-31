@@ -10,6 +10,7 @@ main {
     margin-inline: auto;
 }
 
+/* ── Таблица ── */
 .timeline-table {
     table-layout: fixed;
     min-width: 100%;
@@ -28,16 +29,20 @@ main {
     white-space: nowrap;
 }
 
-.timeline-row {
-    height: 40px;
-}
-.timeline-row td:nth-child(2) {
-    text-align: right;
-}
+/* ── Строки данных ── */
+.timeline-row { height: 40px; }
+.timeline-row td:nth-child(2),
+.monthly-sum  td:nth-child(2) { text-align: right; }
 .timeline-row td:nth-child(n+3) {
     position: relative;
     padding: 0;
 }
+
+/* [1] Выделение ячейки суммы для ежемесячных источников — они не входят
+       в суммарные инвестиции, поэтому это визуально разграничивает типы. */
+.timeline-row--monthly td:nth-child(2) { background-color: var(--bs-secondary-bg-subtle); }
+
+/* ── Шапка: месяцы, год, итого ── */
 .timeline-month th { background-color: var(--bs-secondary-bg-subtle); }
 .timeline-month :where(th:nth-child(n+3), td:nth-child(n+3)),
 .monthly-sum    :where(th:nth-child(n+2), td:nth-child(n+2)) {
@@ -46,29 +51,28 @@ main {
     vertical-align: middle;
     padding: 0.25rem !important;
 }
-.timeline-month :where(th:nth-child(n+3), td:nth-child(n+3)) {
-    font-size: 0.9rem;
-}
-.monthly-sum td:nth-child(2) {
-    text-align: right;
-}
-.monthly-sum    :where(th:nth-child(n+3), td:nth-child(n+3)) {
+.timeline-month :where(th:nth-child(n+3), td:nth-child(n+3)) { font-size: 0.9rem; }
+.monthly-sum    :where(th:nth-child(n+2), td:nth-child(n+2)) {
     font-weight: bold;
     font-size: 0.8rem;
 }
-.timeline-year  :where(th, td) {
+.timeline-year :where(th, td) {
     min-width: var(--timeline-month-min);
     text-align: center;
     font-weight: bold;
     font-size: 0.9rem;
 }
 
+/* Подсветка текущего месяца.
+   [2] В monthly-sum первая ячейка — th "Итого", вторая — td инвестиций,
+       поэтому текущий месяц (i=0, второй в цикле) попадает на 4-й child. */
 .timeline-month th:nth-child(4),
-.monthly-sum th:nth-child(3),
-.timeline-row td:nth-child(4) {
+.monthly-sum    td:nth-child(4),
+.timeline-row   td:nth-child(4) {
     background-color: var(--bs-primary-bg-subtle);
 }
 
+/* ── Бар дохода ── */
 .income-bar {
     position: absolute;
     top: 20%;
@@ -82,7 +86,7 @@ main {
 
     font-size: 0.7rem;
     color: var(--bs-body-color);
-    border: 1px solid rgba(0,0,0,0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     padding: 0 0.1rem;
     border-radius: 3px;
     background-color: var(--bs-success-bg-subtle);
@@ -94,6 +98,7 @@ main {
 .income-bar.red    { background-color: var(--bs-danger-bg-subtle); }
 .income-bar.gray   { background-color: var(--bs-secondary-bg); }
 
+/* ── Описание источника ── */
 .source-desc {
     display: block;
     font-size: 0.8rem;
