@@ -135,7 +135,7 @@ function generatePage() {
     years.appendChild(createElement('th', [], {colspan: 2}));
 
     // [2] Строка разбита на две ячейки: метка + суммы по investment-источникам.
-    //     monthly-источники не суммируются — у них нет вложенной суммы и дохода.
+    //     Monthly-источники не суммируются — у них нет вложенной суммы и дохода.
     const investSources = config.incomes.filter(s => s.type === 'investment');
     const totalInvestSum    = investSources.reduce((acc, s) => acc + s.sum, 0);
     const totalInvestIncome = investSources.reduce((acc, s) => acc + (s.income ?? 0), 0);
