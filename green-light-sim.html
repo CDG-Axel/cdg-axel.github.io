@@ -423,7 +423,7 @@
 
       <div class="mini">
         <label>Число полос</label>
-        <div class="segmented" id="lanesSeg">
+        <div class="segmented">
           <input type="radio" name="lanes" id="lanes2" value="2">
           <label for="lanes2">2</label>
           <input type="radio" name="lanes" id="lanes3" value="3" checked>
@@ -610,13 +610,13 @@
   function freePos(car, tt){
     const tau = tt - car.startTime;
     if(tau <= 0) return car.initialPos;
-    const vmax = settings.speedKmh/3.6;
-    const tToMax = vmax/car.accel;
+    const vMax = settings.speedKmh/3.6;
+    const tToMax = vMax/car.accel;
     let dist;
     if(tau <= tToMax){
       dist = 0.5*car.accel*tau*tau;
     } else {
-      dist = 0.5*car.accel*tToMax*tToMax + vmax*(tau-tToMax);
+      dist = 0.5*car.accel*tToMax*tToMax + vMax*(tau-tToMax);
     }
     return car.initialPos - dist;
   }
@@ -627,7 +627,7 @@
   // fixed crawl speed) into a re-packed spot right behind the former, so
   // the queue still reads as one continuous line instead of popping in.
   function stepPhysics(tt){
-    const vmax = settings.speedKmh/3.6;
+    const vMax = settings.speedKmh/3.6;
     lanesCars.forEach(function(cars){
       let prevPos = null, prevLen = 0;
       for(let i=0;i<cars.length;i++){
@@ -661,7 +661,7 @@
             if(car._lastT !== null && tt > car._lastT){
               car.speedAtCross = Math.max(0, (car._lastPos - p) / (tt - car._lastT));
             } else {
-              car.speedAtCross = Math.min(vmax, car.accel*Math.max(0, tt-car.startTime));
+              car.speedAtCross = Math.min(vMax, car.accel*Math.max(0, tt-car.startTime));
             }
           }
         }
