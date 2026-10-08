@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Редкость английских слов</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #fafafa; --fg: #1d1d1f; --muted: #6b6b72; --card: #fff; --line: #e3e3e8; --accent: #2f5fd0;
+            --l5: #1f9d55; --l4: #6aa84f; --l3: #b8901a; --l2: #e07b39; --l1: #c0392b;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root { --bg: #131316; --fg: #ececf0; --muted: #9a9aa4; --card: #1c1c21; --line: #2e2e36; --accent: #7b9cf0; }
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+        main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+        h1 { font-size: 1.5rem; margin: 0 0 4px; }
+        .muted { color: var(--muted); }
+        textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--fg); font: inherit; resize: vertical; }
+        textarea:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 16px; }
+        button { padding: 8px 14px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font: inherit; cursor: pointer; }
+        button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--line); }
+        button:disabled { opacity: .5; cursor: default; }
+        #summary { margin-bottom: 8px; font-size: .95rem; }
+        .scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+        th, td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+        th:first-child, td:first-child { text-align: left; }
+        th { font-weight: 600; color: var(--muted); font-size: .85rem; }
+        tr:last-child td { border-bottom: 0; }
+        .lv { display: inline-block; min-width: 1.6em; padding: 0 6px; border-radius: 10px; color: #fff; text-align: center; font-weight: 600; }
+        .l5 { background: var(--l5); } .l4 { background: var(--l4); } .l3 { background: var(--l3); } .l2 { background: var(--l2); } .l1 { background: var(--l1); }
+        dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--fg); padding: 20px; width: min(340px, 92vw); }
+        dialog::backdrop { background: rgba(0, 0, 0, .45); }
+        dialog h2 { font-size: 1.1rem; margin: 0 0 12px; }
+        dialog label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; }
+        dialog input { width: 120px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; text-align: right; }
+        #dlgError { color: var(--l1); min-height: 1.4em; font-size: .9rem; }
+        .dlgButtons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Редкость английских слов</h1>
+    <p id="meta" class="muted">Загрузка списка слов…</p>
+    <textarea id="input" rows="5" placeholder="mutter, trade, helpful, thicket" spellcheck="false" autofocus></textarea>
+    <p class="muted" style="margin:4px 0 0;font-size:.85rem">Слова через пробел, запятую или с новой строки; можно вставить целый текст. Ctrl+Enter проверяет.</p>
+    <div class="row">
+        <button id="go" disabled>Проверить</button>
+        <button id="boundsBtn" class="secondary">Границы уровней</button>
+        <button id="copy" class="secondary">Скопировать ссылку</button>
+        <span id="status" class="muted" role="status"></span>
+    </div>
+    <div id="summary"></div>
+    <div class="scroll">
+        <table id="table" hidden>
+            <thead><tr><th>слово</th><th>ранг</th><th>на млн</th><th>томов</th><th>уровень</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</main>
+
+<dialog id="dlg">
+    <h2>Границы уровней по рангу</h2>
+    <label>Уровень 5, ранг до <input id="b0" type="number" min="1" step="1"></label>
+    <label>Уровень 4, ранг до <input id="b1" type="number" min="1" step="1"></label>
+    <label>Уровень 3, ранг до <input id="b2" type="number" min="1" step="1"></label>
+    <label>Уровень 2, ранг до <input id="b3" type="number" min="1" step="1"></label>
+    <p class="muted" style="margin:4px 0;font-size:.85rem">Дальше уровень 1. Числа по возрастанию.</p>
+    <div id="dlgError"></div>
+    <div class="dlgButtons">
+        <button id="dlgReset" class="secondary">По умолчанию</button>
+        <button id="dlgCancel" class="secondary">Отмена</button>
+        <button id="dlgSave">Сохранить</button>
+    </div>
+</dialog>
+
+<script>
+    const RANKS_URL = "/json/ranks_1990-2016.gz";
+    const DEFAULT_BOUNDS = [1000, 4000, 10000, 30000];
+    const MAX_WORDS_IN_URL = 200;
+    const BOUNDS_KEY = "wordRanksBounds";
+    const $ = id => document.getElementById(id);
+    const format = number => number.toLocaleString("ru-RU");
+
+    let data = null;
+    let bounds = readBounds();
+
+    function parseBounds(text) {
+        const values = (text || "").split(",").map(Number);
+        const valid = values.length === 4 && values.every((value, i) => Number.isInteger(value) && value > 0 && (i === 0 || value > values[i - 1]));
+        return valid ? values : null;
+    }
+
+    function readBounds() {
+        let stored = null;
+        try { stored = localStorage.getItem(BOUNDS_KEY); } catch {}
+        return parseBounds(new URLSearchParams(location.search).get("b")) || parseBounds(stored) || [...DEFAULT_BOUNDS];
+    }
+
+    function levelByRank(rank) {
+        const index = bounds.findIndex(limit => rank <= limit);
+        return index < 0 ? 1 : 5 - index;
+    }
+
+    async function loadRanks() {
+        const response = await fetch(RANKS_URL);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        if (bytes[0] === 0x50 && bytes[1] === 0x4b) throw new Error("файл оказался ZIP-архивом, а нужен именно gzip");
+        if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
+            if (typeof DecompressionStream === "undefined") throw new Error("браузер не умеет распаковывать gzip, обновите его");
+            const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+            return JSON.parse(await new Response(stream).text());
+        }
+        return JSON.parse(new TextDecoder().decode(bytes));
+    }
+
+    function parseWords(text) {
+        const tokens = text.replace(/[’‘]/g, "'").toLowerCase().match(/\p{L}+(?:'\p{L}+)*/gu) || [];
+        const words = tokens.map(token => token.replace(/n't$/, "").replace(/'(?:s|re|ll|ve|d|m)$/, "")).filter(Boolean);
+        return [...new Set(words)];
+    }
+
+    function lookup(word) {
+        if (!Object.hasOwn(data.words, word)) return { word, rank: null, level: 0 };
+        const [rank, perMillion, volumes] = data.words[word];
+        return { word, rank, perMillion, volumes, level: levelByRank(rank) };
+    }
+
+    function addCell(row, text, className) {
+        const cell = row.insertCell();
+        cell.textContent = text;
+        if (className) cell.className = className;
+        return cell;
+    }
+
+    function render(rows) {
+        const body = $("table").tBodies[0];
+        body.replaceChildren();
+        for (const row of rows) {
+            const tr = body.insertRow();
+            addCell(tr, row.word);
+            if (row.rank === null) {
+                const cell = addCell(tr, "нет в списке", "muted");
+                cell.colSpan = 4;
+                continue;
+            }
+            addCell(tr, format(row.rank));
+            addCell(tr, String(row.perMillion));
+            addCell(tr, format(row.volumes));
+            const level = addCell(tr, "").appendChild(document.createElement("span"));
+            level.className = `lv l${row.level}`;
+            level.textContent = row.level;
+        }
+        $("table").hidden = rows.length === 0;
+        const counts = [5, 4, 3, 2, 1].map(level => `${level}: ${rows.filter(row => row.level === level).length}`);
+        $("summary").textContent = rows.length
+            ? `Уровни ${counts.join(", ")}; нет в списке: ${rows.filter(row => row.rank === null).length}. Границы: ${bounds.map(format).join(" / ")}`
+            : "";
+    }
+
+    function updateUrl(words) {
+        const params = new URLSearchParams();
+        if (words.length > 0 && words.length <= MAX_WORDS_IN_URL) params.set("words", words.join(","));
+        if (bounds.join() !== DEFAULT_BOUNDS.join()) params.set("b", bounds.join(","));
+        const query = params.toString().replaceAll("%2C", ",");
+        history.replaceState(null, "", query ? `?${query}` : location.pathname);
+    }
+
+    function analyze() {
+        if (!data) return;
+        const words = parseWords($("input").value);
+        const rows = words.map(lookup).sort((a, b) => b.level - a.level || (a.word < b.word ? -1 : a.word > b.word ? 1 : 0));
+        render(rows);
+        updateUrl(words);
+    }
+
+    function fillDialog(values) {
+        values.forEach((value, i) => { $(`b${i}`).value = value; });
+        $("dlgError").textContent = "";
+    }
+
+    $("go").onclick = analyze;
+    $("input").addEventListener("keydown", event => {
+        if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) analyze();
+    });
+    $("copy").onclick = async () => {
+        analyze();
+        try {
+            await navigator.clipboard.writeText(location.href);
+            $("status").textContent = "Ссылка скопирована";
+        } catch {
+            $("status").textContent = "Не удалось скопировать, возьмите ссылку из адресной строки";
+        }
+        setTimeout(() => { $("status").textContent = ""; }, 3000);
+    };
+    $("boundsBtn").onclick = () => { fillDialog(bounds); $("dlg").showModal(); };
+    $("dlgCancel").onclick = () => $("dlg").close();
+    $("dlgReset").onclick = () => fillDialog(DEFAULT_BOUNDS);
+    $("dlgSave").onclick = () => {
+        const values = parseBounds([0, 1, 2, 3].map(i => $(`b${i}`).value).join(","));
+        if (!values) {
+            $("dlgError").textContent = "Нужны четыре целых числа по возрастанию.";
+            return;
+        }
+        bounds = values;
+        try { localStorage.setItem(BOUNDS_KEY, values.join(",")); } catch {}
+        $("dlg").close();
+        analyze();
+    };
+
+    (async () => {
+        const initial = new URLSearchParams(location.search).get("words");
+        if (initial) $("input").value = initial.split(",").join(", ");
+        try {
+            data = await loadRanks();
+            $("meta").textContent = `Список: окно лет ${data.meta.from}–${data.meta.to}, слов: ${format(data.meta.words)}`;
+            $("go").disabled = false;
+            if (initial) analyze();
+        } catch (error) {
+            $("meta").textContent = `Не удалось загрузить список слов: ${error.message}`;
+        }
+    })();
+</script>
+</body>
+</html>
