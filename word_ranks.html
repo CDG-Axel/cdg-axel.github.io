@@ -90,7 +90,7 @@
     <div id="summary"></div>
     <div class="scroll">
         <table id="table" hidden>
-            <thead><tr><th data-key="word" tabindex="0">слово<span class="arrow"></span></th><th data-key="rank" tabindex="0">ранг<span class="arrow"></span></th><th data-key="perMillion" tabindex="0">на млн<span class="arrow"></span></th><th data-key="volumes" tabindex="0">тыс. томов<span class="arrow"></span></th><th data-key="level" tabindex="0">★<span class="arrow"></span></th></tr></thead>
+            <thead><tr><th data-key="word" tabindex="0">слово<span class="arrow"></span></th><th data-key="rank" tabindex="0">ранг<span class="arrow"></span></th><th data-key="perMillion" tabindex="0">на млн<span class="arrow"></span></th><th data-key="volumes" tabindex="0">тыс. томов<span class="arrow"></span></th><th data-key="level" tabindex="0" title="Уровень" aria-label="Уровень">★<span class="arrow"></span></th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
@@ -191,6 +191,11 @@
         return value < 99.95 ? value.toFixed(1) : String(Math.round(value));
     }
 
+    function formatPerMillion(value) {
+        if (value < 0.00005) return "<0.0001";
+        return String(Number(value.toFixed(4)));
+    }
+
     function addCell(row, text, className) {
         const cell = row.insertCell();
         cell.textContent = text;
@@ -205,21 +210,28 @@
             const tr = body.insertRow();
             addCell(tr, row.word);
             if (row.rank === null) {
-                addCell(tr, "нет в списке", "muted").colSpan = 4;
+                addCell(tr, "не найдено", "muted").colSpan = 4;
                 continue;
             }
             addCell(tr, String(row.rank));
-            addCell(tr, String(row.perMillion));
+            addCell(tr, formatPerMillion(row.perMillion));
             addCell(tr, thousands(row.volumes));
             const level = addCell(tr, "").appendChild(document.createElement("span"));
             level.className = `lv l${row.level}`;
             level.textContent = row.level;
         }
         $("table").hidden = rows.length === 0;
-        const counts = [5, 4, 3, 2, 1].map(level => `${level}: ${rows.filter(row => row.level === level).length}`);
-        $("summary").textContent = rows.length
-            ? `${c.label}. Уровни ${counts.join(", ")}; нет в списке: ${rows.filter(row => row.rank === null).length}. Границы: ${bounds.map(format).join(" / ")}`
-            : "";
+        const summary = $("summary");
+        summary.replaceChildren();
+        if (rows.length) {
+            [5, 4, 3, 2, 1].forEach((level, i) => {
+                const star = document.createElement("span");
+                star.textContent = `${level}★`;
+                star.style.color = `var(--l${level})`;
+                summary.append(i ? ", " : "", star, ` - ${rows.filter(row => row.level === level).length}`);
+            });
+            summary.append(`; не найдено - ${rows.filter(row => row.rank === null).length}`);
+        }
     }
 
     let view = null;
