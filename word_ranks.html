@@ -43,7 +43,10 @@
         table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 8px; font-variant-numeric: tabular-nums; }
         th, td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
         th:first-child, td:first-child { text-align: left; }
-        th { font-weight: 600; color: var(--muted); font-size: .8rem; line-height: 1.2; white-space: normal; }
+        th { font-weight: 600; color: var(--muted); font-size: .8rem; line-height: 1.2; white-space: normal; cursor: pointer; user-select: none; }
+        th:hover { color: var(--fg); }
+        th:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+        .arrow { font-size: .7em; margin-left: 2px; color: var(--accent); }
         tr:last-child td { border-bottom: 0; }
         td:nth-child(3) { color: var(--accent); font-weight: 600; }
         td:nth-child(4) { color: var(--muted); }
@@ -87,7 +90,7 @@
     <div id="summary"></div>
     <div class="scroll">
         <table id="table" hidden>
-            <thead><tr><th>слово</th><th>ранг</th><th>на млн</th><th>тыс. томов</th><th>уровень</th></tr></thead>
+            <thead><tr><th data-key="word" tabindex="0">слово<span class="arrow"></span></th><th data-key="rank" tabindex="0">ранг<span class="arrow"></span></th><th data-key="perMillion" tabindex="0">на млн<span class="arrow"></span></th><th data-key="volumes" tabindex="0">тыс. томов<span class="arrow"></span></th><th data-key="level" tabindex="0">уровень<span class="arrow"></span></th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
@@ -118,6 +121,7 @@
     const MAX_WORDS_IN_URL = 200;
     const BOUNDS_KEY = "wordRanksBounds";
     const CORPUS_KEY = "wordRanksCorpus";
+    const SORT_KEY = "wordRanksSort";
     const $ = id => document.getElementById(id);
     const format = number => number.toLocaleString("ru-RU");
     const saved = key => { try { return localStorage.getItem(key); } catch { return null; } };
@@ -218,6 +222,66 @@
             : "";
     }
 
+    let view = null;
+    const COLUMNS = {
+        word: { dir: 1 },
+        rank: { dir: 1 },
+        perMillion: { dir: -1 },
+        volumes: { dir: -1 },
+        level: { dir: -1 },
+    };
+    const DEFAULT_SORT = [{ key: "level", dir: -1 }, { key: "word", dir: 1 }];
+
+    function readSort() {
+        try {
+            const stack = JSON.parse(saved(SORT_KEY));
+            const valid = Array.isArray(stack) && stack.length === 2 && stack[0].key !== stack[1].key &&
+                stack.every(item => Object.hasOwn(COLUMNS, item.key) && (item.dir === 1 || item.dir === -1));
+            if (valid) return stack.map(({ key, dir }) => ({ key, dir }));
+        } catch {}
+        return DEFAULT_SORT.map(item => ({ ...item }));
+    }
+
+    let sortStack = readSort();
+
+    function compareRows(a, b) {
+        if ((a.rank === null) !== (b.rank === null)) return a.rank === null ? 1 : -1;
+        if (a.rank !== null) {
+            for (const { key, dir } of sortStack) {
+                const x = a[key], y = b[key];
+                const result = typeof x === "string" ? (x < y ? -1 : x > y ? 1 : 0) : x - y;
+                if (result !== 0) return result * dir;
+            }
+        }
+        return a.word < b.word ? -1 : a.word > b.word ? 1 : 0;
+    }
+
+    function sortBy(key) {
+        const [first, second] = sortStack;
+        if (first.key === key) {
+            first.dir = -first.dir;
+        } else {
+            const dir = second.key === key ? second.dir : COLUMNS[key].dir;
+            sortStack = [{ key, dir }, first];
+        }
+        save(SORT_KEY, JSON.stringify(sortStack));
+        draw();
+    }
+
+    function updateHeaders() {
+        for (const th of document.querySelectorAll("th[data-key]")) {
+            const active = sortStack[0].key === th.dataset.key;
+            th.querySelector(".arrow").textContent = active ? (sortStack[0].dir === 1 ? "▲" : "▼") : "";
+            if (active) th.setAttribute("aria-sort", sortStack[0].dir === 1 ? "ascending" : "descending");
+            else th.removeAttribute("aria-sort");
+        }
+    }
+
+    function draw() {
+        updateHeaders();
+        if (view) render([...view.rows].sort(compareRows), view.corpus);
+    }
+
     function showMeta(data, c) {
         $("meta").textContent = `Словарь «${c.label}»: окно лет ${data.meta.from}–${data.meta.to}, слов ${format(data.meta.words)}`;
     }
@@ -246,8 +310,8 @@
         $("status").textContent = "";
         const data = ready.get(current.id);
         showMeta(data, current);
-        const rows = words.map(word => lookup(data, word)).sort((a, b) => b.level - a.level || (a.word < b.word ? -1 : a.word > b.word ? 1 : 0));
-        render(rows, current);
+        view = { rows: words.map(word => lookup(data, word)), corpus: current };
+        draw();
     }
 
     function setCorpus(id) {
@@ -270,6 +334,13 @@
     }
 
     $("go").onclick = analyze;
+    for (const th of document.querySelectorAll("th[data-key]")) {
+        th.onclick = () => sortBy(th.dataset.key);
+        th.onkeydown = event => {
+            if (event.key === "Enter" || event.key === " ") { event.preventDefault(); sortBy(th.dataset.key); }
+        };
+    }
+    updateHeaders();
     $("input").addEventListener("keydown", event => {
         if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) analyze();
     });
