@@ -1,0 +1,7 @@
+{
+  "name": "intersection-capacity-model",
+  "version": "0.1.0",
+  "description": "Физическая модель пропускной способности полосы перекрёстка (модуль A)",
+  "type": "module",
+  "main": "intersectionCapacity.js"
+}
