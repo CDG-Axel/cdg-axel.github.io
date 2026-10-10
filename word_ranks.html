@@ -157,7 +157,6 @@ function readCorpus() {
 }
 
 function readLite() {
-    if (new URLSearchParams(location.search).get("full") === "1") return false;
     return saved(LITE_KEY) !== "0";
 }
 
@@ -333,7 +332,6 @@ function updateUrl(words) {
     const params = new URLSearchParams({ c: corpus.id });
     if (words.length > 0 && words.length <= MAX_WORDS_IN_URL) params.set("words", words.join(","));
     if (bounds.join() !== DEFAULT_BOUNDS.join()) params.set("b", bounds.join(","));
-    if (!lite) params.set("full", "1");
     history.replaceState(null, "", `?${params.toString().replaceAll("%2C", ",")}`);
 }
 
