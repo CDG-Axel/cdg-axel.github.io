@@ -323,9 +323,9 @@ function draw() {
     if (view) render([...view.rows].sort(compareRows), view.corpus);
 }
 
-function showMeta(entry, c) {
+function showMeta(entry) {
     const { meta } = entry.data;
-    $("meta").textContent = `Словарь «${c.label}»${entry.lite ? " (сокращённый)" : ""}: окно лет ${meta.from}–${meta.to}, слов ${format(meta.words)}`;
+    $("meta").textContent = `Окно лет ${meta.from}–${meta.to}, слов ${format(meta.words)}`;
 }
 
 function updateUrl(words) {
@@ -373,7 +373,7 @@ async function analyze() {
         if (corpus !== current || lite !== variant) return;
         hideToast();
     }
-    showMeta(entry, current);
+    showMeta(entry);
     view = { rows: words.map(word => lookup(entry.data, word)), corpus: current };
     draw();
 }
@@ -439,7 +439,7 @@ $("dlgSave").onclick = () => {
 const initial = new URLSearchParams(location.search).get("words");
 if (initial) $("input").value = initial.split(",").join(", ");
 loadCorpus(corpus)
-    .then(entry => { showMeta(entry, corpus); if (initial) analyze(); })
+    .then(entry => { showMeta(entry); if (initial) analyze(); })
     .catch(error => { $("meta").textContent = `Не удалось загрузить список слов: ${error.message}`; });
 </script>
 </body>
