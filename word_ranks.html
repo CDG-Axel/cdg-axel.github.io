@@ -1,72 +1,73 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Редкость английских слов</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='8' y='10' width='15' height='80' rx='3' fill='%231f9d55'/><rect x='27' y='26' width='15' height='64' rx='3' fill='%236aa84f'/><rect x='46' y='42' width='15' height='48' rx='3' fill='%23b8901a'/><rect x='65' y='58' width='15' height='32' rx='3' fill='%23e07b39'/><rect x='84' y='74' width='15' height='16' rx='3' fill='%23c0392b'/></svg>">
-    <style>
-        :root {
-            color-scheme: light dark;
-            --bg: #fafafa; --fg: #1d1d1f; --muted: #6b6b72; --card: #fff; --line: #e3e3e8; --accent: #2f5fd0;
-            --l5: #1f9d55; --l4: #6aa84f; --l3: #b8901a; --l2: #e07b39; --l1: #c0392b;
-        }
-        @media (prefers-color-scheme: dark) {
-            :root { --bg: #131316; --fg: #ececf0; --muted: #9a9aa4; --card: #1c1c21; --line: #2e2e36; --accent: #7b9cf0; }
-        }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-        main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
-        h1 { font-size: 1.5rem; margin: 0 0 4px; }
-        .muted { color: var(--muted); }
-        textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--fg); font: inherit; resize: vertical; }
-        textarea:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-        .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 12px; }
-        button { padding: 8px 14px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font: inherit; cursor: pointer; }
-        button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--line); }
-        button.link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font-size: .9rem; }
-        .icons { display: flex; gap: 6px; margin-left: auto; }
-        .icon { width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: var(--accent); border: 1px solid var(--line); }
-        .icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .icon .ok, .icon.done .lnk { display: none; }
-        .icon.done .ok { display: block; }
-        .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--card); }
-        .seg label { position: relative; cursor: pointer; }
-        .seg input { position: absolute; opacity: 0; pointer-events: none; }
-        .seg span { display: block; padding: 8px 14px; }
-        .seg input:checked + span { background: var(--accent); color: #fff; }
-        .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -3px; }
-        #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: 8px; background: var(--fg); color: var(--bg); font-size: .9rem; box-shadow: 0 2px 10px rgba(0,0,0,.25); cursor: pointer; z-index: 10; }
-        #toast[hidden] { display: none; }
-        #summary { margin-bottom: 8px; font-size: .95rem; }
-        .scroll { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 8px; font-variant-numeric: tabular-nums; }
-        th, td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
-        th:first-child, td:first-child { text-align: left; }
-        th { font-weight: 600; color: var(--muted); font-size: .8rem; line-height: 1.2; white-space: normal; cursor: pointer; user-select: none; }
-        th:hover { color: var(--fg); }
-        th:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-        .arrow { font-size: .7em; margin-left: 2px; color: var(--accent); }
-        tr:last-child td { border-bottom: 0; }
-        td:nth-child(3) { color: var(--accent); font-weight: 600; }
-        td:nth-child(4) { color: var(--muted); }
-        .lv { display: inline-block; min-width: 1.6em; padding: 0 6px; border-radius: 10px; color: #fff; text-align: center; font-weight: 600; }
-        .l5 { background: var(--l5); } .l4 { background: var(--l4); } .l3 { background: var(--l3); } .l2 { background: var(--l2); } .l1 { background: var(--l1); }
-        dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--fg); padding: 20px; width: min(340px, 92vw); }
-        dialog::backdrop { background: rgba(0, 0, 0, .45); }
-        dialog h2 { font-size: 1.15rem; margin: 0 0 12px; }
-        dialog h3 { font-size: .95rem; margin: 0 0 6px; }
-        dialog label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; }
-        dialog input { width: 120px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; text-align: right; }
-        #dlgError { color: var(--l1); min-height: 1.4em; font-size: .9rem; }
-        .dlgButtons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
-        @media (max-width: 560px) {
-            th, td { padding: 6px 7px; }
-            .seg { order: 3; width: 100%; }
-            .seg label { flex: 1 1 auto; text-align: center; }
-            .seg span { padding: 8px 10px; white-space: nowrap; }
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Редкость английских слов</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='8' y='10' width='15' height='80' rx='3' fill='%231f9d55'/><rect x='27' y='26' width='15' height='64' rx='3' fill='%236aa84f'/><rect x='46' y='42' width='15' height='48' rx='3' fill='%23b8901a'/><rect x='65' y='58' width='15' height='32' rx='3' fill='%23e07b39'/><rect x='84' y='74' width='15' height='16' rx='3' fill='%23c0392b'/></svg>">
+<style>
+    :root {
+        color-scheme: light dark;
+        --bg: #fafafa; --fg: #1d1d1f; --muted: #6b6b72; --card: #fff; --line: #e3e3e8; --accent: #2f5fd0;
+        --l5: #1f9d55; --l4: #6aa84f; --l3: #b8901a; --l2: #e07b39; --l1: #c0392b;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root { --bg: #131316; --fg: #ececf0; --muted: #9a9aa4; --card: #1c1c21; --line: #2e2e36; --accent: #7b9cf0; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { font-size: 1.5rem; margin: 0 0 4px; }
+    .muted { color: var(--muted); }
+    textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--fg); font: inherit; resize: vertical; }
+    textarea:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 12px; }
+    button { padding: 8px 14px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font: inherit; cursor: pointer; }
+    button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--line); }
+    button.link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font-size: .9rem; }
+    .icons { display: flex; gap: 6px; margin-left: auto; }
+    .icon { width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: var(--accent); border: 1px solid var(--line); }
+    .icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .icon .ok, .icon.done .lnk { display: none; }
+    .icon.done .ok { display: block; }
+    .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--card); }
+    .seg label { position: relative; cursor: pointer; }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg span { display: block; padding: 8px 14px; }
+    .seg input:checked + span { background: var(--accent); color: #fff; }
+    .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -3px; }
+    #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: 8px; background: var(--fg); color: var(--bg); font-size: .9rem; box-shadow: 0 2px 10px rgba(0,0,0,.25); cursor: pointer; z-index: 10; }
+    #toast[hidden] { display: none; }
+    #summary { margin-bottom: 8px; font-size: .95rem; }
+    .scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 8px; font-variant-numeric: tabular-nums; }
+    th, td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    th { font-weight: 600; color: var(--muted); font-size: .8rem; line-height: 1.2; white-space: normal; cursor: pointer; user-select: none; }
+    th:hover { color: var(--fg); }
+    th:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .arrow { font-size: .7em; margin-left: 2px; color: var(--accent); }
+    tr:last-child td { border-bottom: 0; }
+    td:nth-child(3) { color: var(--accent); font-weight: 600; }
+    td:nth-child(4) { color: var(--muted); }
+    .lv { display: inline-block; min-width: 1.6em; padding: 0 6px; border-radius: 10px; color: #fff; text-align: center; font-weight: 600; }
+    .l5 { background: var(--l5); } .l4 { background: var(--l4); } .l3 { background: var(--l3); } .l2 { background: var(--l2); } .l1 { background: var(--l1); }
+    dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--fg); padding: 20px; width: min(340px, 92vw); }
+    dialog::backdrop { background: rgba(0, 0, 0, .45); }
+    dialog h2 { font-size: 1.15rem; margin: 0 0 12px; }
+    dialog h3 { font-size: .95rem; margin: 0 0 6px; }
+    dialog label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; }
+    dialog input[type="checkbox"] { width: auto; margin: 0; }
+    dialog input { width: 120px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; text-align: right; }
+    #dlgError { color: var(--l1); min-height: 1.4em; font-size: .9rem; }
+    .dlgButtons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    @media (max-width: 560px) {
+        th, td { padding: 6px 7px; }
+        .seg { order: 3; width: 100%; }
+        .seg label { flex: 1 1 auto; text-align: center; }
+        .seg span { padding: 8px 10px; white-space: nowrap; }
+    }
+</style>
 </head>
 <body>
 <main>
@@ -105,6 +106,9 @@
     <label>Уровень 3, ранг до <input id="b2" type="number" min="1" step="1"></label>
     <label>Уровень 2, ранг до <input id="b3" type="number" min="1" step="1"></label>
     <p class="muted" style="margin:4px 0;font-size:.85rem">Дальше уровень 1. Числа по возрастанию, общие для всех словарей.</p>
+    <h3 style="margin-top:14px">Словарь</h3>
+    <label>Сокращённый словарь <input id="lite" type="checkbox"></label>
+    <p class="muted" style="margin:4px 0;font-size:.85rem">Включён: быстрее загружается, без самых редких слов (реже одного раза на 500 тысяч слов). Выключен: полный словарь, он больше.</p>
     <button id="dlgReset" class="link">Сбросить к значениям по умолчанию</button>
     <div id="dlgError"></div>
     <div class="dlgButtons">
@@ -114,300 +118,331 @@
 </dialog>
 
 <script>
-    const CORPORA = [
-        { id: "all", label: "Все книги", url: "/json/ranks_1990-2016.gz" },
-        { id: "fiction", label: "Проза", url: "/json/ranks_fict_1990-2016.gz" },
-        { id: "gb", label: "GB", url: "/json/ranks_gb_1990-2016.gz" },
-        { id: "us", label: "US", url: "/json/ranks_us_1990-2016.gz" },
-    ];
-    const DEFAULT_BOUNDS = [1000, 4000, 10000, 30000];
-    const MAX_WORDS_IN_URL = 200;
-    const BOUNDS_KEY = "wordRanksBounds";
-    const CORPUS_KEY = "wordRanksCorpus";
-    const SORT_KEY = "wordRanksSort";
-    const $ = id => document.getElementById(id);
-    const format = number => number.toLocaleString("ru-RU");
-    const saved = key => { try { return localStorage.getItem(key); } catch { return null; } };
-    const save = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
+const CORPORA = [
+    { id: "all", label: "Все книги", full: "/json/ranks.json.gz", lite: "/json/ranks_lite.json.gz" },
+    { id: "fiction", label: "Проза", full: "/json/ranks_fiction.json.gz", lite: "/json/ranks_fiction_lite.json.gz" },
+    { id: "gb", label: "GB", full: "/json/ranks_GB.json.gz", lite: "/json/ranks_GB_lite.json.gz" },
+    { id: "us", label: "US", full: "/json/ranks_US.json.gz", lite: "/json/ranks_US_lite.json.gz" },
+];
+const DEFAULT_BOUNDS = [1000, 4000, 10000, 30000];
+const MAX_WORDS_IN_URL = 200;
+const BOUNDS_KEY = "wordRanksBounds";
+const CORPUS_KEY = "wordRanksCorpus";
+const SORT_KEY = "wordRanksSort";
+const LITE_KEY = "wordRanksLite";
+const $ = id => document.getElementById(id);
+const format = number => number.toLocaleString("ru-RU");
+const saved = key => { try { return localStorage.getItem(key); } catch { return null; } };
+const save = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
 
-    const loads = new Map();
-    const ready = new Map();
-    let bounds = readBounds();
-    let corpus = readCorpus();
+const loads = new Map();   // id словаря -> { lite, promise }: загрузка, которая идёт сейчас
+const ready = new Map();   // id словаря -> { lite, data }: в памяти только один вариант (сокращённый или полный)
+let bounds = readBounds();
+let corpus = readCorpus();
+let lite = readLite();
 
-    function parseBounds(text) {
-        const values = (text || "").split(",").map(Number);
-        const valid = values.length === 4 && values.every((value, i) => Number.isInteger(value) && value > 0 && (i === 0 || value > values[i - 1]));
-        return valid ? values : null;
+function parseBounds(text) {
+    const values = (text || "").split(",").map(Number);
+    const valid = values.length === 4 && values.every((value, i) => Number.isInteger(value) && value > 0 && (i === 0 || value > values[i - 1]));
+    return valid ? values : null;
+}
+
+function readBounds() {
+    return parseBounds(new URLSearchParams(location.search).get("b")) || parseBounds(saved(BOUNDS_KEY)) || [...DEFAULT_BOUNDS];
+}
+
+function readCorpus() {
+    const id = new URLSearchParams(location.search).get("c") || saved(CORPUS_KEY);
+    return CORPORA.find(c => c.id === id) || CORPORA[0];
+}
+
+function readLite() {
+    if (new URLSearchParams(location.search).get("full") === "1") return false;
+    return saved(LITE_KEY) !== "0";
+}
+
+function levelByRank(rank) {
+    const index = bounds.findIndex(limit => rank <= limit);
+    return index < 0 ? 1 : 5 - index;
+}
+
+async function fetchRanks(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes[0] === 0x50 && bytes[1] === 0x4b) throw new Error("файл оказался ZIP-архивом, а нужен именно gzip");
+    if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
+        if (typeof DecompressionStream === "undefined") throw new Error("браузер не умеет распаковывать gzip, обновите его");
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+        return JSON.parse(await new Response(stream).text());
     }
+    return JSON.parse(new TextDecoder().decode(bytes));
+}
 
-    function readBounds() {
-        return parseBounds(new URLSearchParams(location.search).get("b")) || parseBounds(saved(BOUNDS_KEY)) || [...DEFAULT_BOUNDS];
-    }
-
-    function readCorpus() {
-        const id = new URLSearchParams(location.search).get("c") || saved(CORPUS_KEY);
-        return CORPORA.find(c => c.id === id) || CORPORA[0];
-    }
-
-    function levelByRank(rank) {
-        const index = bounds.findIndex(limit => rank <= limit);
-        return index < 0 ? 1 : 5 - index;
-    }
-
-    async function fetchRanks(url) {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const bytes = new Uint8Array(await response.arrayBuffer());
-        if (bytes[0] === 0x50 && bytes[1] === 0x4b) throw new Error("файл оказался ZIP-архивом, а нужен именно gzip");
-        if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
-            if (typeof DecompressionStream === "undefined") throw new Error("браузер не умеет распаковывать gzip, обновите его");
-            const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
-            return JSON.parse(await new Response(stream).text());
-        }
-        return JSON.parse(new TextDecoder().decode(bytes));
-    }
-
-    function loadCorpus(c) {
-        if (!loads.has(c.id)) {
-            loads.set(c.id, fetchRanks(c.url)
-                .then(data => { ready.set(c.id, data); return data; })
-                .catch(error => { loads.delete(c.id); throw error; }));
-        }
-        return loads.get(c.id);
-    }
-
-    function parseWords(text) {
-        const tokens = text.replace(/[’‘]/g, "'").toLowerCase().match(/\p{L}+(?:'\p{L}+)*/gu) || [];
-        const words = tokens.map(token => token.replace(/n't$/, "").replace(/'(?:s|re|ll|ve|d|m)$/, "")).filter(Boolean);
-        return [...new Set(words)];
-    }
-
-    function lookup(data, word) {
-        if (!Object.hasOwn(data.words, word)) return { word, rank: null, level: 0 };
-        const [rank, perMillion, volumes] = data.words[word];
-        return { word, rank, perMillion, volumes, level: levelByRank(rank) };
-    }
-
-    function thousands(volumes) {
-        const value = volumes / 1000;
-        return value < 99.95 ? value.toFixed(1) : String(Math.round(value));
-    }
-
-    function formatPerMillion(value) {
-        if (value < 0.00005) return "<0.0001";
-        return String(Number(value.toFixed(4)));
-    }
-
-    function addCell(row, text, className) {
-        const cell = row.insertCell();
-        cell.textContent = text;
-        if (className) cell.className = className;
-        return cell;
-    }
-
-    function render(rows, c) {
-        const body = $("table").tBodies[0];
-        body.replaceChildren();
-        for (const row of rows) {
-            const tr = body.insertRow();
-            addCell(tr, row.word);
-            if (row.rank === null) {
-                addCell(tr, "не найдено", "muted").colSpan = 4;
-                continue;
+// Возвращает { lite, data } для нужного варианта словаря. Если в памяти другой вариант, он выбрасывается.
+function loadCorpus(c) {
+    const cached = ready.get(c.id);
+    if (cached && cached.lite === lite) return Promise.resolve(cached);
+    const pending = loads.get(c.id);
+    if (pending && pending.lite === lite) return pending.promise;
+    ready.delete(c.id);
+    const variant = lite;
+    const entry = { lite: variant };
+    entry.promise = fetchRanks(variant ? c.lite : c.full)
+        .then(data => {
+            if (loads.get(c.id) === entry) {
+                loads.delete(c.id);
+                ready.set(c.id, { lite: variant, data });
             }
-            addCell(tr, String(row.rank));
-            addCell(tr, formatPerMillion(row.perMillion));
-            addCell(tr, thousands(row.volumes));
-            const level = addCell(tr, "").appendChild(document.createElement("span"));
-            level.className = `lv l${row.level}`;
-            level.textContent = row.level;
+            return { lite: variant, data };
+        })
+        .catch(error => {
+            if (loads.get(c.id) === entry) loads.delete(c.id);
+            throw error;
+        });
+    loads.set(c.id, entry);
+    return entry.promise;
+}
+
+function parseWords(text) {
+    const tokens = text.replace(/[’‘]/g, "'").toLowerCase().match(/\p{L}+(?:'\p{L}+)*/gu) || [];
+    const words = tokens.map(token => token.replace(/n't$/, "").replace(/'(?:s|re|ll|ve|d|m)$/, "")).filter(Boolean);
+    return [...new Set(words)];
+}
+
+function lookup(data, word) {
+    if (!Object.hasOwn(data.words, word)) return { word, rank: null, level: 0 };
+    const [rank, perMillion, volumes] = data.words[word];
+    return { word, rank, perMillion, volumes, level: levelByRank(rank) };
+}
+
+function thousands(volumes) {
+    const value = volumes / 1000;
+    return value < 99.95 ? value.toFixed(1) : String(Math.round(value));
+}
+
+function formatPerMillion(value) {
+    if (value < 0.00005) return "<0.0001";
+    return String(Number(value.toFixed(4)));
+}
+
+function addCell(row, text, className) {
+    const cell = row.insertCell();
+    cell.textContent = text;
+    if (className) cell.className = className;
+    return cell;
+}
+
+function render(rows, c) {
+    const body = $("table").tBodies[0];
+    body.replaceChildren();
+    for (const row of rows) {
+        const tr = body.insertRow();
+        addCell(tr, row.word);
+        if (row.rank === null) {
+            addCell(tr, "не найдено", "muted").colSpan = 4;
+            continue;
         }
-        $("table").hidden = rows.length === 0;
-        const summary = $("summary");
-        summary.replaceChildren();
-        if (rows.length) {
-            [5, 4, 3, 2, 1].forEach((level, i) => {
-                const star = document.createElement("span");
-                star.textContent = `${level}★`;
-                star.style.color = `var(--l${level})`;
-                summary.append(i ? ", " : "", star, ` - ${rows.filter(row => row.level === level).length}`);
-            });
-            summary.append(`; не найдено - ${rows.filter(row => row.rank === null).length}`);
+        addCell(tr, String(row.rank));
+        addCell(tr, formatPerMillion(row.perMillion));
+        addCell(tr, thousands(row.volumes));
+        const level = addCell(tr, "").appendChild(document.createElement("span"));
+        level.className = `lv l${row.level}`;
+        level.textContent = row.level;
+    }
+    $("table").hidden = rows.length === 0;
+    const summary = $("summary");
+    summary.replaceChildren();
+    if (rows.length) {
+        [5, 4, 3, 2, 1].forEach((level, i) => {
+            const star = document.createElement("span");
+            star.textContent = `${level}★`;
+            star.style.color = `var(--l${level})`;
+            summary.append(i ? ", " : "", star, ` - ${rows.filter(row => row.level === level).length}`);
+        });
+        summary.append(`; не найдено - ${rows.filter(row => row.rank === null).length}`);
+    }
+}
+
+let view = null;
+const COLUMNS = {
+    word: { dir: 1 },
+    rank: { dir: 1 },
+    perMillion: { dir: -1 },
+    volumes: { dir: -1 },
+    level: { dir: -1 },
+};
+const DEFAULT_SORT = [{ key: "level", dir: -1 }, { key: "word", dir: 1 }];
+
+function readSort() {
+    try {
+        const stack = JSON.parse(saved(SORT_KEY));
+        const valid = Array.isArray(stack) && stack.length === 2 && stack[0].key !== stack[1].key &&
+            stack.every(item => Object.hasOwn(COLUMNS, item.key) && (item.dir === 1 || item.dir === -1));
+        if (valid) return stack.map(({ key, dir }) => ({ key, dir }));
+    } catch {}
+    return DEFAULT_SORT.map(item => ({ ...item }));
+}
+
+let sortStack = readSort();
+
+function compareRows(a, b) {
+    if ((a.rank === null) !== (b.rank === null)) return a.rank === null ? 1 : -1;
+    if (a.rank !== null) {
+        for (const { key, dir } of sortStack) {
+            const x = a[key], y = b[key];
+            const result = typeof x === "string" ? (x < y ? -1 : x > y ? 1 : 0) : x - y;
+            if (result !== 0) return result * dir;
         }
     }
+    return a.word < b.word ? -1 : a.word > b.word ? 1 : 0;
+}
 
-    let view = null;
-    const COLUMNS = {
-        word: { dir: 1 },
-        rank: { dir: 1 },
-        perMillion: { dir: -1 },
-        volumes: { dir: -1 },
-        level: { dir: -1 },
-    };
-    const DEFAULT_SORT = [{ key: "level", dir: -1 }, { key: "word", dir: 1 }];
-
-    function readSort() {
-        try {
-            const stack = JSON.parse(saved(SORT_KEY));
-            const valid = Array.isArray(stack) && stack.length === 2 && stack[0].key !== stack[1].key &&
-                stack.every(item => Object.hasOwn(COLUMNS, item.key) && (item.dir === 1 || item.dir === -1));
-            if (valid) return stack.map(({ key, dir }) => ({ key, dir }));
-        } catch {}
-        return DEFAULT_SORT.map(item => ({ ...item }));
+function sortBy(key) {
+    const [first, second] = sortStack;
+    if (first.key === key) {
+        first.dir = -first.dir;
+    } else {
+        const dir = second.key === key ? second.dir : COLUMNS[key].dir;
+        sortStack = [{ key, dir }, first];
     }
+    save(SORT_KEY, JSON.stringify(sortStack));
+    draw();
+}
 
-    let sortStack = readSort();
-
-    function compareRows(a, b) {
-        if ((a.rank === null) !== (b.rank === null)) return a.rank === null ? 1 : -1;
-        if (a.rank !== null) {
-            for (const { key, dir } of sortStack) {
-                const x = a[key], y = b[key];
-                const result = typeof x === "string" ? (x < y ? -1 : x > y ? 1 : 0) : x - y;
-                if (result !== 0) return result * dir;
-            }
-        }
-        return a.word < b.word ? -1 : a.word > b.word ? 1 : 0;
-    }
-
-    function sortBy(key) {
-        const [first, second] = sortStack;
-        if (first.key === key) {
-            first.dir = -first.dir;
-        } else {
-            const dir = second.key === key ? second.dir : COLUMNS[key].dir;
-            sortStack = [{ key, dir }, first];
-        }
-        save(SORT_KEY, JSON.stringify(sortStack));
-        draw();
-    }
-
-    function updateHeaders() {
-        for (const th of document.querySelectorAll("th[data-key]")) {
-            const active = sortStack[0].key === th.dataset.key;
-            th.querySelector(".arrow").textContent = active ? (sortStack[0].dir === 1 ? "▲" : "▼") : "";
-            if (active) th.setAttribute("aria-sort", sortStack[0].dir === 1 ? "ascending" : "descending");
-            else th.removeAttribute("aria-sort");
-        }
-    }
-
-    function draw() {
-        updateHeaders();
-        if (view) render([...view.rows].sort(compareRows), view.corpus);
-    }
-
-    function showMeta(data, c) {
-        $("meta").textContent = `Словарь «${c.label}»: окно лет ${data.meta.from}–${data.meta.to}, слов ${format(data.meta.words)}`;
-    }
-
-    function updateUrl(words) {
-        const params = new URLSearchParams({ c: corpus.id });
-        if (words.length > 0 && words.length <= MAX_WORDS_IN_URL) params.set("words", words.join(","));
-        if (bounds.join() !== DEFAULT_BOUNDS.join()) params.set("b", bounds.join(","));
-        history.replaceState(null, "", `?${params.toString().replaceAll("%2C", ",")}`);
-    }
-
-    let toastTimer = 0;
-
-    // Всплывающее уведомление; delay откладывает показ, duration (мс) скрывает само, 0 - до hideToast().
-    function showToast(text, { delay = 0, duration = 0 } = {}) {
-        hideToast();
-        toastTimer = setTimeout(() => {
-            $("toast").textContent = text;
-            $("toast").hidden = false;
-            if (duration) toastTimer = setTimeout(hideToast, duration);
-        }, delay);
-    }
-
-    function hideToast() {
-        clearTimeout(toastTimer);
-        $("toast").hidden = true;
-    }
-
-    $("toast").onclick = hideToast;
-
-    async function analyze() {
-        const current = corpus;
-        const words = parseWords($("input").value);
-        updateUrl(words);
-        if (!ready.has(current.id)) {
-            showToast(`Загрузка словаря «${current.label}»…`, { delay: 300 });
-            try {
-                await loadCorpus(current);
-            } catch (error) {
-                showToast(`Не удалось загрузить словарь: ${error.message}`, { duration: 6000 });
-                return;
-            }
-            if (corpus !== current) return;
-            hideToast();
-        }
-        const data = ready.get(current.id);
-        showMeta(data, current);
-        view = { rows: words.map(word => lookup(data, word)), corpus: current };
-        draw();
-    }
-
-    function setCorpus(id) {
-        corpus = CORPORA.find(c => c.id === id);
-        save(CORPUS_KEY, id);
-        analyze();
-    }
-
-    function fillDialog(values) {
-        values.forEach((value, i) => { $(`b${i}`).value = value; });
-        $("dlgError").textContent = "";
-    }
-
-    for (const c of CORPORA) {
-        const label = document.createElement("label");
-        const radio = Object.assign(document.createElement("input"), { type: "radio", name: "corpus", value: c.id, checked: c === corpus });
-        radio.onchange = () => setCorpus(c.id);
-        label.append(radio, Object.assign(document.createElement("span"), { textContent: c.label }));
-        $("corpusGroup").append(label);
-    }
-
-    $("go").onclick = analyze;
+function updateHeaders() {
     for (const th of document.querySelectorAll("th[data-key]")) {
-        th.onclick = () => sortBy(th.dataset.key);
-        th.onkeydown = event => {
-            if (event.key === "Enter" || event.key === " ") { event.preventDefault(); sortBy(th.dataset.key); }
-        };
+        const active = sortStack[0].key === th.dataset.key;
+        th.querySelector(".arrow").textContent = active ? (sortStack[0].dir === 1 ? "▲" : "▼") : "";
+        if (active) th.setAttribute("aria-sort", sortStack[0].dir === 1 ? "ascending" : "descending");
+        else th.removeAttribute("aria-sort");
     }
+}
+
+function draw() {
     updateHeaders();
-    $("input").addEventListener("keydown", event => {
-        if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) analyze();
-    });
-    $("copy").onclick = async () => {
-        await analyze();
+    if (view) render([...view.rows].sort(compareRows), view.corpus);
+}
+
+function showMeta(entry, c) {
+    const { meta } = entry.data;
+    $("meta").textContent = `Словарь «${c.label}»${entry.lite ? " (сокращённый)" : ""}: окно лет ${meta.from}–${meta.to}, слов ${format(meta.words)}`;
+}
+
+function updateUrl(words) {
+    const params = new URLSearchParams({ c: corpus.id });
+    if (words.length > 0 && words.length <= MAX_WORDS_IN_URL) params.set("words", words.join(","));
+    if (bounds.join() !== DEFAULT_BOUNDS.join()) params.set("b", bounds.join(","));
+    if (!lite) params.set("full", "1");
+    history.replaceState(null, "", `?${params.toString().replaceAll("%2C", ",")}`);
+}
+
+let toastTimer = 0;
+
+// Всплывающее уведомление; delay откладывает показ, duration (мс) скрывает само, 0 - до hideToast().
+function showToast(text, { delay = 0, duration = 0 } = {}) {
+    hideToast();
+    toastTimer = setTimeout(() => {
+        $("toast").textContent = text;
+        $("toast").hidden = false;
+        if (duration) toastTimer = setTimeout(hideToast, duration);
+    }, delay);
+}
+
+function hideToast() {
+    clearTimeout(toastTimer);
+    $("toast").hidden = true;
+}
+
+$("toast").onclick = hideToast;
+
+async function analyze() {
+    const current = corpus;
+    const variant = lite;
+    const words = parseWords($("input").value);
+    updateUrl(words);
+    let entry = ready.get(current.id);
+    if (entry && entry.lite === variant) {
+        hideToast();
+    } else {
+        showToast(`Загрузка словаря «${current.label}»…`, { delay: 300 });
         try {
-            await navigator.clipboard.writeText(location.href);
-            $("copy").classList.add("done");
-            setTimeout(() => $("copy").classList.remove("done"), 2000);
-        } catch {
-            showToast("Не удалось скопировать, возьмите ссылку из адресной строки", { duration: 6000 });
-        }
-    };
-    $("boundsBtn").onclick = () => { fillDialog(bounds); $("dlg").showModal(); };
-    $("dlgCancel").onclick = () => $("dlg").close();
-    $("dlgReset").onclick = () => fillDialog(DEFAULT_BOUNDS);
-    $("dlgSave").onclick = () => {
-        const values = parseBounds([0, 1, 2, 3].map(i => $(`b${i}`).value).join(","));
-        if (!values) {
-            $("dlgError").textContent = "Нужны четыре целых числа по возрастанию.";
+            entry = await loadCorpus(current);
+        } catch (error) {
+            if (corpus === current && lite === variant) showToast(`Не удалось загрузить словарь: ${error.message}`, { duration: 6000 });
             return;
         }
-        bounds = values;
-        save(BOUNDS_KEY, values.join(","));
-        $("dlg").close();
-        analyze();
-    };
+        if (corpus !== current || lite !== variant) return;
+        hideToast();
+    }
+    showMeta(entry, current);
+    view = { rows: words.map(word => lookup(entry.data, word)), corpus: current };
+    draw();
+}
 
-    const initial = new URLSearchParams(location.search).get("words");
-    if (initial) $("input").value = initial.split(",").join(", ");
-    loadCorpus(corpus)
-        .then(data => { showMeta(data, corpus); if (initial) analyze(); })
-        .catch(error => { $("meta").textContent = `Не удалось загрузить список слов: ${error.message}`; });
+function setCorpus(id) {
+    corpus = CORPORA.find(c => c.id === id);
+    save(CORPUS_KEY, id);
+    analyze();
+}
+
+function fillDialog(values, liteValue) {
+    values.forEach((value, i) => { $(`b${i}`).value = value; });
+    $("lite").checked = liteValue;
+    $("dlgError").textContent = "";
+}
+
+for (const c of CORPORA) {
+    const label = document.createElement("label");
+    const radio = Object.assign(document.createElement("input"), { type: "radio", name: "corpus", value: c.id, checked: c === corpus });
+    radio.onchange = () => setCorpus(c.id);
+    label.append(radio, Object.assign(document.createElement("span"), { textContent: c.label }));
+    $("corpusGroup").append(label);
+}
+
+$("go").onclick = analyze;
+for (const th of document.querySelectorAll("th[data-key]")) {
+    th.onclick = () => sortBy(th.dataset.key);
+    th.onkeydown = event => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); sortBy(th.dataset.key); }
+    };
+}
+updateHeaders();
+$("input").addEventListener("keydown", event => {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) analyze();
+});
+$("copy").onclick = async () => {
+    await analyze();
+    try {
+        await navigator.clipboard.writeText(location.href);
+        $("copy").classList.add("done");
+        setTimeout(() => $("copy").classList.remove("done"), 2000);
+    } catch {
+        showToast("Не удалось скопировать, возьмите ссылку из адресной строки", { duration: 6000 });
+    }
+};
+$("boundsBtn").onclick = () => { fillDialog(bounds, lite); $("dlg").showModal(); };
+$("dlgCancel").onclick = () => $("dlg").close();
+$("dlgReset").onclick = () => fillDialog(DEFAULT_BOUNDS, true);
+$("dlgSave").onclick = () => {
+    const values = parseBounds([0, 1, 2, 3].map(i => $(`b${i}`).value).join(","));
+    if (!values) {
+        $("dlgError").textContent = "Нужны четыре целых числа по возрастанию.";
+        return;
+    }
+    bounds = values;
+    lite = $("lite").checked;
+    save(BOUNDS_KEY, values.join(","));
+    save(LITE_KEY, lite ? "1" : "0");
+    $("dlg").close();
+    analyze();
+};
+
+const initial = new URLSearchParams(location.search).get("words");
+if (initial) $("input").value = initial.split(",").join(", ");
+loadCorpus(corpus)
+    .then(entry => { showMeta(entry, corpus); if (initial) analyze(); })
+    .catch(error => { $("meta").textContent = `Не удалось загрузить список слов: ${error.message}`; });
 </script>
 </body>
 </html>
