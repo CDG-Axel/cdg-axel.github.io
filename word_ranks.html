@@ -36,8 +36,8 @@
         .seg span { display: block; padding: 8px 14px; }
         .seg input:checked + span { background: var(--accent); color: #fff; }
         .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -3px; }
-        #status { margin: 0 0 8px; font-size: .9rem; }
-        #status:empty { display: none; }
+        #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: 8px; background: var(--fg); color: var(--bg); font-size: .9rem; box-shadow: 0 2px 10px rgba(0,0,0,.25); cursor: pointer; z-index: 10; }
+        #toast[hidden] { display: none; }
         #summary { margin-bottom: 8px; font-size: .95rem; }
         .scroll { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 8px; font-variant-numeric: tabular-nums; }
@@ -87,7 +87,7 @@
             </button>
         </div>
     </div>
-    <p id="status" class="muted" role="status"></p>
+    <div id="toast" role="status" hidden></div>
     <div id="summary"></div>
     <div class="scroll">
         <table id="table" hidden>
@@ -308,21 +308,40 @@
         history.replaceState(null, "", `?${params.toString().replaceAll("%2C", ",")}`);
     }
 
+    let toastTimer = 0;
+
+    // Всплывающее уведомление; delay откладывает показ, duration (мс) скрывает само, 0 - до hideToast().
+    function showToast(text, { delay = 0, duration = 0 } = {}) {
+        hideToast();
+        toastTimer = setTimeout(() => {
+            $("toast").textContent = text;
+            $("toast").hidden = false;
+            if (duration) toastTimer = setTimeout(hideToast, duration);
+        }, delay);
+    }
+
+    function hideToast() {
+        clearTimeout(toastTimer);
+        $("toast").hidden = true;
+    }
+
+    $("toast").onclick = hideToast;
+
     async function analyze() {
         const current = corpus;
         const words = parseWords($("input").value);
         updateUrl(words);
         if (!ready.has(current.id)) {
-            $("status").textContent = `Загрузка словаря «${current.label}»…`;
+            showToast(`Загрузка словаря «${current.label}»…`, { delay: 300 });
             try {
                 await loadCorpus(current);
             } catch (error) {
-                $("status").textContent = `Не удалось загрузить словарь: ${error.message}`;
+                showToast(`Не удалось загрузить словарь: ${error.message}`, { duration: 6000 });
                 return;
             }
             if (corpus !== current) return;
+            hideToast();
         }
-        $("status").textContent = "";
         const data = ready.get(current.id);
         showMeta(data, current);
         view = { rows: words.map(word => lookup(data, word)), corpus: current };
@@ -366,7 +385,7 @@
             $("copy").classList.add("done");
             setTimeout(() => $("copy").classList.remove("done"), 2000);
         } catch {
-            $("status").textContent = "Не удалось скопировать, возьмите ссылку из адресной строки";
+            showToast("Не удалось скопировать, возьмите ссылку из адресной строки", { duration: 6000 });
         }
     };
     $("boundsBtn").onclick = () => { fillDialog(bounds); $("dlg").showModal(); };
@@ -388,8 +407,7 @@
     if (initial) $("input").value = initial.split(",").join(", ");
     loadCorpus(corpus)
         .then(data => { showMeta(data, corpus); if (initial) analyze(); })
-        .catch(error => { $("meta").textContent = `Не удалось загрузить список слов: ${error.message}`; })
-        .finally(() => CORPORA.filter(c => c !== corpus).forEach(c => loadCorpus(c).catch(() => {})));
+        .catch(error => { $("meta").textContent = `Не удалось загрузить список слов: ${error.message}`; });
 </script>
 </body>
 </html>
