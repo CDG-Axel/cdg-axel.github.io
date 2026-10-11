@@ -119,10 +119,10 @@
 
 <script>
 const CORPORA = [
-    { id: "all", label: "Все книги", full: "/json/ranks.json.gz", lite: "/json/ranks_lite.json.gz" },
-    { id: "fiction", label: "Проза", full: "/json/ranks_fiction.json.gz", lite: "/json/ranks_fiction_lite.json.gz" },
-    { id: "gb", label: "GB", full: "/json/ranks_GB.json.gz", lite: "/json/ranks_GB_lite.json.gz" },
-    { id: "us", label: "US", full: "/json/ranks_US.json.gz", lite: "/json/ranks_US_lite.json.gz" },
+    { id: "all", label: "Все книги", full: "/json/ranks.web.gz", lite: "/json/ranks_lite.web.gz" },
+    { id: "fiction", label: "Проза", full: "/json/ranks_fiction.web.gz", lite: "/json/ranks_fiction_lite.web.gz" },
+    { id: "gb", label: "GB", full: "/json/ranks_GB.web.gz", lite: "/json/ranks_GB_lite.web.gz" },
+    { id: "us", label: "US", full: "/json/ranks_US.web.gz", lite: "/json/ranks_US_lite.web.gz" },
 ];
 const DEFAULT_BOUNDS = [1000, 4000, 10000, 30000];
 const MAX_WORDS_IN_URL = 200;
@@ -165,6 +165,22 @@ function levelByRank(rank) {
     return index < 0 ? 1 : 5 - index;
 }
 
+// Текст рейтинга: первая строка meta (JSON), далее "слово<tab>на млн<tab>тома", ранг равен номеру строки данных.
+// Возвращает { meta, words: { слово: [ранг, на млн, тома] } }.
+function parseRanks(text) {
+    const lines = text.split("\n");
+    const meta = JSON.parse(lines[0]);
+    const words = {};
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line) continue;
+        const first = line.indexOf("\t");
+        const second = line.indexOf("\t", first + 1);
+        words[line.slice(0, first)] = [i, +line.slice(first + 1, second), +line.slice(second + 1)];
+    }
+    return { meta, words };
+}
+
 async function fetchRanks(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -173,9 +189,9 @@ async function fetchRanks(url) {
     if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
         if (typeof DecompressionStream === "undefined") throw new Error("браузер не умеет распаковывать gzip, обновите его");
         const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
-        return JSON.parse(await new Response(stream).text());
+        return parseRanks(await new Response(stream).text());
     }
-    return JSON.parse(new TextDecoder().decode(bytes));
+    return parseRanks(new TextDecoder().decode(bytes));
 }
 
 // Возвращает { lite, data } для нужного варианта словаря. Если в памяти другой вариант, он выбрасывается.
