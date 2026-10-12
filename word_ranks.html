@@ -28,6 +28,7 @@
     .icons { display: flex; gap: 6px; margin-left: auto; }
     .icon { width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: var(--accent); border: 1px solid var(--line); }
     .icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    /* noinspection CssUnusedSymbol */
     .icon .ok, .icon.done .lnk { display: none; }
     .icon.done .ok { display: block; }
     .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--card); }
@@ -50,8 +51,8 @@
     tr:last-child td { border-bottom: 0; }
     td:nth-child(3) { color: var(--accent); font-weight: 600; }
     td:nth-child(4) { color: var(--muted); }
+    /* noinspection CssUnusedSymbol */
     .lv { display: inline-block; min-width: 1.6em; padding: 0 6px; border-radius: 10px; color: #fff; text-align: center; font-weight: 600; }
-    .l5 { background: var(--l5); } .l4 { background: var(--l4); } .l3 { background: var(--l3); } .l2 { background: var(--l2); } .l1 { background: var(--l1); }
     dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--fg); padding: 20px; width: min(340px, 92vw); }
     dialog::backdrop { background: rgba(0, 0, 0, .45); }
     dialog h2 { font-size: 1.15rem; margin: 0 0 12px; }
@@ -59,6 +60,9 @@
     dialog label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; }
     dialog input[type="checkbox"] { width: auto; margin: 0; }
     dialog input { width: 120px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; text-align: right; }
+    .bounds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+    .bounds label { min-width: 0; margin: 0; justify-content: flex-start; gap: 8px; font-weight: 600; }
+    dialog .bounds input { flex: 1; width: 0; min-width: 0; }
     #dlgError { color: var(--l1); min-height: 1.4em; font-size: .9rem; }
     .dlgButtons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
     @media (max-width: 560px) {
@@ -73,8 +77,8 @@
 <main>
     <h1>Редкость английских слов</h1>
     <p id="meta" class="muted">Загрузка списка слов…</p>
-    <textarea id="input" rows="5" placeholder="mutter, trade, helpful, thicket" spellcheck="false" autofocus></textarea>
-    <p class="muted" style="margin:4px 0 0;font-size:.85rem">Слова через пробел, запятую или с новой строки; можно вставить целый текст. Ctrl+Enter проверяет.</p>
+    <textarea id="input" rows="5" placeholder="mutter, trade, helpful, thicket" spellcheck="false" autofocus aria-label="Слова для проверки" aria-describedby="inputHint"></textarea>
+    <p id="inputHint" class="muted" style="margin:4px 0 0;font-size:.85rem">Слова через пробел, запятую или с новой строки; можно вставить целый текст. Ctrl+Enter — проверить.</p>
     <div class="row">
         <button id="go">Проверить</button>
         <div class="seg" id="corpusGroup" role="radiogroup" aria-label="Словарь"></div>
@@ -101,14 +105,16 @@
 <dialog id="dlg">
     <h2>Настройки</h2>
     <h3>Границы уровней по рангу</h3>
-    <label>Уровень 5, ранг до <input id="b0" type="number" min="1" step="1"></label>
-    <label>Уровень 4, ранг до <input id="b1" type="number" min="1" step="1"></label>
-    <label>Уровень 3, ранг до <input id="b2" type="number" min="1" step="1"></label>
-    <label>Уровень 2, ранг до <input id="b3" type="number" min="1" step="1"></label>
-    <p class="muted" style="margin:4px 0;font-size:.85rem">Дальше уровень 1. Числа по возрастанию, общие для всех словарей.</p>
+    <div class="bounds">
+        <label>5 <input id="b0" type="text" inputmode="numeric" maxlength="5" aria-label="Уровень 5, ранг до"></label>
+        <label>4 <input id="b1" type="text" inputmode="numeric" maxlength="5" aria-label="Уровень 4, ранг до"></label>
+        <label>3 <input id="b2" type="text" inputmode="numeric" maxlength="5" aria-label="Уровень 3, ранг до"></label>
+        <label>2 <input id="b3" type="text" inputmode="numeric" maxlength="5" aria-label="Уровень 2, ранг до"></label>
+    </div>
+    <p class="muted" style="margin:6px 0 4px;font-size:.85rem">Верхняя граница ранга для уровней 5, 4, 3 и 2; дальше уровень 1. Числа по возрастанию.</p>
     <h3 style="margin-top:14px">Словарь</h3>
     <label>Сокращённый словарь <input id="lite" type="checkbox"></label>
-    <p class="muted" style="margin:4px 0;font-size:.85rem">Включён: быстрее загружается, без самых редких слов (реже одного раза на 500 тысяч слов). Выключен: полный словарь, он больше.</p>
+    <p id="liteHint" class="muted" style="margin:4px 0;font-size:.85rem"></p>
     <button id="dlgReset" class="link">Сбросить к значениям по умолчанию</button>
     <div id="dlgError"></div>
     <div class="dlgButtons">
@@ -131,7 +137,19 @@ const CORPUS_KEY = "wordRanksCorpus";
 const SORT_KEY = "wordRanksSort";
 const LITE_KEY = "wordRanksLite";
 const $ = id => document.getElementById(id);
-const format = number => number.toLocaleString("ru-RU");
+const input = $("input");
+const table = $("table");
+const toast = $("toast");
+const copyButton = $("copy");
+const dialog = $("dlg");
+const liteCheckbox = $("lite");
+const liteHint = $("liteHint");
+const dialogError = $("dlgError");
+const boundInputs = [0, 1, 2, 3].map(i => $(`b${i}`));
+for (const field of boundInputs) {
+    field.oninput = () => { field.value = field.value.replace(/\D/g, ""); };   // только цифры, длину ограничивает maxlength
+}
+const format = number => number.toLocaleString();
 const saved = key => { try { return localStorage.getItem(key); } catch { return null; } };
 const save = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
 
@@ -248,8 +266,8 @@ function addCell(row, text, className) {
     return cell;
 }
 
-function render(rows, c) {
-    const body = $("table").tBodies[0];
+function render(rows) {
+    const body = table.tBodies[0];
     body.replaceChildren();
     for (const row of rows) {
         const tr = body.insertRow();
@@ -262,10 +280,11 @@ function render(rows, c) {
         addCell(tr, formatPerMillion(row.perMillion));
         addCell(tr, thousands(row.volumes));
         const level = addCell(tr, "").appendChild(document.createElement("span"));
-        level.className = `lv l${row.level}`;
+        level.className = "lv";
+        level.style.background = `var(--l${row.level})`;
         level.textContent = row.level;
     }
-    $("table").hidden = rows.length === 0;
+    table.hidden = rows.length === 0;
     const summary = $("summary");
     summary.replaceChildren();
     if (rows.length) {
@@ -336,7 +355,7 @@ function updateHeaders() {
 
 function draw() {
     updateHeaders();
-    if (view) render([...view.rows].sort(compareRows), view.corpus);
+    if (view) render([...view.rows].sort(compareRows));
 }
 
 function showMeta(entry) {
@@ -357,23 +376,23 @@ let toastTimer = 0;
 function showToast(text, { delay = 0, duration = 0 } = {}) {
     hideToast();
     toastTimer = setTimeout(() => {
-        $("toast").textContent = text;
-        $("toast").hidden = false;
+        toast.textContent = text;
+        toast.hidden = false;
         if (duration) toastTimer = setTimeout(hideToast, duration);
     }, delay);
 }
 
 function hideToast() {
     clearTimeout(toastTimer);
-    $("toast").hidden = true;
+    toast.hidden = true;
 }
 
-$("toast").onclick = hideToast;
+toast.onclick = hideToast;
 
 async function analyze() {
     const current = corpus;
     const variant = lite;
-    const words = parseWords($("input").value);
+    const words = parseWords(input.value);
     updateUrl(words);
     let entry = ready.get(current.id);
     if (entry && entry.lite === variant) {
@@ -390,7 +409,7 @@ async function analyze() {
         hideToast();
     }
     showMeta(entry);
-    view = { rows: words.map(word => lookup(entry.data, word)), corpus: current };
+    view = { rows: words.map(word => lookup(entry.data, word)) };
     draw();
 }
 
@@ -400,11 +419,20 @@ function setCorpus(id) {
     analyze();
 }
 
-function fillDialog(values, liteValue) {
-    values.forEach((value, i) => { $(`b${i}`).value = value; });
-    $("lite").checked = liteValue;
-    $("dlgError").textContent = "";
+function updateLiteHint() {
+    liteHint.textContent = liteCheckbox.checked
+        ? "Сокращённый словарь: загружается быстрее, но без самых редких слов."
+        : "Полный словарь: больше редких слов, но загружается дольше.";
 }
+
+function fillDialog(values, liteValue) {
+    values.forEach((value, i) => { boundInputs[i].value = value; });
+    liteCheckbox.checked = liteValue;
+    updateLiteHint();
+    dialogError.textContent = "";
+}
+
+liteCheckbox.onchange = updateLiteHint;
 
 for (const c of CORPORA) {
     const label = document.createElement("label");
@@ -422,38 +450,38 @@ for (const th of document.querySelectorAll("th[data-key]")) {
     };
 }
 updateHeaders();
-$("input").addEventListener("keydown", event => {
+input.addEventListener("keydown", event => {
     if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) analyze();
 });
-$("copy").onclick = async () => {
+copyButton.onclick = async () => {
     await analyze();
     try {
         await navigator.clipboard.writeText(location.href);
-        $("copy").classList.add("done");
-        setTimeout(() => $("copy").classList.remove("done"), 2000);
+        copyButton.classList.add("done");
+        setTimeout(() => copyButton.classList.remove("done"), 2000);
     } catch {
         showToast("Не удалось скопировать, возьмите ссылку из адресной строки", { duration: 6000 });
     }
 };
-$("boundsBtn").onclick = () => { fillDialog(bounds, lite); $("dlg").showModal(); };
-$("dlgCancel").onclick = () => $("dlg").close();
+$("boundsBtn").onclick = () => { fillDialog(bounds, lite); dialog.showModal(); };
+$("dlgCancel").onclick = () => dialog.close();
 $("dlgReset").onclick = () => fillDialog(DEFAULT_BOUNDS, true);
 $("dlgSave").onclick = () => {
-    const values = parseBounds([0, 1, 2, 3].map(i => $(`b${i}`).value).join(","));
+    const values = parseBounds(boundInputs.map(field => field.value).join(","));
     if (!values) {
-        $("dlgError").textContent = "Нужны четыре целых числа по возрастанию.";
+        dialogError.textContent = "Нужны четыре целых числа по возрастанию.";
         return;
     }
     bounds = values;
-    lite = $("lite").checked;
+    lite = liteCheckbox.checked;
     save(BOUNDS_KEY, values.join(","));
     save(LITE_KEY, lite ? "1" : "0");
-    $("dlg").close();
+    dialog.close();
     analyze();
 };
 
 const initial = new URLSearchParams(location.search).get("words");
-if (initial) $("input").value = initial.split(",").join(", ");
+if (initial) input.value = initial.split(",").join(", ");
 loadCorpus(corpus)
     .then(entry => { showMeta(entry); if (initial) analyze(); })
     .catch(error => { $("meta").textContent = `Не удалось загрузить список слов: ${error.message}`; });
