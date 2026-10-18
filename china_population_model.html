@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Модель населения Китая до 2100 (v0)</title>
+<style>
+  :root {
+    --bg: #fafaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #dcdcd4; --card: #ffffff;
+    --accent: #b5351f; --ref: #1f5fa8; --ok: #2c7a4b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #17171a; --fg: #ececea; --muted: #9a9a94; --line: #34343a; --card: #1f1f24;
+            --accent: #ef7a62; --ref: #6fa8e8; --ok: #6cc590; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 15px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+           padding: 14px 16px; margin-bottom: 16px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: end; }
+  label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 3px; }
+  input[type=number] { width: 110px; padding: 6px 8px; font: inherit; color: var(--fg);
+         background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+  button { font: inherit; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+           border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .card .k { font-size: 12px; color: var(--muted); }
+  .card .v { font-size: 22px; font-weight: 600; }
+  .card .d { font-size: 12px; color: var(--muted); }
+  svg { width: 100%; height: auto; display: block; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  tr.start td { color: var(--muted); }
+  .note { font-size: 12px; color: var(--muted); }
+  .status { margin-left: 10px; font-size: 13px; color: var(--ok); }
+  .warn { color: var(--accent); }
+  @media (max-width: 600px) { .cards .v { font-size: 18px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Модель населения Китая, 2025–2100</h1>
+  <p class="sub">Когортно-компонентная модель, шаг 5 лет, все параметры постоянны (версия v0). Описание — в China_population_model.md.</p>
+
+  <section class="panel">
+    <div class="controls">
+      <label>TFR <input type="number" id="tfr" step="0.005" min="0" max="6"></label>
+      <label>e0 мужчины, лет <input type="number" id="e0m" step="0.1" min="40" max="100"></label>
+      <label>e0 женщины, лет <input type="number" id="e0f" step="0.1" min="40" max="100"></label>
+      <button class="primary" id="copy">Скопировать JSON</button>
+      <button id="reset">Сбросить</button>
+      <span class="status" id="status"></span>
+    </div>
+    <details>
+      <summary>Дополнительные параметры</summary>
+      <div class="controls" style="margin-top:10px">
+        <label>Средний возраст матери (MAC) <input type="number" id="mac" step="0.05" min="20" max="40"></label>
+        <label>SD рождаемости, лет <input type="number" id="sd" step="0.1" min="1" max="12"></label>
+        <label>SRB, мальчиков на 100 девочек <input type="number" id="srb" step="0.5" min="90" max="130"></label>
+        <label>Чистая миграция, ‰ в год <input type="number" id="nmr" step="0.05" min="-20" max="20"></label>
+        <label>Удвоение смертности Td, лет <input type="number" id="td" step="0.5" min="4" max="15"></label>
+        <label>Фоновая смертность A, в год <input type="number" id="A" step="0.0001" min="0" max="0.01"></label>
+      </div>
+      <p class="note">Смертность до 30 лет и A сейчас — плейсхолдеры (см. раздел «Открытые вопросы» в MD).</p>
+    </details>
+  </section>
+
+  <section class="cards" id="cards"></section>
+
+  <section class="panel">
+    <svg id="chart" viewBox="0 0 900 340" role="img" aria-label="Население Китая по модели и по прогнозу ООН"></svg>
+  </section>
+
+  <section class="panel tablewrap">
+    <table id="table"></table>
+  </section>
+
+  <p class="note" id="foot"></p>
+</main>
+
+<script>
+/* ===== ДАННЫЕ ===== */
+const DATA = {
+  base_year: 2025,
+  step: 5,
+  groups: ["0-4","5-9","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49",
+           "50-54","55-59","60-64","65-69","70-74","75-79","80-84","85-89","90-94","95-99","100+"],
+  // Пирамида 2025: PopulationPyramid.net (UN WPP 2024, medium variant), CC BY 3.0 IGO
+  pyramid: {
+    m: [24942279,42739276,48511730,45686204,42526154,44377128,52145494,63281937,52676265,47064933,
+        58045377,58103255,45994642,33383371,29762714,17342999,8940378,4076891,1154593,128472,3699],
+    f: [22577862,37580544,41830353,38974885,36299576,38427453,46450905,58246667,49820496,45295720,
+        57034156,58561241,47741355,36668389,35372406,21708587,12439706,6886092,2732696,514332,44866]
+  },
+  // Эталоны UN WPP 2024 (medium), по данным PopulationPyramid.net
+  wpp: { 2025: 1416096094, 2026: 1412914088, 2050: 1260289094, 2100: 633368113 }
+};
+
+const DEFAULTS = {
+  tfr: 0.995, mac: 29.15, sd: 5.0, srb: 105,
+  e0m: 75.2, e0f: 80.9, td: 8, nmr: -0.24, A: 0.0003,
+  // ПЛЕЙСХОЛДЕРЫ: вероятности умереть за 5 лет для групп 0-4 ... 25-29 (заменить данными таблицы смертности WPP)
+  q_m: [0.0075, 0.0015, 0.0015, 0.0030, 0.0040, 0.0045],
+  q_f: [0.0065, 0.0012, 0.0012, 0.0015, 0.0020, 0.0025]
+};
+
+/* ===== МОДЕЛЬ ===== */
+function erf(x) {
+  const s = Math.sign(x); x = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * x);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+  return s * y;
+}
+const normCdf = z => 0.5 * (1 + erf(z / Math.SQRT2));
+
+// ASFR по группам 15-19 ... 45-49 (рождений в год на женщину)
+function asfrWeights(p) {
+  const w = [];
+  for (let k = 0; k < 7; k++) {
+    const a = 15 + 5 * k, b = a + 5;
+    w.push(normCdf((b - p.mac) / p.sd) - normCdf((a - p.mac) / p.sd));
+  }
+  const tot = w.reduce((s, x) => s + x, 0);
+  return w.map(x => p.tfr * (x / tot) / 5);
+}
+
+// Ожидаемая продолжительность жизни при рождении для заданного B
+function lifeExpectancy(q, A, B, g) {
+  let e = 0, S = 1;
+  for (let i = 0; i < 6; i++) {
+    const h = -Math.log(1 - q[i]) / 5;
+    e += S * (1 - Math.exp(-5 * h)) / h;
+    S *= Math.exp(-5 * h);
+  }
+  const dx = 0.1;
+  for (let x = 30; x < 105 - 1e-9; x += dx) {
+    const H = A * dx + (B / g) * (Math.exp(g * (x + dx)) - Math.exp(g * x));
+    const Sn = S * Math.exp(-H);
+    e += dx * (S + Sn) / 2;
+    S = Sn;
+  }
+  return e;
+}
+
+// Подбор B так, чтобы e0 совпала с заданной (бисекция по логарифму)
+function calibrateB(q, A, g, target) {
+  let lo = 1e-10, hi = 1e-1;
+  for (let i = 0; i < 100; i++) {
+    const mid = Math.sqrt(lo * hi);
+    if (lifeExpectancy(q, A, mid, g) > target) lo = mid; else hi = mid;
+  }
+  return Math.sqrt(lo * hi);
+}
+
+// Вероятность дожить за 5 лет для каждой группы (индекс 0..20)
+function survivalVector(q, A, B, g) {
+  const S = [];
+  for (let i = 0; i < 6; i++) S.push(1 - q[i]);
+  for (let i = 6; i <= 19; i++) {
+    const x = 5 * i;
+    let s = 0;
+    for (let k = 0; k < 5; k++) {
+      const a = x + k + 0.5;
+      const H = A * 5 + (B / g) * (Math.exp(g * (a + 5)) - Math.exp(g * a));
+      s += Math.exp(-H);
+    }
+    S.push(s / 5);
+  }
+  S.push(0); // 100+ (100-104) доживает до 105 и умирает
+  return S;
+}
+
+const sum = a => a.reduce((s, x) => s + x, 0);
+
+function runModel(p) {
+  const g = Math.LN2 / p.td;
+  const Bm = calibrateB(p.q_m, p.A, g, p.e0m);
+  const Bf = calibrateB(p.q_f, p.A, g, p.e0f);
+  const Sm = survivalVector(p.q_m, p.A, Bm, g);
+  const Sf = survivalVector(p.q_f, p.A, Bf, g);
+  const asfr = asfrWeights(p);
+  const mig = Math.pow(1 + p.nmr / 1000, DATA.step);
+  const nSteps = Math.round((2100 - DATA.base_year) / DATA.step);
+
+  let M = DATA.pyramid.m.slice(), F = DATA.pyramid.f.slice();
+  const periods = [];
+
+  for (let t = 0; t < nSteps; t++) {
+    const y0 = DATA.base_year + t * DATA.step, y1 = y0 + DATA.step;
+    const popStart = sum(M) + sum(F);
+    const women1549 = sum(F.slice(3, 10));
+
+    // смерти существующих групп
+    let dM = 0, dF = 0;
+    for (let i = 0; i <= 20; i++) { dM += M[i] * (1 - Sm[i]); dF += F[i] * (1 - Sf[i]); }
+
+    // сдвиг выживших (без миграции и без новорождённых)
+    const Mn = new Array(21).fill(0), Fn = new Array(21).fill(0);
+    for (let i = 0; i <= 19; i++) { Mn[i + 1] = M[i] * Sm[i]; Fn[i + 1] = F[i] * Sf[i]; }
+
+    // миграция
+    let migTotal = 0;
+    for (let i = 1; i <= 20; i++) {
+      const m2 = Mn[i] * mig, f2 = Fn[i] * mig;
+      migTotal += (m2 - Mn[i]) + (f2 - Fn[i]);
+      Mn[i] = m2; Fn[i] = f2;
+    }
+
+    // рождения: женщины 15-49 в начале и в конце шага
+    let births = 0;
+    for (let k = 0; k < 7; k++) {
+      births += DATA.step * asfr[k] * (F[3 + k] + Fn[3 + k]) / 2;
+    }
+    const bM = births * p.srb / (p.srb + 100), bF = births * 100 / (p.srb + 100);
+    const sbM = 1 - p.q_m[0] / 2, sbF = 1 - p.q_f[0] / 2;
+    dM += bM * (1 - sbM); dF += bF * (1 - sbF);
+    Mn[0] = bM * sbM * mig; Fn[0] = bF * sbF * mig;
+    migTotal += (Mn[0] - bM * sbM) + (Fn[0] - bF * sbF);
+
+    const popEnd = sum(Mn) + sum(Fn);
+    const tot = i0 => sum(Mn.slice(i0[0], i0[1])) + sum(Fn.slice(i0[0], i0[1]));
+    periods.push({
+      label: y0 + "-" + y1, year_start: y0, year_end: y1,
+      births: { total: births, m: bM, f: bF },
+      deaths: { total: dM + dF, m: dM, f: dF },
+      net_migration: migTotal,
+      population_start: popStart,
+      population_end: { total: popEnd, m: sum(Mn), f: sum(Fn) },
+      women_15_49_start: women1549,
+      shares_end: { age_0_14: tot([0, 3]) / popEnd, age_15_64: tot([3, 13]) / popEnd, age_65_plus: tot([13, 21]) / popEnd },
+      pyramid_end: { m: Mn.slice(), f: Fn.slice() }
+    });
+    M = Mn; F = Fn;
+  }
+  return {
+    params: Object.assign({}, p),
+    calibration: { gamma: g, B_m: Bm, B_f: Bf },
+    base: { year: DATA.base_year, population: sum(DATA.pyramid.m) + sum(DATA.pyramid.f),
+            women_15_49: sum(DATA.pyramid.f.slice(3, 10)) },
+    periods
+  };
+}
+
+/* ===== ИНТЕРФЕЙС ===== */
+if (typeof document !== "undefined") {
+  const $ = id => document.getElementById(id);
+  const fmt = n => Math.round(n).toLocaleString("ru-RU");
+  const mln = n => (n / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+  const pct = x => (x * 100).toLocaleString("ru-RU", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) + "%";
+  const FIELDS = { tfr: "tfr", e0m: "e0m", e0f: "e0f", mac: "mac", sd: "sd", srb: "srb", nmr: "nmr", td: "td", A: "A" };
+  let result = null;
+
+  function readParams() {
+    const p = JSON.parse(JSON.stringify(DEFAULTS));
+    for (const id in FIELDS) {
+      const v = parseFloat($(id).value);
+      if (!isNaN(v)) p[FIELDS[id]] = v;
+    }
+    return p;
+  }
+  function writeParams(p) { for (const id in FIELDS) $(id).value = p[FIELDS[id]]; }
+
+  function popAt(year) {
+    if (year === DATA.base_year) return result.base.population;
+    const row = result.periods.find(r => r.year_end === year);
+    return row ? row.population_end.total : null;
+  }
+
+  function renderCards() {
+    const cards = [2050, 2100].map(y => {
+      const v = popAt(y), w = DATA.wpp[y];
+      const diff = (v / w - 1) * 100;
+      return `<div class="card"><div class="k">Население ${y}, модель</div>
+        <div class="v">${mln(v)} млн</div>
+        <div class="d">ООН: ${mln(w)} млн (${diff >= 0 ? "+" : ""}${diff.toFixed(1)}%)</div></div>`;
+    });
+    const r0 = result.periods[0];
+    cards.push(`<div class="card"><div class="k">${r0.label}: рождений / смертей</div>
+      <div class="v">${mln(r0.births.total)} / ${mln(r0.deaths.total)} млн</div>
+      <div class="d">за 5 лет, всего</div></div>`);
+    const last = result.periods[result.periods.length - 1];
+    cards.push(`<div class="card"><div class="k">Доля 65+ в 2100</div>
+      <div class="v">${pct(last.shares_end.age_65_plus)}</div>
+      <div class="d">2025: ${pct(sum(DATA.pyramid.m.slice(13)) / result.base.population + sum(DATA.pyramid.f.slice(13)) / result.base.population)}</div></div>`);
+    $("cards").innerHTML = cards.join("");
+  }
+
+  function renderTable() {
+    let h = `<thead><tr><th>Годы</th><th>Родилось</th><th>Умерло</th><th>Миграция</th>
+      <th>Население (конец)</th><th>Мужчины</th><th>Женщины</th><th>Женщин 15–49 (начало)</th><th>0–14</th><th>65+</th></tr></thead><tbody>`;
+    h += `<tr class="start"><td>${DATA.base_year} (старт)</td><td>—</td><td>—</td><td>—</td>
+      <td>${fmt(result.base.population)}</td><td>${fmt(sum(DATA.pyramid.m))}</td><td>${fmt(sum(DATA.pyramid.f))}</td>
+      <td>${fmt(result.base.women_15_49)}</td>
+      <td>${pct((sum(DATA.pyramid.m.slice(0,3)) + sum(DATA.pyramid.f.slice(0,3))) / result.base.population)}</td>
+      <td>${pct((sum(DATA.pyramid.m.slice(13)) + sum(DATA.pyramid.f.slice(13))) / result.base.population)}</td></tr>`;
+    for (const r of result.periods) {
+      h += `<tr><td>${r.year_start}–${r.year_end}</td><td>${fmt(r.births.total)}</td><td>${fmt(r.deaths.total)}</td>
+        <td>${fmt(r.net_migration)}</td><td>${fmt(r.population_end.total)}</td>
+        <td>${fmt(r.population_end.m)}</td><td>${fmt(r.population_end.f)}</td><td>${fmt(r.women_15_49_start)}</td>
+        <td>${pct(r.shares_end.age_0_14)}</td><td>${pct(r.shares_end.age_65_plus)}</td></tr>`;
+    }
+    $("table").innerHTML = h + "</tbody>";
+  }
+
+  function renderChart() {
+    const W = 900, H = 340, L = 60, R = 20, T = 20, B = 40;
+    const x = y => L + (y - 2025) / 75 * (W - L - R);
+    const ymax = 1.6e9;
+    const yy = v => H - B - v / ymax * (H - T - B);
+    const pts = [[2025, result.base.population]].concat(result.periods.map(r => [r.year_end, r.population_end.total]));
+    let s = "";
+    for (let v = 0; v <= 1.6e9; v += 0.4e9) {
+      s += `<line x1="${L}" x2="${W - R}" y1="${yy(v)}" y2="${yy(v)}" stroke="var(--line)"/>
+            <text x="${L - 8}" y="${yy(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${(v / 1e9).toFixed(1)}</text>`;
+    }
+    for (let yr = 2025; yr <= 2100; yr += 25) {
+      s += `<text x="${x(yr)}" y="${H - 14}" text-anchor="middle" font-size="11" fill="var(--muted)">${yr}</text>`;
+    }
+    s += `<text x="${L}" y="12" font-size="11" fill="var(--muted)">млрд человек</text>`;
+    // ООН: линия через опорные точки (2025, 2050, 2100) — только ориентир
+    const wk = [2025, 2050, 2100];
+    s += `<polyline fill="none" stroke="var(--ref)" stroke-width="1.5" stroke-dasharray="5 4"
+          points="${wk.map(k => x(k) + "," + yy(DATA.wpp[k])).join(" ")}"/>`;
+    for (const k of wk) s += `<circle cx="${x(k)}" cy="${yy(DATA.wpp[k])}" r="4" fill="var(--ref)"/>`;
+    s += `<polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="${pts.map(p => x(p[0]) + "," + yy(p[1])).join(" ")}"/>`;
+    for (const p of pts) s += `<circle cx="${x(p[0])}" cy="${yy(p[1])}" r="2.5" fill="var(--accent)"/>`;
+    s += `<text x="${W - R}" y="${T + 12}" text-anchor="end" font-size="12" fill="var(--accent)">Модель</text>
+          <text x="${W - R}" y="${T + 28}" text-anchor="end" font-size="12" fill="var(--ref)">UN WPP 2024 (опорные точки 2025, 2050, 2100)</text>`;
+    $("chart").innerHTML = s;
+  }
+
+  function jsonText() {
+    const out = {
+      model: "China population model v0",
+      generated_at: new Date().toISOString(),
+      source: "Pyramid 2025: PopulationPyramid.net / UN WPP 2024 medium variant (CC BY 3.0 IGO)",
+      params: result.params, calibration: result.calibration, base: result.base,
+      wpp_reference: DATA.wpp, periods: result.periods
+    };
+    return JSON.stringify(out, null, 2);
+  }
+
+  function copyJson() {
+    const txt = jsonText();
+    const done = ok => { $("status").textContent = ok ? "JSON скопирован" : "Не удалось скопировать";
+                         $("status").className = "status" + (ok ? "" : " warn");
+                         setTimeout(() => $("status").textContent = "", 3000); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(() => done(true), () => fallback());
+    } else fallback();
+    function fallback() {
+      const ta = document.createElement("textarea");
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta); done(ok);
+    }
+  }
+
+  function update() {
+    result = runModel(readParams());
+    renderCards(); renderChart(); renderTable();
+    $("foot").textContent = "Данные: PopulationPyramid.net (UN WPP 2024, medium variant), лицензия CC BY 3.0 IGO. " +
+      "Калибровка смертности: B(М) = " + result.calibration.B_m.toExponential(3) + ", B(Ж) = " + result.calibration.B_f.toExponential(3) + ".";
+  }
+
+  writeParams(DEFAULTS);
+  for (const id in FIELDS) $(id).addEventListener("input", update);
+  $("copy").addEventListener("click", copyJson);
+  $("reset").addEventListener("click", () => { writeParams(DEFAULTS); update(); });
+  update();
+}
+</script>
+</body>
+</html>
