@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Модель населения Китая до 2100 (v0)</title>
+<!-- Иконка: SVG с эмодзи как текстом. Чтобы сменить, замените 📉 на другой символ -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📉%3C/text%3E%3C/svg%3E">
 <style>
   :root {
     --bg: #fafaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #dcdcd4; --card: #ffffff;
@@ -43,8 +45,14 @@
   th { color: var(--muted); font-weight: 600; font-size: 12px; }
   tr.start td { color: var(--muted); }
   .note { font-size: 12px; color: var(--muted); }
-  .status { margin-left: 10px; font-size: 13px; color: var(--ok); }
-  .warn { color: var(--accent); }
+  label.check { flex-direction: row; align-items: center; gap: 6px; font-size: 13px; color: var(--fg); cursor: pointer; }
+  caption { caption-side: top; text-align: left; font-size: 12px; color: var(--muted); padding-bottom: 6px; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 16px); opacity: 0;
+           pointer-events: none; transition: opacity .25s, transform .25s; z-index: 10;
+           background: var(--fg); color: var(--bg); padding: 10px 18px; border-radius: 8px;
+           font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.25); max-width: calc(100vw - 32px); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.error { background: var(--accent); color: #fff; }
   @media (max-width: 600px) { .cards .v { font-size: 18px; } }
 </style>
 </head>
@@ -60,7 +68,7 @@
       <label>e0 женщины, лет <input type="number" id="e0f" step="0.1" min="40" max="100"></label>
       <button class="primary" id="copy">Скопировать JSON</button>
       <button id="reset">Сбросить</button>
-      <span class="status" id="status"></span>
+      <label class="check"><input type="checkbox" id="mln"> Таблица в млн</label>
     </div>
     <details>
       <summary>Дополнительные параметры</summary>
@@ -72,7 +80,7 @@
         <label>Удвоение смертности Td, лет <input type="number" id="td" step="0.5" min="4" max="15"></label>
         <label>Фоновая смертность A, в год <input type="number" id="A" step="0.0001" min="0" max="0.01"></label>
       </div>
-      <p class="note">Смертность до 30 лет и A сейчас — плейсхолдеры (см. раздел «Открытые вопросы» в MD).</p>
+      <p class="note">Смертность до 30 лет, e0 и пара Td/A взяты из UN WPP 2024 за 2025 год (Td и A подобраны по коэффициентам смертности для возрастов 30–99, см. MD, п. 3.5).</p>
     </details>
   </section>
 
@@ -88,6 +96,8 @@
 
   <p class="note" id="foot"></p>
 </main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ===== ДАННЫЕ ===== */
@@ -109,10 +119,13 @@ const DATA = {
 
 const DEFAULTS = {
   tfr: 0.995, mac: 29.15, sd: 5.0, srb: 105,
-  e0m: 75.2, e0f: 80.9, td: 8, nmr: -0.24, A: 0.0003,
-  // ПЛЕЙСХОЛДЕРЫ: вероятности умереть за 5 лет для групп 0-4 ... 25-29 (заменить данными таблицы смертности WPP)
-  q_m: [0.0075, 0.0015, 0.0015, 0.0030, 0.0040, 0.0045],
-  q_f: [0.0065, 0.0012, 0.0012, 0.0015, 0.0020, 0.0025]
+  // e0: UN WPP 2024, Китай, 2025 (М 75,6515; Ж 81,2464). Td и A подобраны по mx5 WPP (возрасты 30-99, 2025):
+  // общее время удвоения Td = 6,25 года, A = 0,000418 в год; B подбирается по e0 отдельно для М и Ж.
+  e0m: 75.65, e0f: 81.25, td: 6.25, nmr: -0.24, A: 0.000418,
+  // UN WPP 2024, Китай, 2025: вероятность умереть за 5 лет для групп 0-4 ... 25-29.
+  // Группа 0-4: 5q0 = 1 - (1 - 1q0) * (1 - 4q1), совпадает с U5MR. Источник: Data Portal ООН, показатель qx5.
+  q_m: [0.00811326, 0.00146758, 0.00189208, 0.00230731, 0.00350264, 0.00441225],
+  q_f: [0.00692863, 0.00125360, 0.00118524, 0.00139997, 0.00221203, 0.00260020]
 };
 
 /* ===== МОДЕЛЬ ===== */
@@ -254,63 +267,111 @@ function runModel(p) {
 
 /* ===== ИНТЕРФЕЙС ===== */
 if (typeof document !== "undefined") {
-  const $ = id => document.getElementById(id);
-  const fmt = n => Math.round(n).toLocaleString("ru-RU");
-  const mln = n => (n / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-  const pct = x => (x * 100).toLocaleString("ru-RU", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) + "%";
-  const FIELDS = { tfr: "tfr", e0m: "e0m", e0f: "e0f", mac: "mac", sd: "sd", srb: "srb", nmr: "nmr", td: "td", A: "A" };
-  let result = null;
+  const STORAGE_KEY = "chinaPopModel.v1";
+  const TOAST_MS = 3000;
+  const FIELDS = ["tfr", "e0m", "e0f", "mac", "sd", "srb", "nmr", "td", "A"];
 
+  // Все элементы ищем один раз
+  const byId = id => document.getElementById(id);
+  const ui = {
+    cards: byId("cards"), chart: byId("chart"), table: byId("table"), foot: byId("foot"),
+    toast: byId("toast"), copy: byId("copy"), reset: byId("reset"), mln: byId("mln"),
+    fields: {}
+  };
+  for (const k of FIELDS) ui.fields[k] = byId(k);
+
+  let result = null;
+  let toastTimer = null;
+
+  /* --- форматирование --- */
+  const fmtInt = n => Math.round(n).toLocaleString("ru-RU");
+  const fmtMln = n => (n / 1e6).toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtCount = n => ui.mln.checked ? fmtMln(n) : fmtInt(n);
+  const pct = x => (x * 100).toLocaleString("ru-RU", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) + "%";
+
+  /* --- тост --- */
+  function showToast(text, isError) {
+    ui.toast.textContent = text;
+    ui.toast.classList.toggle("error", !!isError);
+    ui.toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => ui.toast.classList.remove("show"), TOAST_MS);
+  }
+
+  /* --- параметры и их хранение --- */
   function readParams() {
     const p = JSON.parse(JSON.stringify(DEFAULTS));
-    for (const id in FIELDS) {
-      const v = parseFloat($(id).value);
-      if (!isNaN(v)) p[FIELDS[id]] = v;
+    for (const k of FIELDS) {
+      const el = ui.fields[k];
+      let v = parseFloat(el.value);
+      if (!Number.isFinite(v)) continue;
+      const lo = parseFloat(el.min), hi = parseFloat(el.max);
+      if (Number.isFinite(lo)) v = Math.max(lo, v);
+      if (Number.isFinite(hi)) v = Math.min(hi, v);
+      p[k] = v;
     }
     return p;
   }
-  function writeParams(p) { for (const id in FIELDS) $(id).value = p[FIELDS[id]]; }
+  function writeParams(p) { for (const k of FIELDS) ui.fields[k].value = p[k]; }
 
+  function loadState() {
+    try {
+      const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      return s && typeof s === "object" ? s : {};
+    } catch (e) { return {}; }
+  }
+  // Сохраняем только то, что отличается от значений по умолчанию:
+  // так новые значения по умолчанию в будущих версиях применятся к нетронутым полям.
+  function saveState() {
+    try {
+      const p = readParams(), overrides = {};
+      for (const k of FIELDS) if (p[k] !== DEFAULTS[k]) overrides[k] = p[k];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ params: overrides, mln: ui.mln.checked }));
+    } catch (e) { /* storage недоступен — работаем без сохранения */ }
+  }
+
+  /* --- вывод --- */
   function popAt(year) {
     if (year === DATA.base_year) return result.base.population;
     const row = result.periods.find(r => r.year_end === year);
     return row ? row.population_end.total : null;
   }
+  const baseShare = (i0, i1) =>
+    (sum(DATA.pyramid.m.slice(i0, i1)) + sum(DATA.pyramid.f.slice(i0, i1))) / result.base.population;
 
   function renderCards() {
     const cards = [2050, 2100].map(y => {
       const v = popAt(y), w = DATA.wpp[y];
       const diff = (v / w - 1) * 100;
       return `<div class="card"><div class="k">Население ${y}, модель</div>
-        <div class="v">${mln(v)} млн</div>
-        <div class="d">ООН: ${mln(w)} млн (${diff >= 0 ? "+" : ""}${diff.toFixed(1)}%)</div></div>`;
+        <div class="v">${fmtMln(v)} млн</div>
+        <div class="d">ООН: ${fmtMln(w)} млн (${diff >= 0 ? "+" : ""}${diff.toFixed(1)}%)</div></div>`;
     });
-    const r0 = result.periods[0];
-    cards.push(`<div class="card"><div class="k">${r0.label}: рождений / смертей</div>
-      <div class="v">${mln(r0.births.total)} / ${mln(r0.deaths.total)} млн</div>
-      <div class="d">за 5 лет, всего</div></div>`);
+    const r0 = result.periods[0], n = DATA.step;
+    cards.push(`<div class="card"><div class="k">${r0.label}: рождений / смертей в год</div>
+      <div class="v">${fmtMln(r0.births.total / n)} / ${fmtMln(r0.deaths.total / n)} млн</div>
+      <div class="d">среднее за период</div></div>`);
     const last = result.periods[result.periods.length - 1];
     cards.push(`<div class="card"><div class="k">Доля 65+ в 2100</div>
       <div class="v">${pct(last.shares_end.age_65_plus)}</div>
-      <div class="d">2025: ${pct(sum(DATA.pyramid.m.slice(13)) / result.base.population + sum(DATA.pyramid.f.slice(13)) / result.base.population)}</div></div>`);
-    $("cards").innerHTML = cards.join("");
+      <div class="d">2025: ${pct(baseShare(13, 21))}</div></div>`);
+    ui.cards.innerHTML = cards.join("");
   }
 
   function renderTable() {
-    let h = `<thead><tr><th>Годы</th><th>Родилось</th><th>Умерло</th><th>Миграция</th>
+    let h = `<caption>Единицы: ${ui.mln.checked ? "млн человек (2 знака после запятой)" : "человек"}</caption>
+      <thead><tr><th>Годы</th><th>Родилось</th><th>Умерло</th><th>Миграция</th>
       <th>Население (конец)</th><th>Мужчины</th><th>Женщины</th><th>Женщин 15–49 (начало)</th><th>0–14</th><th>65+</th></tr></thead><tbody>`;
     h += `<tr class="start"><td>${DATA.base_year} (старт)</td><td>—</td><td>—</td><td>—</td>
-      <td>${fmt(result.base.population)}</td><td>${fmt(sum(DATA.pyramid.m))}</td><td>${fmt(sum(DATA.pyramid.f))}</td>
-      <td>${fmt(result.base.women_15_49)}</td>
-      <td>${pct((sum(DATA.pyramid.m.slice(0,3)) + sum(DATA.pyramid.f.slice(0,3))) / result.base.population)}</td>
-      <td>${pct((sum(DATA.pyramid.m.slice(13)) + sum(DATA.pyramid.f.slice(13))) / result.base.population)}</td></tr>`;
+      <td>${fmtCount(result.base.population)}</td><td>${fmtCount(sum(DATA.pyramid.m))}</td><td>${fmtCount(sum(DATA.pyramid.f))}</td>
+      <td>${fmtCount(result.base.women_15_49)}</td><td>${pct(baseShare(0, 3))}</td><td>${pct(baseShare(13, 21))}</td></tr>`;
     for (const r of result.periods) {
-      h += `<tr><td>${r.year_start}–${r.year_end}</td><td>${fmt(r.births.total)}</td><td>${fmt(r.deaths.total)}</td>
-        <td>${fmt(r.net_migration)}</td><td>${fmt(r.population_end.total)}</td>
-        <td>${fmt(r.population_end.m)}</td><td>${fmt(r.population_end.f)}</td><td>${fmt(r.women_15_49_start)}</td>
+      h += `<tr><td>${r.year_start}–${r.year_end}</td><td>${fmtCount(r.births.total)}</td><td>${fmtCount(r.deaths.total)}</td>
+        <td>${fmtCount(r.net_migration)}</td><td>${fmtCount(r.population_end.total)}</td>
+        <td>${fmtCount(r.population_end.m)}</td><td>${fmtCount(r.population_end.f)}</td><td>${fmtCount(r.women_15_49_start)}</td>
         <td>${pct(r.shares_end.age_0_14)}</td><td>${pct(r.shares_end.age_65_plus)}</td></tr>`;
     }
-    $("table").innerHTML = h + "</tbody>";
+    ui.table.innerHTML = h + "</tbody>";
   }
 
   function renderChart() {
@@ -337,7 +398,7 @@ if (typeof document !== "undefined") {
     for (const p of pts) s += `<circle cx="${x(p[0])}" cy="${yy(p[1])}" r="2.5" fill="var(--accent)"/>`;
     s += `<text x="${W - R}" y="${T + 12}" text-anchor="end" font-size="12" fill="var(--accent)">Модель</text>
           <text x="${W - R}" y="${T + 28}" text-anchor="end" font-size="12" fill="var(--ref)">UN WPP 2024 (опорные точки 2025, 2050, 2100)</text>`;
-    $("chart").innerHTML = s;
+    ui.chart.innerHTML = s;
   }
 
   function jsonText() {
@@ -351,33 +412,35 @@ if (typeof document !== "undefined") {
     return JSON.stringify(out, null, 2);
   }
 
-  function copyJson() {
-    const txt = jsonText();
-    const done = ok => { $("status").textContent = ok ? "JSON скопирован" : "Не удалось скопировать";
-                         $("status").className = "status" + (ok ? "" : " warn");
-                         setTimeout(() => $("status").textContent = "", 3000); };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(txt).then(() => done(true), () => fallback());
-    } else fallback();
-    function fallback() {
-      const ta = document.createElement("textarea");
-      ta.value = txt; document.body.appendChild(ta); ta.select();
-      let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
-      document.body.removeChild(ta); done(ok);
+  // Clipboard API: Chrome 66 (2018), Firefox (2018), Edge 79 и Safari 13.1 (2020).
+  // Нужен защищённый контекст (https, localhost); запасной вариант через execCommand не нужен.
+  async function copyJson() {
+    try {
+      await navigator.clipboard.writeText(jsonText());
+      showToast("JSON скопирован");
+    } catch (e) {
+      showToast("Не удалось скопировать: нет доступа к буферу обмена (нужен https или localhost)", true);
     }
   }
 
   function update() {
     result = runModel(readParams());
     renderCards(); renderChart(); renderTable();
-    $("foot").textContent = "Данные: PopulationPyramid.net (UN WPP 2024, medium variant), лицензия CC BY 3.0 IGO. " +
+    ui.foot.textContent = "Данные: PopulationPyramid.net (UN WPP 2024, medium variant), лицензия CC BY 3.0 IGO. " +
       "Калибровка смертности: B(М) = " + result.calibration.B_m.toExponential(3) + ", B(Ж) = " + result.calibration.B_f.toExponential(3) + ".";
   }
 
-  writeParams(DEFAULTS);
-  for (const id in FIELDS) $(id).addEventListener("input", update);
-  $("copy").addEventListener("click", copyJson);
-  $("reset").addEventListener("click", () => { writeParams(DEFAULTS); update(); });
+  /* --- запуск --- */
+  const saved = loadState();
+  const start = Object.assign({}, DEFAULTS);
+  if (saved.params) for (const k of FIELDS) if (Number.isFinite(saved.params[k])) start[k] = saved.params[k];
+  writeParams(start);
+  ui.mln.checked = saved.mln === true;
+
+  for (const k of FIELDS) ui.fields[k].addEventListener("input", () => { update(); saveState(); });
+  ui.mln.addEventListener("change", () => { renderTable(); saveState(); });
+  ui.copy.addEventListener("click", copyJson);
+  ui.reset.addEventListener("click", () => { writeParams(DEFAULTS); update(); saveState(); showToast("Параметры сброшены"); });
   update();
 }
 </script>
