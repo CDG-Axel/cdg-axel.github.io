@@ -53,13 +53,19 @@
            font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.25); max-width: calc(100vw - 32px); }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
   .toast.error { background: var(--accent); color: #fff; }
+  .trajs { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; }
+  fieldset.traj { display: flex; align-items: center; gap: 14px; margin: 0; padding: 6px 14px 12px;
+                  border: 1px solid var(--line); border-radius: 10px; min-inline-size: 0; }
+  fieldset.traj legend { padding: 0 6px; font-size: 12px; color: var(--muted); }
+  fieldset.traj input[type=checkbox] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
+  fieldset.traj.off label { opacity: .45; }
   @media (max-width: 600px) { .cards .v { font-size: 18px; } }
 </style>
 </head>
 <body>
 <main>
   <h1>Модель населения Китая, 2025–2100</h1>
-  <p class="sub">Когортно-компонентная модель, шаг 5 лет, все параметры постоянны (версия v0). Описание — в China_population_model.md.</p>
+  <p class="sub">Когортно-компонентная модель, шаг 5 лет, параметры постоянны, пока не включены траектории (версия v0.9). Описание — в China_population_model.md.</p>
 
   <section class="panel">
     <div class="controls">
@@ -77,6 +83,29 @@
         <label>SD рождаемости, лет <input type="number" id="sd" step="0.1" min="1" max="12"></label>
         <label>SRB, мальчиков на 100 девочек <input type="number" id="srb" step="0.5" min="90" max="130"></label>
         <label>Чистая миграция, ‰ в год <input type="number" id="nmr" step="0.05" min="-20" max="20"></label>
+      </div>
+      <p class="note">Траектории: если флажок включён, параметр линейно или с затуханием идёт от значения 2025 года (верхние поля) к значению 2100 года.
+        Форма: x = (год − 2025)/75, доля пути g(x) = (1 − e^(−c·x)) / (1 − e^(−c)); c = 0 — прямая линия, c &gt; 0 — быстрее в начале и медленнее в конце.
+        Значения по умолчанию близки к прогнозу ООН (WPP 2024 medium).</p>
+      <div class="trajs">
+        <fieldset class="traj off" id="tr_tfr">
+          <legend>Изменение TFR</legend>
+          <input type="checkbox" id="tfr_on" aria-label="Изменение TFR" title="Включить изменение">
+          <label>TFR в 2100 <input type="number" id="tfr_end" step="0.005" min="0" max="6"></label>
+          <label>затухание c <input type="number" id="tfr_c" step="0.05" min="-5" max="10"></label>
+        </fieldset>
+        <fieldset class="traj off" id="tr_e0m">
+          <legend>Изменение e0 мужчин</legend>
+          <input type="checkbox" id="e0m_on" aria-label="Изменение e0 мужчин" title="Включить изменение">
+          <label>e0 мужчин в 2100 <input type="number" id="e0m_end" step="0.1" min="40" max="110"></label>
+          <label>затухание c <input type="number" id="e0m_c" step="0.05" min="-5" max="10"></label>
+        </fieldset>
+        <fieldset class="traj off" id="tr_e0f">
+          <legend>Изменение e0 женщин</legend>
+          <input type="checkbox" id="e0f_on" aria-label="Изменение e0 женщин" title="Включить изменение">
+          <label>e0 женщин в 2100 <input type="number" id="e0f_end" step="0.1" min="40" max="110"></label>
+          <label>затухание c <input type="number" id="e0f_c" step="0.05" min="-5" max="10"></label>
+        </fieldset>
       </div>
       <p class="note">Таблица смертности (m и q по возрастам) взята из UN WPP 2024 за 2025 год. Значения e0 по умолчанию — то, что даёт эта таблица; при изменении e0 все m(x) умножаются на общий коэффициент k (см. MD, п. 3).</p>
     </details>
@@ -128,15 +157,34 @@ const DATA = {
           0.01248314,0.01780722,0.03203698,0.05243204,0.09386691,0.15840411,0.28438921,0.45088075,0.66860943,0.85045446,1]
     }
   },
-  // Эталоны UN WPP 2024 (medium), по данным PopulationPyramid.net
-  wpp: { 2025: 1416096094, 2026: 1412914088, 2050: 1260289094, 2100: 633368113 }
+  // UN WPP 2024 (medium): население Китая на 1 июля, тыс. человек (округлено), год 2025 ... 2100 подряд
+  wpp_pop_k: [
+    1416096, 1412914, 1409679, 1406137, 1402283, 1398154, 1393749, 1389060, 1384097, 1378877,
+    1373428, 1367743, 1361830, 1355723, 1349395, 1342817, 1335990, 1328909, 1321591, 1314016,
+    1306114, 1297818, 1289120, 1279993, 1270381, 1260289, 1249693, 1238557, 1226930, 1214853,
+    1202342, 1189441, 1176218, 1162723, 1149002, 1135127, 1121175, 1107207, 1093277, 1079408,
+    1065633, 1051989, 1038473, 1025103, 1011878, 998784, 985807, 972906, 960055, 947249,
+    934467, 921678, 908875, 896044, 883167, 870252, 857329, 844439, 831605, 818815,
+    806115, 793559, 781154, 768899, 756809, 744903, 733179, 721613, 710186, 698894,
+    687724, 676661, 665696, 654825, 644049, 633368
+  ]
 };
 
 // e0 по умолчанию подставляется ниже — это e0, которую даёт таблица m(x) при k = 1.
-const DEFAULTS = { tfr: 0.995, mac: 29.15, sd: 5.0, srb: 105, nmr: -0.24, e0m: null, e0f: null };
+// Траектории (по умолчанию выключены): значение 2100 и затухание c подогнаны под ряды UN WPP 2024 medium
+// (TFR 1,345 / c 1,45; e0 М 88,37 / c 1,10; e0 Ж 91,37 / c 0,51).
+const DEFAULTS = {
+  tfr: 0.995, mac: 29.15, sd: 5.0, srb: 105, nmr: -0.24, e0m: null, e0f: null,
+  tfr_on: false, tfr_end: 1.345, tfr_c: 1.45,
+  e0m_on: false, e0m_end: 88.37, e0m_c: 1.10,
+  e0f_on: false, e0f_end: 91.37, e0f_c: 0.51
+};
 
 /* ===== МОДЕЛЬ ===== */
 // (DEFAULTS.e0m/e0f задаются после определения lifeTable)
+// Население по прогнозу ООН на год (2025–2100), человек
+const wppAt = year => DATA.wpp_pop_k[year - DATA.base_year] * 1000;
+
 const sum = a => a.reduce((s, x) => s + x, 0);
 
 function erf(x) {
@@ -197,10 +245,14 @@ function mortalityFor(mx, target) {
 DEFAULTS.e0m = Math.round(lifeTable(DATA.mortality.male, 1).e0 * 100) / 100;
 DEFAULTS.e0f = Math.round(lifeTable(DATA.mortality.female, 1).e0 * 100) / 100;
 
+// Доля пути от значения 2025 до значения 2100 при x = (год − 2025)/75
+function pathShare(x, c) {
+  return Math.abs(c) < 1e-9 ? x : (1 - Math.exp(-c * x)) / (1 - Math.exp(-c));
+}
+
 function runModel(p) {
   const Mo = mortalityFor(DATA.mortality.male, p.e0m), Fo = mortalityFor(DATA.mortality.female, p.e0f);
-  const Sm = Mo.S, Sf = Fo.S;
-  const asfr = asfrWeights(p);
+  const horizon = 2100 - DATA.base_year;
   const mig = Math.pow(1 + p.nmr / 1000, DATA.step);
   const nSteps = Math.round((2100 - DATA.base_year) / DATA.step);
 
@@ -211,6 +263,15 @@ function runModel(p) {
     const y0 = DATA.base_year + t * DATA.step, y1 = y0 + DATA.step;
     const popStart = sum(M) + sum(F);
     const women1549 = sum(F.slice(3, 10));
+
+    // параметры периода: значение траектории в середине периода
+    const x = (y0 + DATA.step / 2 - DATA.base_year) / horizon;
+    const drive = key => p[key + "_on"] ? p[key] + (p[key + "_end"] - p[key]) * pathShare(x, p[key + "_c"]) : p[key];
+    const tfrT = drive("tfr"), e0mT = drive("e0m"), e0fT = drive("e0f");
+    const mo = e0mT === p.e0m ? Mo : mortalityFor(DATA.mortality.male, e0mT);
+    const fo = e0fT === p.e0f ? Fo : mortalityFor(DATA.mortality.female, e0fT);
+    const Sm = mo.S, Sf = fo.S;
+    const asfr = asfrWeights(Object.assign({}, p, { tfr: tfrT }));
 
     // смерти существующих групп
     let dM = 0, dF = 0;
@@ -235,7 +296,7 @@ function runModel(p) {
       births += DATA.step * asfr[k] * (F[3 + k] + Fn[3 + k]) / 2;
     }
     const bM = births * p.srb / (p.srb + 100), bF = births * 100 / (p.srb + 100);
-    const sbM = Mo.sb, sbF = Fo.sb;
+    const sbM = mo.sb, sbF = fo.sb;
     dM += bM * (1 - sbM); dF += bF * (1 - sbF);
     Mn[0] = bM * sbM * mig; Fn[0] = bF * sbF * mig;
     migTotal += (Mn[0] - bM * sbM) + (Fn[0] - bF * sbF);
@@ -250,6 +311,7 @@ function runModel(p) {
       population_start: popStart,
       population_end: { total: popEnd, m: sum(Mn), f: sum(Fn) },
       women_15_49_start: women1549,
+      drivers: { tfr: tfrT, e0_m: e0mT, e0_f: e0fT, k_m: mo.k, k_f: fo.k },
       shares_end: { age_0_14: tot([0, 3]) / popEnd, age_15_64: tot([3, 13]) / popEnd, age_65_plus: tot([13, 21]) / popEnd },
       pyramid_end: { m: Mn.slice(), f: Fn.slice() }
     });
@@ -268,7 +330,9 @@ function runModel(p) {
 if (typeof document !== "undefined") {
   const STORAGE_KEY = "chinaPopModel.v1";
   const TOAST_MS = 3000;
-  const FIELDS = ["tfr", "e0m", "e0f", "mac", "sd", "srb", "nmr"];
+  const FIELDS = ["tfr", "e0m", "e0f", "mac", "sd", "srb", "nmr",
+                  "tfr_end", "tfr_c", "e0m_end", "e0m_c", "e0f_end", "e0f_c"];
+  const CHECKS = ["tfr_on", "e0m_on", "e0f_on"];
 
   // Все элементы ищем один раз
   const byId = id => document.getElementById(id);
@@ -277,7 +341,8 @@ if (typeof document !== "undefined") {
     toast: byId("toast"), copy: byId("copy"), reset: byId("reset"), mln: byId("mln"),
     fields: {}
   };
-  for (const k of FIELDS) ui.fields[k] = byId(k);
+  for (const k of FIELDS.concat(CHECKS)) ui.fields[k] = byId(k);
+  const TRAJ = ["tfr", "e0m", "e0f"];
 
   let result = null;
   let toastTimer = null;
@@ -309,9 +374,18 @@ if (typeof document !== "undefined") {
       if (Number.isFinite(hi)) v = Math.min(hi, v);
       p[k] = v;
     }
+    for (const k of CHECKS) p[k] = !!ui.fields[k].checked;
     return p;
   }
-  function writeParams(p) { for (const k of FIELDS) ui.fields[k].value = p[k]; }
+  function writeParams(p) {
+    for (const k of FIELDS) ui.fields[k].value = p[k];
+    for (const k of CHECKS) ui.fields[k].checked = !!p[k];
+    syncTraj();
+  }
+  // затемняем поля траектории, пока флажок выключен
+  function syncTraj() {
+    for (const k of TRAJ) byId("tr_" + k).classList.toggle("off", !ui.fields[k + "_on"].checked);
+  }
 
   function loadState() {
     try {
@@ -324,7 +398,7 @@ if (typeof document !== "undefined") {
   function saveState() {
     try {
       const p = readParams(), overrides = {};
-      for (const k of FIELDS) if (p[k] !== DEFAULTS[k]) overrides[k] = p[k];
+      for (const k of FIELDS.concat(CHECKS)) if (p[k] !== DEFAULTS[k]) overrides[k] = p[k];
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ params: overrides, mln: ui.mln.checked }));
     } catch (e) { /* storage недоступен — работаем без сохранения */ }
   }
@@ -340,7 +414,7 @@ if (typeof document !== "undefined") {
 
   function renderCards() {
     const cards = [2050, 2100].map(y => {
-      const v = popAt(y), w = DATA.wpp[y];
+      const v = popAt(y), w = wppAt(y);
       const diff = (v / w - 1) * 100;
       return `<div class="card"><div class="k">Население ${y}, модель</div>
         <div class="v">${fmtMln(v)} млн</div>
@@ -358,17 +432,18 @@ if (typeof document !== "undefined") {
   }
 
   function renderTable() {
-    let h = `<caption>Единицы: ${ui.mln.checked ? "млн человек (2 знака после запятой)" : "человек"}</caption>
+    let h = `<caption>Единицы: ${ui.mln.checked ? "млн человек (2 знака после запятой)" : "человек"}. TFR и e0 — значения в середине периода.</caption>
       <thead><tr><th>Годы</th><th>Родилось</th><th>Умерло</th><th>Миграция</th>
-      <th>Население (конец)</th><th>Мужчины</th><th>Женщины</th><th>Женщин 15–49 (начало)</th><th>0–14</th><th>65+</th></tr></thead><tbody>`;
+      <th>Население (конец)</th><th>Мужчины</th><th>Женщины</th><th>Женщин 15–49 (начало)</th><th>0–14</th><th>65+</th><th>TFR</th><th>e0 М</th><th>e0 Ж</th></tr></thead><tbody>`;
     h += `<tr class="start"><td>${DATA.base_year} (старт)</td><td>—</td><td>—</td><td>—</td>
       <td>${fmtCount(result.base.population)}</td><td>${fmtCount(sum(DATA.pyramid.m))}</td><td>${fmtCount(sum(DATA.pyramid.f))}</td>
-      <td>${fmtCount(result.base.women_15_49)}</td><td>${pct(baseShare(0, 3))}</td><td>${pct(baseShare(13, 21))}</td></tr>`;
+      <td>${fmtCount(result.base.women_15_49)}</td><td>${pct(baseShare(0, 3))}</td><td>${pct(baseShare(13, 21))}</td><td>—</td><td>—</td><td>—</td></tr>`;
     for (const r of result.periods) {
       h += `<tr><td>${r.year_start}–${r.year_end}</td><td>${fmtCount(r.births.total)}</td><td>${fmtCount(r.deaths.total)}</td>
         <td>${fmtCount(r.net_migration)}</td><td>${fmtCount(r.population_end.total)}</td>
         <td>${fmtCount(r.population_end.m)}</td><td>${fmtCount(r.population_end.f)}</td><td>${fmtCount(r.women_15_49_start)}</td>
-        <td>${pct(r.shares_end.age_0_14)}</td><td>${pct(r.shares_end.age_65_plus)}</td></tr>`;
+        <td>${pct(r.shares_end.age_0_14)}</td><td>${pct(r.shares_end.age_65_plus)}</td>
+        <td>${r.drivers.tfr.toFixed(3)}</td><td>${r.drivers.e0_m.toFixed(1)}</td><td>${r.drivers.e0_f.toFixed(1)}</td></tr>`;
     }
     ui.table.innerHTML = h + "</tbody>";
   }
@@ -388,15 +463,13 @@ if (typeof document !== "undefined") {
       s += `<text x="${x(yr)}" y="${H - 14}" text-anchor="middle" font-size="11" fill="var(--muted)">${yr}</text>`;
     }
     s += `<text x="${L}" y="12" font-size="11" fill="var(--muted)">млрд человек</text>`;
-    // ООН: линия через опорные точки (2025, 2050, 2100) — только ориентир
-    const wk = [2025, 2050, 2100];
+    // ООН: ряд по годам
     s += `<polyline fill="none" stroke="var(--ref)" stroke-width="1.5" stroke-dasharray="5 4"
-          points="${wk.map(k => x(k) + "," + yy(DATA.wpp[k])).join(" ")}"/>`;
-    for (const k of wk) s += `<circle cx="${x(k)}" cy="${yy(DATA.wpp[k])}" r="4" fill="var(--ref)"/>`;
+          points="${DATA.wpp_pop_k.map((v, i) => x(DATA.base_year + i) + "," + yy(v * 1000)).join(" ")}"/>`;
     s += `<polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="${pts.map(p => x(p[0]) + "," + yy(p[1])).join(" ")}"/>`;
     for (const p of pts) s += `<circle cx="${x(p[0])}" cy="${yy(p[1])}" r="2.5" fill="var(--accent)"/>`;
     s += `<text x="${W - R}" y="${T + 12}" text-anchor="end" font-size="12" fill="var(--accent)">Модель</text>
-          <text x="${W - R}" y="${T + 28}" text-anchor="end" font-size="12" fill="var(--ref)">UN WPP 2024 (опорные точки 2025, 2050, 2100)</text>`;
+          <text x="${W - R}" y="${T + 28}" text-anchor="end" font-size="12" fill="var(--ref)">UN WPP 2024 (medium)</text>`;
     ui.chart.innerHTML = s;
   }
 
@@ -406,7 +479,7 @@ if (typeof document !== "undefined") {
       generated_at: new Date().toISOString(),
       source: "Pyramid 2025: PopulationPyramid.net / UN WPP 2024 medium variant (CC BY 3.0 IGO)",
       params: result.params, calibration: result.calibration, base: result.base,
-      wpp_reference: DATA.wpp, periods: result.periods
+      wpp_reference: { first_year: DATA.base_year, population_thousands: DATA.wpp_pop_k }, periods: result.periods
     };
     return JSON.stringify(out, null, 2);
   }
@@ -426,17 +499,21 @@ if (typeof document !== "undefined") {
     result = runModel(readParams());
     renderCards(); renderChart(); renderTable();
     ui.foot.textContent = "Данные: PopulationPyramid.net (UN WPP 2024, medium variant), лицензия CC BY 3.0 IGO. " +
-      "Смертность: WPP 2025 × k, k(М) = " + result.calibration.k_m.toFixed(3) + ", k(Ж) = " + result.calibration.k_f.toFixed(3) + " (1 = без изменений).";
+      "Смертность: WPP 2025 × k; k в первом / последнем периоде: М " + result.periods[0].drivers.k_m.toFixed(3) + " / " + result.periods[result.periods.length - 1].drivers.k_m.toFixed(3) + ", Ж " + result.periods[0].drivers.k_f.toFixed(3) + " / " + result.periods[result.periods.length - 1].drivers.k_f.toFixed(3) + " (1 = без изменений).";
   }
 
   /* --- запуск --- */
   const saved = loadState();
   const start = Object.assign({}, DEFAULTS);
-  if (saved.params) for (const k of FIELDS) if (Number.isFinite(saved.params[k])) start[k] = saved.params[k];
+  if (saved.params) {
+    for (const k of FIELDS) if (Number.isFinite(saved.params[k])) start[k] = saved.params[k];
+    for (const k of CHECKS) if (typeof saved.params[k] === "boolean") start[k] = saved.params[k];
+  }
   writeParams(start);
   ui.mln.checked = saved.mln === true;
 
   for (const k of FIELDS) ui.fields[k].addEventListener("input", () => { update(); saveState(); });
+  for (const k of CHECKS) ui.fields[k].addEventListener("change", () => { syncTraj(); update(); saveState(); });
   ui.mln.addEventListener("change", () => { renderTable(); saveState(); });
   ui.copy.addEventListener("click", copyJson);
   ui.reset.addEventListener("click", () => { writeParams(DEFAULTS); update(); saveState(); showToast("Параметры сброшены"); });
