@@ -77,10 +77,8 @@
         <label>SD рождаемости, лет <input type="number" id="sd" step="0.1" min="1" max="12"></label>
         <label>SRB, мальчиков на 100 девочек <input type="number" id="srb" step="0.5" min="90" max="130"></label>
         <label>Чистая миграция, ‰ в год <input type="number" id="nmr" step="0.05" min="-20" max="20"></label>
-        <label>Удвоение смертности Td, лет <input type="number" id="td" step="0.5" min="4" max="15"></label>
-        <label>Фоновая смертность A, в год <input type="number" id="A" step="0.0001" min="0" max="0.01"></label>
       </div>
-      <p class="note">Смертность до 30 лет, e0 и пара Td/A взяты из UN WPP 2024 за 2025 год (Td и A подобраны по коэффициентам смертности для возрастов 30–99, см. MD, п. 3.5).</p>
+      <p class="note">Таблица смертности (m и q по возрастам) взята из UN WPP 2024 за 2025 год. Значения e0 по умолчанию — то, что даёт эта таблица; при изменении e0 все m(x) умножаются на общий коэффициент k (см. MD, п. 3).</p>
     </details>
   </section>
 
@@ -113,22 +111,34 @@ const DATA = {
     f: [22577862,37580544,41830353,38974885,36299576,38427453,46450905,58246667,49820496,45295720,
         57034156,58561241,47741355,36668389,35372406,21708587,12439706,6886092,2732696,514332,44866]
   },
+  // Таблица смертности UN WPP 2024, Китай, 2025 (Data Portal ООН). 22 группы: 0, 1-4, 5-9, ..., 95-99, 100+.
+  // m: "Age specific mortality rate m(x,n) - abridged" (смертей на человеко-год);
+  // q: "Probability of dying q(x,n) - abridged" (вероятность умереть в группе).
+  mortality: {
+    male: {
+      m: [0.00662606,0.00038409,0.00029372,0.00037877,0.00046197,0.00070168,0.00088436,0.00099148,0.00121047,0.00199194,0.00316362,
+          0.005422,0.00781811,0.01396173,0.02178897,0.03500541,0.05635174,0.09829336,0.16546249,0.28204498,0.49044445,0.60328105],
+      q: [0.00658835,0.00153502,0.00146758,0.00189208,0.00230731,0.00350264,0.00441225,0.00494529,0.00603519,0.00991422,0.01570344,
+          0.02677107,0.03838891,0.06763948,0.10355437,0.16150231,0.24812758,0.39537088,0.57661934,0.78180105,0.94243339,1]
+    },
+    female: {
+      m: [0.00545515,0.00037712,0.00025087,0.00023719,0.00028018,0.00044287,0.00052071,0.00057177,0.00068844,0.0010336,0.00152447,
+          0.00251125,0.00359132,0.0065017,0.01074978,0.01963159,0.03419958,0.06574441,0.11669739,0.20763596,0.35156723,0.50445609],
+      q: [0.00542962,0.00150719,0.0012536,0.00118524,0.00139997,0.00221203,0.0026002,0.00285482,0.00343658,0.00515556,0.00759531,
+          0.01248314,0.01780722,0.03203698,0.05243204,0.09386691,0.15840411,0.28438921,0.45088075,0.66860943,0.85045446,1]
+    }
+  },
   // Эталоны UN WPP 2024 (medium), по данным PopulationPyramid.net
   wpp: { 2025: 1416096094, 2026: 1412914088, 2050: 1260289094, 2100: 633368113 }
 };
 
-const DEFAULTS = {
-  tfr: 0.995, mac: 29.15, sd: 5.0, srb: 105,
-  // e0: UN WPP 2024, Китай, 2025 (М 75,6515; Ж 81,2464). Td и A подобраны по mx5 WPP (возрасты 30-99, 2025):
-  // общее время удвоения Td = 6,25 года, A = 0,000418 в год; B подбирается по e0 отдельно для М и Ж.
-  e0m: 75.65, e0f: 81.25, td: 6.25, nmr: -0.24, A: 0.000418,
-  // UN WPP 2024, Китай, 2025: вероятность умереть за 5 лет для групп 0-4 ... 25-29.
-  // Группа 0-4: 5q0 = 1 - (1 - 1q0) * (1 - 4q1), совпадает с U5MR. Источник: Data Portal ООН, показатель qx5.
-  q_m: [0.00811326, 0.00146758, 0.00189208, 0.00230731, 0.00350264, 0.00441225],
-  q_f: [0.00692863, 0.00125360, 0.00118524, 0.00139997, 0.00221203, 0.00260020]
-};
+// e0 по умолчанию подставляется ниже — это e0, которую даёт таблица m(x) при k = 1.
+const DEFAULTS = { tfr: 0.995, mac: 29.15, sd: 5.0, srb: 105, nmr: -0.24, e0m: null, e0f: null };
 
 /* ===== МОДЕЛЬ ===== */
+// (DEFAULTS.e0m/e0f задаются после определения lifeTable)
+const sum = a => a.reduce((s, x) => s + x, 0);
+
 function erf(x) {
   const s = Math.sign(x); x = Math.abs(x);
   const t = 1 / (1 + 0.3275911 * x);
@@ -148,60 +158,48 @@ function asfrWeights(p) {
   return w.map(x => p.tfr * (x / tot) / 5);
 }
 
-// Ожидаемая продолжительность жизни при рождении для заданного B
-function lifeExpectancy(q, A, B, g) {
-  let e = 0, S = 1;
-  for (let i = 0; i < 6; i++) {
-    const h = -Math.log(1 - q[i]) / 5;
-    e += S * (1 - Math.exp(-5 * h)) / h;
-    S *= Math.exp(-5 * h);
+// Таблица смертности WPP с множителем k (m -> k*m). Для каждой группы из m и q берётся эффективная ширина
+// n_eff = -ln(1-q)/m, так что при k = 1 таблица воспроизводит WPP точно; при k != 1 q = 1 - exp(-n_eff*k*m).
+// Возвращает e0, коэффициенты дожития S[0..20] за 5 лет и долю выживших новорождённых sb.
+function lifeTable(mort, k) {
+  const L = []; let l = 1;
+  for (let i = 0; i < 21; i++) {
+    const m = k * mort.m[i];
+    const q = 1 - Math.exp(-(-Math.log(1 - mort.q[i]) / mort.m[i]) * m);
+    L.push(l * q / m);
+    l *= 1 - q;
   }
-  const dx = 0.1;
-  for (let x = 30; x < 105 - 1e-9; x += dx) {
-    const H = A * dx + (B / g) * (Math.exp(g * (x + dx)) - Math.exp(g * x));
-    const Sn = S * Math.exp(-H);
-    e += dx * (S + Sn) / 2;
-    S = Sn;
-  }
-  return e;
+  L.push(l / (k * mort.m[21])); // открытая группа 100+
+  const e0 = sum(L);
+  const Lg = [L[0] + L[1]].concat(L.slice(2)); // 21 группа: 0-4, 5-9, ..., 95-99, 100+
+  const S = [];
+  for (let i = 0; i < 20; i++) S.push(Lg[i + 1] / Lg[i]);
+  S.push(Math.exp(-5 * k * mort.m[21]));
+  return { e0, S, sb: Lg[0] / 5 };
 }
 
-// Подбор B так, чтобы e0 совпала с заданной (бисекция по логарифму)
-function calibrateB(q, A, g, target) {
-  let lo = 1e-10, hi = 1e-1;
+// Подбор k так, чтобы e0 совпала с заданной (e0 убывает с ростом k)
+function calibrateK(mx, target) {
+  let lo = 0.02, hi = 5;
   for (let i = 0; i < 100; i++) {
     const mid = Math.sqrt(lo * hi);
-    if (lifeExpectancy(q, A, mid, g) > target) lo = mid; else hi = mid;
+    if (lifeTable(mx, mid).e0 > target) lo = mid; else hi = mid;
   }
   return Math.sqrt(lo * hi);
 }
-
-// Вероятность дожить за 5 лет для каждой группы (индекс 0..20)
-function survivalVector(q, A, B, g) {
-  const S = [];
-  for (let i = 0; i < 6; i++) S.push(1 - q[i]);
-  for (let i = 6; i <= 19; i++) {
-    const x = 5 * i;
-    let s = 0;
-    for (let k = 0; k < 5; k++) {
-      const a = x + k + 0.5;
-      const H = A * 5 + (B / g) * (Math.exp(g * (a + 5)) - Math.exp(g * a));
-      s += Math.exp(-H);
-    }
-    S.push(s / 5);
-  }
-  S.push(0); // 100+ (100-104) доживает до 105 и умирает
-  return S;
+function mortalityFor(mx, target) {
+  const base = lifeTable(mx, 1).e0;
+  const k = Math.abs(target - base) <= 0.005 ? 1 : calibrateK(mx, target);
+  return Object.assign({ k, e0_base: base }, lifeTable(mx, k));
 }
 
-const sum = a => a.reduce((s, x) => s + x, 0);
+
+DEFAULTS.e0m = Math.round(lifeTable(DATA.mortality.male, 1).e0 * 100) / 100;
+DEFAULTS.e0f = Math.round(lifeTable(DATA.mortality.female, 1).e0 * 100) / 100;
 
 function runModel(p) {
-  const g = Math.LN2 / p.td;
-  const Bm = calibrateB(p.q_m, p.A, g, p.e0m);
-  const Bf = calibrateB(p.q_f, p.A, g, p.e0f);
-  const Sm = survivalVector(p.q_m, p.A, Bm, g);
-  const Sf = survivalVector(p.q_f, p.A, Bf, g);
+  const Mo = mortalityFor(DATA.mortality.male, p.e0m), Fo = mortalityFor(DATA.mortality.female, p.e0f);
+  const Sm = Mo.S, Sf = Fo.S;
   const asfr = asfrWeights(p);
   const mig = Math.pow(1 + p.nmr / 1000, DATA.step);
   const nSteps = Math.round((2100 - DATA.base_year) / DATA.step);
@@ -221,6 +219,7 @@ function runModel(p) {
     // сдвиг выживших (без миграции и без новорождённых)
     const Mn = new Array(21).fill(0), Fn = new Array(21).fill(0);
     for (let i = 0; i <= 19; i++) { Mn[i + 1] = M[i] * Sm[i]; Fn[i + 1] = F[i] * Sf[i]; }
+    Mn[20] += M[20] * Sm[20]; Fn[20] += F[20] * Sf[20]; // остаются в открытой группе 100+
 
     // миграция
     let migTotal = 0;
@@ -236,7 +235,7 @@ function runModel(p) {
       births += DATA.step * asfr[k] * (F[3 + k] + Fn[3 + k]) / 2;
     }
     const bM = births * p.srb / (p.srb + 100), bF = births * 100 / (p.srb + 100);
-    const sbM = 1 - p.q_m[0] / 2, sbF = 1 - p.q_f[0] / 2;
+    const sbM = Mo.sb, sbF = Fo.sb;
     dM += bM * (1 - sbM); dF += bF * (1 - sbF);
     Mn[0] = bM * sbM * mig; Fn[0] = bF * sbF * mig;
     migTotal += (Mn[0] - bM * sbM) + (Fn[0] - bF * sbF);
@@ -258,7 +257,7 @@ function runModel(p) {
   }
   return {
     params: Object.assign({}, p),
-    calibration: { gamma: g, B_m: Bm, B_f: Bf },
+    calibration: { k_m: Mo.k, k_f: Fo.k, e0_base_m: Mo.e0_base, e0_base_f: Fo.e0_base },
     base: { year: DATA.base_year, population: sum(DATA.pyramid.m) + sum(DATA.pyramid.f),
             women_15_49: sum(DATA.pyramid.f.slice(3, 10)) },
     periods
@@ -269,7 +268,7 @@ function runModel(p) {
 if (typeof document !== "undefined") {
   const STORAGE_KEY = "chinaPopModel.v1";
   const TOAST_MS = 3000;
-  const FIELDS = ["tfr", "e0m", "e0f", "mac", "sd", "srb", "nmr", "td", "A"];
+  const FIELDS = ["tfr", "e0m", "e0f", "mac", "sd", "srb", "nmr"];
 
   // Все элементы ищем один раз
   const byId = id => document.getElementById(id);
@@ -427,7 +426,7 @@ if (typeof document !== "undefined") {
     result = runModel(readParams());
     renderCards(); renderChart(); renderTable();
     ui.foot.textContent = "Данные: PopulationPyramid.net (UN WPP 2024, medium variant), лицензия CC BY 3.0 IGO. " +
-      "Калибровка смертности: B(М) = " + result.calibration.B_m.toExponential(3) + ", B(Ж) = " + result.calibration.B_f.toExponential(3) + ".";
+      "Смертность: WPP 2025 × k, k(М) = " + result.calibration.k_m.toFixed(3) + ", k(Ж) = " + result.calibration.k_f.toFixed(3) + " (1 = без изменений).";
   }
 
   /* --- запуск --- */
