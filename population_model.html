@@ -75,7 +75,7 @@
     table { font-size: 12px; }
     th, td { padding: 5px 4px; }
   }
-  @media (max-width: 800px) { .opt2 { display: none; } }
+  @media (max-width: 820px) { .opt2 { display: none; } }
   @media (max-width: 600px) {
     main { padding: 16px 12px 48px; }
     .cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -516,7 +516,7 @@ if (typeof document !== "undefined") {
     const unit = full ? "человек" : "млн человек (2 знака после запятой)";
     // колонки: [заголовок, класс]; opt скрывается на узком экране, mid — ещё и при полных числах
     const COLS = [["Годы", ""], ["Родилось", "cb mid"], ["Умерло", "cd mid"], ["Миграция", "opt"], ["Население", ""],
-      ["Мужчины", "cm opt opt2"], ["Женщины", "cf opt opt2"], ["Женщин 15–49", "opt opt2"], ["0–14", "opt"], ["65+", ""],
+      ["Мужчины", "cm opt opt2"], ["Женщины", "cf opt opt2"], ["Жен. 15–49", "opt opt2"], ["0–14", "opt"], ["65+", ""],
       ["TFR", "opt"], ["e0 М", "cm opt"], ["e0 Ж", "cf opt"]];
     const row = (cells, cls) => `<tr${cls ? ` class="${cls}"` : ""}>` +
       cells.map((v, i) => `<td${COLS[i][1] ? ` class="${COLS[i][1]}"` : ""}>${v}</td>`).join("") + "</tr>";
