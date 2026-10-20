@@ -10,13 +10,13 @@ const BASE_YEAR = 2025, END_YEAR = 2100;
 const SEX = { 1: "male", 2: "female", 3: "both" };
 // IndicatorId: 46 пирамида, 79 m, 81 q, 49 население, 19 TFR, 61 e0, 18 MAC, 58 SRB, 66 NMR
 
-/* Все поля страны. Единичные значения идут первыми; затухания c в Data Portal нет, их заполняют вручную */
+/* Все поля страны. Единичные значения идут первыми; затухания c в Data Portal нет: по умолчанию 0 (линейное изменение), при необходимости правятся вручную */
 function newCountry(name) {
     const nulls = n => Array(n).fill(null), years = END_YEAR - BASE_YEAR + 1;
     return {
         name,
-        tfr_2025: null, tfr_2100: null, tfr_c: null,
-        e0m_2100: null, e0m_c: null, e0f_2100: null, e0f_c: null,
+        tfr_2025: null, tfr_2100: null, tfr_c: 0,
+        e0m_2100: null, e0m_c: 0, e0f_2100: null, e0f_c: 0,
         mac: null, srb: null, nmr: null,
         pyramid: { male: nulls(21), female: nulls(21) },
         mortality: { male: { m: nulls(22), q: nulls(22) }, female: { m: nulls(22), q: nulls(22) } },

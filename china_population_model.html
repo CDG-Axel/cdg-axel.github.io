@@ -70,7 +70,7 @@
 
   <section class="panel">
     <div class="controls">
-      <label id="countryBox" hidden>Страна <select id="country"></select></label>
+      <label id="countryBox">Страна <select id="country"></select></label>
       <label>TFR <input type="number" id="tfr" step="0.005" min="0" max="6"></label>
       <label>e0 мужчины, лет <input type="number" id="e0m" step="0.1" min="40" max="100"></label>
       <label>e0 женщины, лет <input type="number" id="e0f" step="0.1" min="40" max="100"></label>
@@ -83,7 +83,6 @@
       <summary>Дополнительные параметры</summary>
       <div class="controls" style="margin-top:10px">
         <label>Средний возраст матери (MAC) <input type="number" id="mac" step="0.05" min="20" max="40"></label>
-        <label>SD рождаемости, лет <input type="number" id="sd" step="0.1" min="1" max="12"></label>
         <label>SRB, мальчиков на 100 девочек <input type="number" id="srb" step="0.5" min="90" max="130"></label>
         <label>Чистая миграция, ‰ в год <input type="number" id="nmr" step="0.05" min="-20" max="20"></label>
       </div>
@@ -117,7 +116,7 @@
   <section class="cards" id="cards"></section>
 
   <section class="panel">
-    <svg id="chart" viewBox="0 0 900 340" role="img" aria-label="Население Китая по модели и по прогнозу ООН"></svg>
+    <svg id="chart" viewBox="0 0 900 340" role="img" aria-label="Население по модели и по прогнозу ООН"></svg>
   </section>
 
   <section class="panel tablewrap">
@@ -131,66 +130,83 @@
 
 <script>
 /* ===== ДАННЫЕ ===== */
-const DATA = {
-  base_year: 2025,
-  step: 5,
-  groups: ["0-4","5-9","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49",
-           "50-54","55-59","60-64","65-69","70-74","75-79","80-84","85-89","90-94","95-99","100+"],
-  // Пирамида 2025: PopulationPyramid.net (UN WPP 2024, medium variant), CC BY 3.0 IGO
-  pyramid: {
-    m: [24942279,42739276,48511730,45686204,42526154,44377128,52145494,63281937,52676265,47064933,
-        58045377,58103255,45994642,33383371,29762714,17342999,8940378,4076891,1154593,128472,3699],
-    f: [22577862,37580544,41830353,38974885,36299576,38427453,46450905,58246667,49820496,45295720,
-        57034156,58561241,47741355,36668389,35372406,21708587,12439706,6886092,2732696,514332,44866]
-  },
-  // Таблица смертности UN WPP 2024, Китай, 2025 (Data Portal ООН). 22 группы: 0, 1-4, 5-9, ..., 95-99, 100+.
-  // m: "Age specific mortality rate m(x,n) - abridged" (смертей на человеко-год);
-  // q: "Probability of dying q(x,n) - abridged" (вероятность умереть в группе).
-  mortality: {
-    male: {
-      m: [0.00662606,0.00038409,0.00029372,0.00037877,0.00046197,0.00070168,0.00088436,0.00099148,0.00121047,0.00199194,0.00316362,
-          0.005422,0.00781811,0.01396173,0.02178897,0.03500541,0.05635174,0.09829336,0.16546249,0.28204498,0.49044445,0.60328105],
-      q: [0.00658835,0.00153502,0.00146758,0.00189208,0.00230731,0.00350264,0.00441225,0.00494529,0.00603519,0.00991422,0.01570344,
-          0.02677107,0.03838891,0.06763948,0.10355437,0.16150231,0.24812758,0.39537088,0.57661934,0.78180105,0.94243339,1]
+const DATA = { base_year: 2025, step: 5 };
+const SOURCE = "Данные: UN World Population Prospects 2024, medium variant (Data Portal ООН), лицензия CC BY 3.0 IGO.";
+
+// Страны в том же виде, в каком их собирает tools/build_data.js в countries_data.json.
+// Китай — запасной вариант: используется, если в /json/countries_data.json его нет (или файл не загрузился).
+// Население — человек, 2025 ... 2100 подряд. tfr_2025 = 0,995 — принятое значение (WPP: 1,02); nmr = −0,24 (среднее 2015–2024).
+const COUNTRIES = {
+  CHN: {
+    "name": "China",
+    "tfr_2025": 0.995,
+    "tfr_2100": 1.345,
+    "tfr_c": 1.45,
+    "e0m_2100": 88.37,
+    "e0m_c": 1.1,
+    "e0f_2100": 91.37,
+    "e0f_c": 0.51,
+    "mac": 29.15,
+    "srb": 105,
+    "nmr": -0.24,
+    "pyramid": {
+      "male": [
+        24942279, 42739276, 48511730, 45686204, 42526154, 44377128, 52145494, 63281937, 52676265, 47064933, 58045377,
+        58103255, 45994642, 33383371, 29762714, 17342999, 8940378, 4076891, 1154593, 128472, 3699
+      ],
+      "female": [
+        22577862, 37580544, 41830353, 38974885, 36299576, 38427453, 46450905, 58246667, 49820496, 45295720, 57034156,
+        58561241, 47741355, 36668389, 35372406, 21708587, 12439706, 6886092, 2732696, 514332, 44866
+      ]
     },
-    female: {
-      m: [0.00545515,0.00037712,0.00025087,0.00023719,0.00028018,0.00044287,0.00052071,0.00057177,0.00068844,0.0010336,0.00152447,
-          0.00251125,0.00359132,0.0065017,0.01074978,0.01963159,0.03419958,0.06574441,0.11669739,0.20763596,0.35156723,0.50445609],
-      q: [0.00542962,0.00150719,0.0012536,0.00118524,0.00139997,0.00221203,0.0026002,0.00285482,0.00343658,0.00515556,0.00759531,
-          0.01248314,0.01780722,0.03203698,0.05243204,0.09386691,0.15840411,0.28438921,0.45088075,0.66860943,0.85045446,1]
-    }
-  },
-  // UN WPP 2024 (medium): население Китая на 1 июля, тыс. человек (округлено), год 2025 ... 2100 подряд
-  wpp_pop_k: [
-    1416096, 1412914, 1409679, 1406137, 1402283, 1398154, 1393749, 1389060, 1384097, 1378877,
-    1373428, 1367743, 1361830, 1355723, 1349395, 1342817, 1335990, 1328909, 1321591, 1314016,
-    1306114, 1297818, 1289120, 1279993, 1270381, 1260289, 1249693, 1238557, 1226930, 1214853,
-    1202342, 1189441, 1176218, 1162723, 1149002, 1135127, 1121175, 1107207, 1093277, 1079408,
-    1065633, 1051989, 1038473, 1025103, 1011878, 998784, 985807, 972906, 960055, 947249,
-    934467, 921678, 908875, 896044, 883167, 870252, 857329, 844439, 831605, 818815,
-    806115, 793559, 781154, 768899, 756809, 744903, 733179, 721613, 710186, 698894,
-    687724, 676661, 665696, 654825, 644049, 633368
-  ]
+    "mortality": {
+      "male": {
+        "m": [
+          0.00662606, 0.00038409, 0.00029372, 0.00037877, 0.00046197, 0.00070168, 0.00088436, 0.00099148, 0.00121047,
+          0.00199194, 0.00316362, 0.005422, 0.00781811, 0.01396173, 0.02178897, 0.03500541, 0.05635174, 0.09829336,
+          0.16546249, 0.28204498, 0.49044445, 0.60328105
+        ],
+        "q": [
+          0.00658835, 0.00153502, 0.00146758, 0.00189208, 0.00230731, 0.00350264, 0.00441225, 0.00494529, 0.00603519,
+          0.00991422, 0.01570344, 0.02677107, 0.03838891, 0.06763948, 0.10355437, 0.16150231, 0.24812758, 0.39537088,
+          0.57661934, 0.78180105, 0.94243339, 1
+        ]
+      },
+      "female": {
+        "m": [
+          0.00545515, 0.00037712, 0.00025087, 0.00023719, 0.00028018, 0.00044287, 0.00052071, 0.00057177, 0.00068844,
+          0.0010336, 0.00152447, 0.00251125, 0.00359132, 0.0065017, 0.01074978, 0.01963159, 0.03419958, 0.06574441,
+          0.11669739, 0.20763596, 0.35156723, 0.50445609
+        ],
+        "q": [
+          0.00542962, 0.00150719, 0.0012536, 0.00118524, 0.00139997, 0.00221203, 0.0026002, 0.00285482, 0.00343658,
+          0.00515556, 0.00759531, 0.01248314, 0.01780722, 0.03203698, 0.05243204, 0.09386691, 0.15840411, 0.28438921,
+          0.45088075, 0.66860943, 0.85045446, 1
+        ]
+      }
+    },
+    "population": [
+      1416096094, 1412914088.5, 1409679406, 1406136743.5, 1402282752.5, 1398153832, 1393748669.5, 1389060032,
+      1384096521, 1378876934.5, 1373427531, 1367742784.5, 1361830063.5, 1355722707, 1349394717.5, 1342816656.5,
+      1335990231.5, 1328909237.5, 1321590797.5, 1314015986.5, 1306113787.5, 1297817581.5, 1289120426.5, 1279992585,
+      1270381145, 1260289093.5, 1249692538, 1238557132, 1226929854.5, 1214853346, 1202342471, 1189440669, 1176217945.5,
+      1162722708.5, 1149002167.5, 1135127190.5, 1121174716.5, 1107207133, 1093276703.5, 1079407882, 1065632529.5,
+      1051989135, 1038472818, 1025103452, 1011878190, 998784319, 985806560, 972905671, 960055383, 947249416.5,
+      934466660.5, 921677629.5, 908874531.5, 896043788.5, 883166975.5, 870252344, 857328714.5, 844439196.5,
+      831604667.5, 818815356.5, 806115054, 793559254, 781153717.5, 768899132.5, 756809110.5, 744902836.5, 733179456.5,
+      721612750.5, 710185968, 698893770.5, 687724085, 676660877, 665695503.5, 654825389, 644049400.5, 633368112.5
+    ]
+  }
 };
 
-// Встроенные данные по Китаю: запасной вариант, если /json/countries_data.json не загрузился.
-// Запись страны в том же виде, в каком её собирает страница из JSON (см. recordFromJson).
-const CHINA = {
-  iso3: "CHN", name: "Китай",
-  source: "Данные: PopulationPyramid.net и UN Data Portal (UN WPP 2024, medium variant), лицензия CC BY 3.0 IGO.",
-  pyramid: DATA.pyramid, mortality: DATA.mortality, wpp_pop_k: DATA.wpp_pop_k,
-  // Единичные значения. TFR 2025 = 0,995 — принятое значение (WPP: 1,02); траектории подогнаны под ряды WPP 2024 medium
-  singles: { tfr_2025: 0.995, tfr_2100: 1.345, tfr_c: 1.45, e0m_2100: 88.37, e0m_c: 1.10, e0f_2100: 91.37, e0f_c: 0.51,
-             mac: 29.15, sd: 5.0, srb: 105, nmr: -0.24 }
-};
-
-// Параметры по умолчанию выбранной страны (заполняются в setCountry)
+// Выбранная страна (её данные) и её код; значения по умолчанию заполняются в setCountry
+let COUNTRY = COUNTRIES.CHN, ISO = "CHN";
 const DEFAULTS = {};
 
 /* ===== МОДЕЛЬ ===== */
-// (DEFAULTS.e0m/e0f задаются после определения lifeTable)
+const ASFR_SD = 5.0;   // стандартное отклонение возраста матери, лет: одинаково для всех стран (влияет слабо)
 // Население по прогнозу ООН на год (2025–2100), человек
-const wppAt = year => DATA.wpp_pop_k[year - DATA.base_year] * 1000;
+const wppAt = year => COUNTRY.population[year - DATA.base_year];
 
 const sum = a => a.reduce((s, x) => s + x, 0);
 
@@ -207,7 +223,7 @@ function asfrWeights(p) {
   const w = [];
   for (let k = 0; k < 7; k++) {
     const a = 15 + 5 * k, b = a + 5;
-    w.push(normCdf((b - p.mac) / p.sd) - normCdf((a - p.mac) / p.sd));
+    w.push(normCdf((b - p.mac) / ASFR_SD) - normCdf((a - p.mac) / ASFR_SD));
   }
   const tot = w.reduce((s, x) => s + x, 0);
   return w.map(x => p.tfr * (x / tot) / 5);
@@ -249,65 +265,43 @@ function mortalityFor(mx, target) {
 }
 
 
-// Делает страну активной: данные в DATA и значения по умолчанию в DEFAULTS.
-// e0 по умолчанию — то, что даёт таблица смертности при k = 1. Необязательные поля заменяются запасными значениями.
-function setCountry(rec) {
-  const s = rec.singles, round2 = x => Math.round(x * 100) / 100;
-  const e0m = round2(lifeTable(rec.mortality.male, 1).e0), e0f = round2(lifeTable(rec.mortality.female, 1).e0);
-  DATA.country = rec; DATA.pyramid = rec.pyramid; DATA.mortality = rec.mortality; DATA.wpp_pop_k = rec.wpp_pop_k;
+// Делает страну активной и заполняет значения по умолчанию. e0 по умолчанию — то, что даёт её таблица смертности при k = 1.
+function setCountry(iso) {
+  ISO = iso; COUNTRY = COUNTRIES[iso];
+  const c = COUNTRY, round2 = x => Math.round(x * 100) / 100;
+  const e0m = round2(lifeTable(c.mortality.male, 1).e0), e0f = round2(lifeTable(c.mortality.female, 1).e0);
   for (const k of Object.keys(DEFAULTS)) delete DEFAULTS[k];
   Object.assign(DEFAULTS, {
-    tfr: s.tfr_2025, mac: s.mac, sd: s.sd ?? 5.0, srb: s.srb ?? 105, nmr: s.nmr, e0m, e0f,
-    tfr_on: false, tfr_end: s.tfr_2100 ?? s.tfr_2025, tfr_c: s.tfr_c ?? 1.45,
-    e0m_on: false, e0m_end: s.e0m_2100 ?? e0m, e0m_c: s.e0m_c ?? 1.10,
-    e0f_on: false, e0f_end: s.e0f_2100 ?? e0f, e0f_c: s.e0f_c ?? 0.51
+    tfr: c.tfr_2025, mac: c.mac, srb: c.srb ?? 105, nmr: c.nmr, e0m, e0f,
+    tfr_on: false, tfr_end: c.tfr_2100 ?? c.tfr_2025, tfr_c: c.tfr_c ?? 0,
+    e0m_on: false, e0m_end: c.e0m_2100 ?? e0m, e0m_c: c.e0m_c ?? 0,
+    e0f_on: false, e0f_end: c.e0f_2100 ?? e0f, e0f_c: c.e0f_c ?? 0
   });
 }
 
-// Запись страны из JSON (build_data.js); null, если нужных данных не хватает.
-// Обязательны: пирамида, таблица смертности, население по годам, tfr_2025, mac, nmr.
-function recordFromJson(iso3, c) {
+// Страна из JSON пригодна, если заполнены пирамида, таблица смертности, население по годам, tfr_2025, mac, nmr
+function isComplete(c) {
   const full = (a, n) => Array.isArray(a) && a.length === n && a.every(Number.isFinite);
   const mort = c.mortality || {}, pyr = c.pyramid || {};
-  const ok = full(c.population, 2100 - DATA.base_year + 1) && full(pyr.male, 21) && full(pyr.female, 21) &&
+  return full(c.population, 2100 - DATA.base_year + 1) && full(pyr.male, 21) && full(pyr.female, 21) &&
     ["male", "female"].every(x => mort[x] && full(mort[x].m, 22) && full(mort[x].q, 22)) &&
     [c.tfr_2025, c.mac, c.nmr].every(Number.isFinite);
-  if (!ok) return null;
-  const opt = k => Number.isFinite(c[k]) ? c[k] : null;
-  return {
-    iso3, name: c.name, source: "Данные: UN World Population Prospects 2024, medium variant (Data Portal ООН), CC BY 3.0 IGO.",
-    pyramid: { m: pyr.male, f: pyr.female },
-    mortality: { male: { m: mort.male.m, q: mort.male.q }, female: { m: mort.female.m, q: mort.female.q } },
-    wpp_pop_k: c.population.map(v => Math.round(v / 1000)),
-    singles: { tfr_2025: c.tfr_2025, mac: c.mac, nmr: c.nmr, tfr_2100: opt("tfr_2100"), tfr_c: opt("tfr_c"),
-               e0m_2100: opt("e0m_2100"), e0m_c: opt("e0m_c"), e0f_2100: opt("e0f_2100"), e0f_c: opt("e0f_c"),
-               sd: opt("sd"), srb: opt("srb") }
-  };
 }
-// Все полные страны из файла: { records: {ISO3: запись}, skipped: [ISO3 неполных] }
-function recordsFromJson(json) {
-  const out = { records: {}, skipped: [] };
-  for (const [iso3, c] of Object.entries((json && json.countries) || {})) {
-    const rec = recordFromJson(iso3, c);
-    if (rec) out.records[iso3] = rec; else out.skipped.push(iso3);
-  }
-  return out;
-}
+
+setCountry("CHN");
 
 // Доля пути от значения 2025 до значения 2100 при x = (год − 2025)/75
 function pathShare(x, c) {
   return Math.abs(c) < 1e-9 ? x : (1 - Math.exp(-c * x)) / (1 - Math.exp(-c));
 }
 
-setCountry(CHINA);
-
 function runModel(p) {
-  const Mo = mortalityFor(DATA.mortality.male, p.e0m), Fo = mortalityFor(DATA.mortality.female, p.e0f);
+  const Mo = mortalityFor(COUNTRY.mortality.male, p.e0m), Fo = mortalityFor(COUNTRY.mortality.female, p.e0f);
   const horizon = 2100 - DATA.base_year;
   const mig = Math.pow(1 + p.nmr / 1000, DATA.step);
   const nSteps = Math.round((2100 - DATA.base_year) / DATA.step);
 
-  let M = DATA.pyramid.m.slice(), F = DATA.pyramid.f.slice();
+  let M = COUNTRY.pyramid.male.slice(), F = COUNTRY.pyramid.female.slice();
   const periods = [];
 
   for (let t = 0; t < nSteps; t++) {
@@ -319,8 +313,8 @@ function runModel(p) {
     const x = (y0 + DATA.step / 2 - DATA.base_year) / horizon;
     const drive = key => p[key + "_on"] ? p[key] + (p[key + "_end"] - p[key]) * pathShare(x, p[key + "_c"]) : p[key];
     const tfrT = drive("tfr"), e0mT = drive("e0m"), e0fT = drive("e0f");
-    const mo = e0mT === p.e0m ? Mo : mortalityFor(DATA.mortality.male, e0mT);
-    const fo = e0fT === p.e0f ? Fo : mortalityFor(DATA.mortality.female, e0fT);
+    const mo = e0mT === p.e0m ? Mo : mortalityFor(COUNTRY.mortality.male, e0mT);
+    const fo = e0fT === p.e0f ? Fo : mortalityFor(COUNTRY.mortality.female, e0fT);
     const Sm = mo.S, Sf = fo.S;
     const asfr = asfrWeights(Object.assign({}, p, { tfr: tfrT }));
 
@@ -371,8 +365,8 @@ function runModel(p) {
   return {
     params: Object.assign({}, p),
     calibration: { k_m: Mo.k, k_f: Fo.k, e0_base_m: Mo.e0_base, e0_base_f: Fo.e0_base },
-    base: { year: DATA.base_year, population: sum(DATA.pyramid.m) + sum(DATA.pyramid.f),
-            women_15_49: sum(DATA.pyramid.f.slice(3, 10)) },
+    base: { year: DATA.base_year, population: sum(COUNTRY.pyramid.male) + sum(COUNTRY.pyramid.female),
+            women_15_49: sum(COUNTRY.pyramid.female.slice(3, 10)) },
     periods
   };
 }
@@ -381,9 +375,9 @@ function runModel(p) {
 if (typeof document !== "undefined") {
   const JSON_URL = "/json/countries_data.json";
   const COUNTRY_KEY = "popModel.country";
-  const storageKey = () => "popModel.v2." + DATA.country.iso3;   // настройки хранятся отдельно для каждой страны
+  const storageKey = () => "popModel.v2." + ISO;   // настройки хранятся отдельно для каждой страны
   const TOAST_MS = 3000;
-  const FIELDS = ["tfr", "e0m", "e0f", "mac", "sd", "srb", "nmr",
+  const FIELDS = ["tfr", "e0m", "e0f", "mac", "srb", "nmr",
                   "tfr_end", "tfr_c", "e0m_end", "e0m_c", "e0f_end", "e0f_c"];
   const CHECKS = ["tfr_on", "e0m_on", "e0f_on"];
 
@@ -391,7 +385,7 @@ if (typeof document !== "undefined") {
   const byId = id => document.getElementById(id);
   const ui = {
     cards: byId("cards"), chart: byId("chart"), table: byId("table"), foot: byId("foot"),
-    title: byId("title"), country: byId("country"), countryBox: byId("countryBox"), datasrc: byId("datasrc"),
+    title: byId("title"), country: byId("country"), datasrc: byId("datasrc"),
     toast: byId("toast"), copy: byId("copy"), reset: byId("reset"), mln: byId("mln"),
     fields: {}
   };
@@ -464,7 +458,7 @@ if (typeof document !== "undefined") {
     return row ? row.population_end.total : null;
   }
   const baseShare = (i0, i1) =>
-    (sum(DATA.pyramid.m.slice(i0, i1)) + sum(DATA.pyramid.f.slice(i0, i1))) / result.base.population;
+    (sum(COUNTRY.pyramid.male.slice(i0, i1)) + sum(COUNTRY.pyramid.female.slice(i0, i1))) / result.base.population;
 
   function renderCards() {
     const cards = [2050, 2100].map(y => {
@@ -490,7 +484,7 @@ if (typeof document !== "undefined") {
       <thead><tr><th>Годы</th><th>Родилось</th><th>Умерло</th><th>Миграция</th>
       <th>Население (конец)</th><th>Мужчины</th><th>Женщины</th><th>Женщин 15–49 (начало)</th><th>0–14</th><th>65+</th><th>TFR</th><th>e0 М</th><th>e0 Ж</th></tr></thead><tbody>`;
     h += `<tr class="start"><td>${DATA.base_year} (старт)</td><td>—</td><td>—</td><td>—</td>
-      <td>${fmtCount(result.base.population)}</td><td>${fmtCount(sum(DATA.pyramid.m))}</td><td>${fmtCount(sum(DATA.pyramid.f))}</td>
+      <td>${fmtCount(result.base.population)}</td><td>${fmtCount(sum(COUNTRY.pyramid.male))}</td><td>${fmtCount(sum(COUNTRY.pyramid.female))}</td>
       <td>${fmtCount(result.base.women_15_49)}</td><td>${pct(baseShare(0, 3))}</td><td>${pct(baseShare(13, 21))}</td><td>—</td><td>—</td><td>—</td></tr>`;
     for (const r of result.periods) {
       h += `<tr><td>${r.year_start}–${r.year_end}</td><td>${fmtCount(r.births.total)}</td><td>${fmtCount(r.deaths.total)}</td>
@@ -507,7 +501,7 @@ if (typeof document !== "undefined") {
     const x = y => L + (y - 2025) / 75 * (W - L - R);
     const pts = [[2025, result.base.population]].concat(result.periods.map(r => [r.year_end, r.population_end.total]));
     // шкала по вертикали подбирается под страну: шаг 1, 2 или 5 × 10^n, около 4 линий сетки
-    const top = Math.max(...pts.map(p => p[1]), Math.max(...DATA.wpp_pop_k) * 1000);
+    const top = Math.max(...pts.map(p => p[1]), Math.max(...COUNTRY.population));
     const raw = top / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / mag;
     const gridStep = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * mag, ymax = Math.ceil(top / gridStep) * gridStep;
     const big = ymax >= 1e9, unit = big ? 1e9 : 1e6;
@@ -523,7 +517,7 @@ if (typeof document !== "undefined") {
     s += `<text x="${L}" y="12" font-size="11" fill="var(--muted)">${big ? "млрд" : "млн"} человек</text>`;
     // ООН: ряд по годам
     s += `<polyline fill="none" stroke="var(--ref)" stroke-width="1.5" stroke-dasharray="5 4"
-          points="${DATA.wpp_pop_k.map((v, i) => x(DATA.base_year + i) + "," + yy(v * 1000)).join(" ")}"/>`;
+          points="${COUNTRY.population.map((v, i) => x(DATA.base_year + i) + "," + yy(v)).join(" ")}"/>`;
     s += `<polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="${pts.map(p => x(p[0]) + "," + yy(p[1])).join(" ")}"/>`;
     for (const p of pts) s += `<circle cx="${x(p[0])}" cy="${yy(p[1])}" r="2.5" fill="var(--accent)"/>`;
     s += `<text x="${W - R}" y="${T + 12}" text-anchor="end" font-size="12" fill="var(--accent)">Модель</text>
@@ -534,11 +528,11 @@ if (typeof document !== "undefined") {
   function jsonText() {
     const out = {
       model: "Population model v0.10",
-      country: { iso3: DATA.country.iso3, name: DATA.country.name },
+      country: { iso3: ISO, name: COUNTRY.name },
       generated_at: new Date().toISOString(),
-      source: DATA.country.source,
-      params: result.params, calibration: result.calibration, base: result.base,
-      wpp_reference: { first_year: DATA.base_year, population_thousands: DATA.wpp_pop_k }, periods: result.periods
+      source: SOURCE,
+      params: result.params, constants: { asfr_sd: ASFR_SD }, calibration: result.calibration, base: result.base,
+      wpp_reference: { first_year: DATA.base_year, population: COUNTRY.population }, periods: result.periods
     };
     return JSON.stringify(out, null, 2);
   }
@@ -557,17 +551,21 @@ if (typeof document !== "undefined") {
   function update() {
     result = runModel(readParams());
     renderCards(); renderChart(); renderTable();
-    ui.foot.textContent = DATA.country.source + " " +
+    ui.foot.textContent = SOURCE + " " +
       "Смертность: WPP 2025 × k; k в первом / последнем периоде: М " + result.periods[0].drivers.k_m.toFixed(3) + " / " + result.periods[result.periods.length - 1].drivers.k_m.toFixed(3) + ", Ж " + result.periods[0].drivers.k_f.toFixed(3) + " / " + result.periods[result.periods.length - 1].drivers.k_f.toFixed(3) + " (1 = без изменений).";
   }
 
   /* --- страна и запуск --- */
-  let records = null;       // страны из JSON; null — работаем со встроенными данными по Китаю
+  const fillCountries = () => {
+    const isos = Object.keys(COUNTRIES).sort((a, b) => COUNTRIES[a].name.localeCompare(COUNTRIES[b].name));
+    ui.country.innerHTML = isos.map(i => `<option value="${i}">${COUNTRIES[i].name}</option>`).join("");
+  };
 
   // Делает страну активной, подставляя сохранённые для неё настройки
-  function showCountry(rec, first) {
-    setCountry(rec);
-    ui.title.textContent = "Модель населения: " + rec.name + ", 2025–2100";
+  function showCountry(iso, first) {
+    setCountry(iso);
+    ui.country.value = iso;
+    ui.title.textContent = "Модель населения: " + COUNTRY.name + ", 2025–2100";
     const saved = loadState();
     const start = Object.assign({}, DEFAULTS);
     if (saved.params) {
@@ -579,25 +577,21 @@ if (typeof document !== "undefined") {
     update();
   }
 
-  // Загрузка /json/countries_data.json; при любой неудаче остаются встроенные данные по Китаю
+  // Добавляет страны из /json/countries_data.json. Китай из файла заменяет встроенного; если Китая в файле нет, остаётся встроенный
   async function loadCountries() {
     try {
       const resp = await fetch(JSON_URL, { cache: "no-cache" });
       if (!resp.ok) throw new Error("HTTP " + resp.status);
-      const { records: recs, skipped } = recordsFromJson(await resp.json());
-      const isos = Object.keys(recs);
-      if (!isos.length) throw new Error("в файле нет стран с полными данными");
-      records = recs;
-      isos.sort((a, b) => recs[a].name.localeCompare(recs[b].name));
-      ui.country.innerHTML = isos.map(i => `<option value="${i}">${recs[i].name}</option>`).join("");
-      ui.countryBox.hidden = false;
-      ui.datasrc.textContent = "Данные стран загружены из " + JSON_URL + ": " + isos.length + "." +
-        (skipped.length ? " Не использованы (данные неполные): " + skipped.join(", ") + "." : "");
+      const skipped = [];
+      for (const [iso, c] of Object.entries((await resp.json()).countries || {})) {
+        if (isComplete(c)) COUNTRIES[iso] = c; else skipped.push(iso);
+      }
+      fillCountries();
       let want = "CHN";
       try { want = localStorage.getItem(COUNTRY_KEY) || want; } catch (e) { /* без сохранения */ }
-      const iso = recs[want] ? want : recs.CHN ? "CHN" : isos[0];
-      ui.country.value = iso;
-      showCountry(recs[iso], false);
+      showCountry(COUNTRIES[want] ? want : "CHN", false);
+      ui.datasrc.textContent = "Страны загружены из " + JSON_URL + "; в списке: " + Object.keys(COUNTRIES).length + "." +
+        (skipped.length ? " Не использованы (данные неполные): " + skipped.join(", ") + "." : "");
     } catch (e) {
       ui.datasrc.textContent = "Файл " + JSON_URL + " не загружен (" + e.message + "): используются встроенные данные по Китаю.";
     }
@@ -610,9 +604,10 @@ if (typeof document !== "undefined") {
   ui.reset.addEventListener("click", () => { writeParams(DEFAULTS); update(); saveState(); showToast("Параметры сброшены"); });
   ui.country.addEventListener("change", () => {
     try { localStorage.setItem(COUNTRY_KEY, ui.country.value); } catch (e) { /* без сохранения */ }
-    showCountry(records[ui.country.value], false);
+    showCountry(ui.country.value, false);
   });
-  showCountry(CHINA, true);
+  fillCountries();
+  showCountry("CHN", true);
   loadCountries();
 }
 </script>
