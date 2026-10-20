@@ -10,10 +10,12 @@
   :root {
     --bg: #fafaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #dcdcd4; --card: #ffffff;
     --accent: #b5351f; --ref: #1f5fa8; --ok: #2c7a4b;
+    --c-birth: #2c7a4b; --c-death: #c2415a; --c-male: #1f5fa8; --c-female: #a23b9a;
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg: #17171a; --fg: #ececea; --muted: #9a9a94; --line: #34343a; --card: #1f1f24;
-            --accent: #ef7a62; --ref: #6fa8e8; --ok: #6cc590; }
+            --accent: #ef7a62; --ref: #6fa8e8; --ok: #6cc590;
+            --c-birth: #6cc590; --c-death: #f08aa0; --c-male: #6fa8e8; --c-female: #d58ad0; }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--fg);
@@ -60,7 +62,29 @@
   fieldset.traj legend { padding: 0 6px; font-size: 12px; color: var(--muted); }
   fieldset.traj input[type=checkbox] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
   fieldset.traj.off label { opacity: .45; }
-  @media (max-width: 600px) { .cards .v { font-size: 18px; } }
+  button.icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; }
+  button.icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  button.icon .ok { display: none; }
+  button.icon.done .ok { display: block; }
+  button.icon.done .st { display: none; }
+  .cb { color: var(--c-birth); } .cd { color: var(--c-death); } .cm { color: var(--c-male); } .cf { color: var(--c-female); }
+  caption .narrow { display: none; }
+  @media (max-width: 600px) {
+    main { padding: 16px 12px 48px; }
+    .cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .card { padding: 8px 10px; }
+    .cards .v { font-size: 16px; }
+    .panel.tablewrap { padding: 8px 6px; }
+    table { font-size: 12px; }
+    th, td { padding: 5px 3px; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+    .controls input[type=number], .controls select { width: 100%; }
+    #countryBox { grid-column: 1 / -1; }
+    .opt { display: none; }
+    table.full .mid { display: none; }
+    caption .wide { display: none; }
+    caption .narrow { display: inline; }
+  }
 </style>
 </head>
 <body>
@@ -74,8 +98,8 @@
       <label>TFR <input type="number" id="tfr" step="0.005" min="0" max="6"></label>
       <label>e0 мужчины, лет <input type="number" id="e0m" step="0.1" min="40" max="100"></label>
       <label>e0 женщины, лет <input type="number" id="e0f" step="0.1" min="40" max="100"></label>
-      <button class="primary" id="copy">Скопировать JSON</button>
-      <button id="reset">Сбросить</button>
+      <button class="primary icon" id="copy" title="Скопировать параметры и результат как JSON" aria-label="Скопировать JSON"><svg viewBox="0 0 24 24" class="st"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><svg viewBox="0 0 24 24" class="ok"><path d="M20 6 9 17l-5-5"/></svg></button>
+      <button class="icon" id="reset" title="Сбросить параметры к значениям по умолчанию" aria-label="Сбросить параметры"><svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
       <label class="check"><input type="checkbox" id="mln"> Таблица в млн</label>
     </div>
     <details>
@@ -479,19 +503,27 @@ if (typeof document !== "undefined") {
   }
 
   function renderTable() {
-    let h = `<caption>Единицы: ${ui.mln.checked ? "млн человек (2 знака после запятой)" : "человек"}. Конец периода: население, доли 0–14 и 65+; начало: женщины 15–49; середина: TFR, e0.</caption>
-      <thead><tr><th>Годы</th><th>Родилось</th><th>Умерло</th><th>Миграция</th>
-      <th>Население</th><th>Мужчины</th><th>Женщины</th><th>Женщин 15–49</th><th>0–14</th><th>65+</th><th>TFR</th><th>e0 М</th><th>e0 Ж</th></tr></thead><tbody>`;
-    h += `<tr class="start"><td>${DATA.base_year} (старт)</td><td>—</td><td>—</td><td>—</td>
-      <td>${fmtCount(result.base.population)}</td><td>${fmtCount(sum(COUNTRY.pyramid.male))}</td><td>${fmtCount(sum(COUNTRY.pyramid.female))}</td>
-      <td>${fmtCount(result.base.women_15_49)}</td><td>${pct(baseShare(0, 3))}</td><td>${pct(baseShare(13, 21))}</td><td>—</td><td>—</td><td>—</td></tr>`;
+    const full = !ui.mln.checked;
+    const unit = full ? "человек" : "млн человек (2 знака после запятой)";
+    // колонки: [заголовок, класс]; opt скрывается на узком экране, mid — ещё и при полных числах
+    const COLS = [["Годы", ""], ["Родилось", "cb mid"], ["Умерло", "cd mid"], ["Миграция", "opt"], ["Население", ""],
+      ["Мужчины", "cm opt"], ["Женщины", "cf opt"], ["Женщин 15–49", "opt"], ["0–14", "opt"], ["65+", ""],
+      ["TFR", "opt"], ["e0 М", "cm opt"], ["e0 Ж", "cf opt"]];
+    const row = (cells, cls) => `<tr${cls ? ` class="${cls}"` : ""}>` +
+      cells.map((v, i) => `<td${COLS[i][1] ? ` class="${COLS[i][1]}"` : ""}>${v}</td>`).join("") + "</tr>";
+    let h = `<caption><span class="wide">Единицы: ${unit}. Конец периода: население, доли 0–14 и 65+; начало: женщины 15–49; середина: TFR, e0.</span>` +
+      `<span class="narrow">${full ? "Человек" : "Млн человек"}. Население и 65+ — на конец периода.</span></caption>` +
+      "<thead><tr>" + COLS.map(c => `<th${c[1] ? ` class="${c[1]}"` : ""}>${c[0]}</th>`).join("") + "</tr></thead><tbody>";
+    h += row([`${DATA.base_year} (старт)`, "—", "—", "—", fmtCount(result.base.population),
+      fmtCount(sum(COUNTRY.pyramid.male)), fmtCount(sum(COUNTRY.pyramid.female)), fmtCount(result.base.women_15_49),
+      pct(baseShare(0, 3)), pct(baseShare(13, 21)), "—", "—", "—"], "start");
     for (const r of result.periods) {
-      h += `<tr><td>${r.year_start}–${r.year_end}</td><td>${fmtCount(r.births.total)}</td><td>${fmtCount(r.deaths.total)}</td>
-        <td>${fmtCount(r.net_migration)}</td><td>${fmtCount(r.population_end.total)}</td>
-        <td>${fmtCount(r.population_end.m)}</td><td>${fmtCount(r.population_end.f)}</td><td>${fmtCount(r.women_15_49_start)}</td>
-        <td>${pct(r.shares_end.age_0_14)}</td><td>${pct(r.shares_end.age_65_plus)}</td>
-        <td>${r.drivers.tfr.toFixed(3)}</td><td>${r.drivers.e0_m.toFixed(1)}</td><td>${r.drivers.e0_f.toFixed(1)}</td></tr>`;
+      h += row([`${r.year_start}–${r.year_end}`, fmtCount(r.births.total), fmtCount(r.deaths.total), fmtCount(r.net_migration),
+        fmtCount(r.population_end.total), fmtCount(r.population_end.m), fmtCount(r.population_end.f), fmtCount(r.women_15_49_start),
+        pct(r.shares_end.age_0_14), pct(r.shares_end.age_65_plus),
+        r.drivers.tfr.toFixed(3), r.drivers.e0_m.toFixed(1), r.drivers.e0_f.toFixed(1)]);
     }
+    ui.table.className = full ? "full" : "";
     ui.table.innerHTML = h + "</tbody>";
   }
 
@@ -542,6 +574,8 @@ if (typeof document !== "undefined") {
     try {
       await navigator.clipboard.writeText(jsonText());
       showToast("JSON скопирован");
+      ui.copy.classList.add("done");
+      setTimeout(() => ui.copy.classList.remove("done"), 1500);
     } catch (e) {
       showToast("Не удалось скопировать: нет доступа к буферу обмена (нужен https или localhost)", true);
     }
@@ -572,7 +606,7 @@ if (typeof document !== "undefined") {
       for (const k of CHECKS) if (typeof saved.params[k] === "boolean") start[k] = saved.params[k];
     }
     writeParams(start);
-    if (first) ui.mln.checked = saved.mln === true;
+    if (first) ui.mln.checked = saved.mln !== false;
     update();
   }
 
