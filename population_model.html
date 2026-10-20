@@ -68,7 +68,14 @@
   button.icon.done .ok { display: block; }
   button.icon.done .st { display: none; }
   .cb { color: var(--c-birth); } .cd { color: var(--c-death); } .cm { color: var(--c-male); } .cf { color: var(--c-female); }
+  .actions { display: flex; align-items: center; gap: 12px; }
   caption .narrow { display: none; }
+  @media (max-width: 1000px) {
+    .panel.tablewrap { padding: 10px 6px; }
+    table { font-size: 12px; }
+    th, td { padding: 5px 4px; }
+  }
+  @media (max-width: 800px) { .opt2 { display: none; } }
   @media (max-width: 600px) {
     main { padding: 16px 12px 48px; }
     .cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -79,7 +86,7 @@
     th, td { padding: 5px 3px; }
     .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
     .controls input[type=number], .controls select { width: 100%; }
-    #countryBox { grid-column: 1 / -1; }
+    .actions { grid-column: 1 / -1; }
     .opt { display: none; }
     table.full .mid { display: none; }
     caption .wide { display: none; }
@@ -98,9 +105,11 @@
       <label>TFR <input type="number" id="tfr" step="0.005" min="0" max="6"></label>
       <label>e0 мужчины, лет <input type="number" id="e0m" step="0.1" min="40" max="100"></label>
       <label>e0 женщины, лет <input type="number" id="e0f" step="0.1" min="40" max="100"></label>
-      <button class="primary icon" id="copy" title="Скопировать параметры и результат как JSON" aria-label="Скопировать JSON"><svg viewBox="0 0 24 24" class="st"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><svg viewBox="0 0 24 24" class="ok"><path d="M20 6 9 17l-5-5"/></svg></button>
+      <div class="actions">
+      <button class="icon" id="copy" title="Скопировать параметры и результат как JSON" aria-label="Скопировать JSON"><svg viewBox="0 0 24 24" class="st"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><svg viewBox="0 0 24 24" class="ok"><path d="M20 6 9 17l-5-5"/></svg></button>
       <button class="icon" id="reset" title="Сбросить параметры к значениям по умолчанию" aria-label="Сбросить параметры"><svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
       <label class="check"><input type="checkbox" id="mln"> Таблица в млн</label>
+      </div>
     </div>
     <details>
       <summary>Дополнительные параметры</summary>
@@ -507,7 +516,7 @@ if (typeof document !== "undefined") {
     const unit = full ? "человек" : "млн человек (2 знака после запятой)";
     // колонки: [заголовок, класс]; opt скрывается на узком экране, mid — ещё и при полных числах
     const COLS = [["Годы", ""], ["Родилось", "cb mid"], ["Умерло", "cd mid"], ["Миграция", "opt"], ["Население", ""],
-      ["Мужчины", "cm opt"], ["Женщины", "cf opt"], ["Женщин 15–49", "opt"], ["0–14", "opt"], ["65+", ""],
+      ["Мужчины", "cm opt opt2"], ["Женщины", "cf opt opt2"], ["Женщин 15–49", "opt opt2"], ["0–14", "opt"], ["65+", ""],
       ["TFR", "opt"], ["e0 М", "cm opt"], ["e0 Ж", "cf opt"]];
     const row = (cells, cls) => `<tr${cls ? ` class="${cls}"` : ""}>` +
       cells.map((v, i) => `<td${COLS[i][1] ? ` class="${COLS[i][1]}"` : ""}>${v}</td>`).join("") + "</tr>";
