@@ -120,12 +120,15 @@
 <script>
 const FULL_URL = "/json/ranks_RU.web.gz";
 const LITE_URL = "/json/ranks_RU_lite.web.gz";
-const DEFAULT_BOUNDS = [1000, 4000, 10000, 30000];
-const MAX_WORDS_IN_URL = 200;
+const DEFAULT_BOUNDS = [8000, 30000, 80000, 200000];
+const MAX_URL_LENGTH = 7950;   // путь с запросом, в символах после кодирования; небольшой запас под #слово
+const DRAFT_DELAY = 3000;      // мс: сколько ждать после ввода, прежде чем сохранить текст в localStorage
 // Страницы русских и английских слов лежат на одном домене и делят localStorage: у русской ключи с суффиксом Ru.
 const BOUNDS_KEY = "wordRanksBoundsRu";
 const SORT_KEY = "wordRanksSortRu";
 const LITE_KEY = "wordRanksLiteRu";
+const TEXT_KEY = "wordRanksTextRu";
+const HEIGHT_KEY = "wordRanksTextHeightRu";
 const $ = id => document.getElementById(id);
 const input = $("input");
 const table = $("table");
@@ -365,12 +368,29 @@ function showMeta(entry) {
     $("meta").textContent = `Окно лет ${meta.from}–${meta.to}, слов ${format(meta.words)}`;
 }
 
+// Строка запроса: b и words. Слова берутся по порядку, пока путь с запросом не длиннее MAX_URL_LENGTH.
+// Возвращает { search, used }: запрос (с "?", у пустого запроса пустая строка) и сколько слов в него вошло.
+function buildSearch(words) {
+    const boundsPart = bounds.join() !== DEFAULT_BOUNDS.join() ? `b=${bounds.join(",")}` : "";
+    const join = parts => {
+        const query = parts.filter(Boolean).join("&");
+        return query ? `?${query}` : "";
+    };
+    const encoded = words.map(word => encodeURIComponent(word).replaceAll("'", "%27"));
+    let length = location.pathname.length + join([boundsPart, "words="]).length;
+    let used = 0;
+    while (used < encoded.length && length + encoded[used].length + (used ? 1 : 0) <= MAX_URL_LENGTH) {
+        length += encoded[used].length + (used ? 1 : 0);
+        used++;
+    }
+    return { search: join([boundsPart, used ? `words=${encoded.slice(0, used).join(",")}` : ""]), used };
+}
+
+// Обновляет адресную строку. Если все слова не поместились, в адресе остаются только настройки: текст хранится в localStorage,
+// а поделиться списком можно кнопкой копирования ссылки (там показывается предупреждение).
 function updateUrl(words) {
-    const params = new URLSearchParams();
-    if (words.length > 0 && words.length <= MAX_WORDS_IN_URL) params.set("words", words.join(","));
-    if (bounds.join() !== DEFAULT_BOUNDS.join()) params.set("b", bounds.join(","));
-    const query = params.toString().replaceAll("%2C", ",");
-    history.replaceState(null, "", query ? `?${query}` : location.pathname);
+    const { search, used } = buildSearch(words);
+    history.replaceState(null, "", (used === words.length ? search : buildSearch([]).search) || location.pathname);
 }
 
 let toastTimer = 0;
@@ -441,20 +461,62 @@ updateHeaders();
 input.addEventListener("keydown", event => {
     if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) analyze();
 });
+// Черновик: текст из поля хранится в localStorage, чтобы не пропасть при обновлении страницы. Сохраняется только после ввода
+// пользователя (не после открытия по ссылке), с задержкой DRAFT_DELAY; при закрытии или скрытии страницы сохраняется сразу.
+let draftTimer = 0;
+
+function saveDraft() {
+    clearTimeout(draftTimer);
+    draftTimer = 0;
+    save(TEXT_KEY, input.value);
+}
+
+function flushDraft() {
+    if (draftTimer) saveDraft();
+}
+
+input.addEventListener("input", () => {
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(saveDraft, DRAFT_DELAY);
+});
+addEventListener("pagehide", flushDraft);
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flushDraft();
+});
+
+// Высота поля (его можно растягивать мышью) тоже запоминается. Высота в style появляется только после растягивания
+// или восстановления, поэтому на устройствах без растягивания ничего не сохраняется.
+const savedHeight = Number(saved(HEIGHT_KEY));
+if (savedHeight > 0) input.style.height = `${Math.min(savedHeight, window.innerHeight)}px`;
+let heightTimer = 0;
+new ResizeObserver(() => {
+    clearTimeout(heightTimer);
+    heightTimer = setTimeout(() => {
+        if (input.style.height) save(HEIGHT_KEY, String(Math.round(parseFloat(input.style.height))));
+    }, 500);
+}).observe(input);
+
 // Ctrl/Cmd+клик по слову: переход к его строке в таблице (прокрутку и вспышку делает браузер через якорь).
+let lastClicked = null;   // последнее слово, по которому кликали с Ctrl: попадает в скопированную ссылку как #слово
 input.addEventListener("click", async event => {
     if (!event.ctrlKey && !event.metaKey) return;
     const word = wordAt(input.value, input.selectionStart);
     if (!word) return;
+    lastClicked = word;
     if (!$(rowId(word))) await analyze();
     if ($(rowId(word))) location.replace(`#${rowId(word)}`);
 });
 copyButton.onclick = async () => {
     await analyze();
+    const words = parseWords(input.value);
+    const { search, used } = buildSearch(words);
+    const link = new URL(location.pathname + search, location.href);
+    if (lastClicked && words.slice(0, used).includes(lastClicked)) link.hash = rowId(lastClicked);
     try {
-        await navigator.clipboard.writeText(location.href);
+        await navigator.clipboard.writeText(link.href);
         copyButton.classList.add("done");
         setTimeout(() => copyButton.classList.remove("done"), 2000);
+        if (used < words.length) showToast(`В ссылку вошло ${used} слов из ${words.length}: остальные не поместились.`, { duration: 6000 });
     } catch {
         showToast("Не удалось скопировать, возьмите ссылку из адресной строки", { duration: 6000 });
     }
@@ -476,10 +538,26 @@ $("dlgSave").onclick = () => {
     analyze();
 };
 
+// Переход к строке слова из #слово в адресе (прокрутку и вспышку делает браузер через якорь).
+function jumpToRow(hash) {
+    let id;
+    try { id = decodeURIComponent(hash.slice(1)); } catch { return; }
+    if (id && $(id)) location.replace(`#${id}`);
+}
+
+// Слова из адреса открываются всегда; если их там нет, берётся текст, сохранённый в localStorage.
 const initial = new URLSearchParams(location.search).get("words");
-if (initial) input.value = initial.split(",").join(", ");
+const startText = initial ? initial.split(",").join(", ") : saved(TEXT_KEY);
+const startHash = location.hash;   // проверка перезаписывает адрес и сбрасывает #слово, поэтому запоминаем его заранее
+if (startText) input.value = startText;
 loadRanks()
-    .then(entry => { showMeta(entry); if (initial) analyze(); })
+    .then(async entry => {
+        showMeta(entry);
+        if (startText) {
+            await analyze();
+            if (startHash) jumpToRow(startHash);
+        }
+    })
     .catch(error => { $("meta").textContent = `Не удалось загрузить список слов: ${error.message}`; });
 </script>
 </body>
