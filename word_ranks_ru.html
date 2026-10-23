@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Редкость русских слов</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='8' y='10' width='15' height='80' rx='3' fill='%231f9d55'/><rect x='27' y='26' width='15' height='64' rx='3' fill='%236aa84f'/><rect x='46' y='42' width='15' height='48' rx='3' fill='%23b8901a'/><rect x='65' y='58' width='15' height='32' rx='3' fill='%23e07b39'/><rect x='84' y='74' width='15' height='16' rx='3' fill='%23c0392b'/></svg>">
+<style>
+    :root {
+        color-scheme: light dark;
+        --bg: #fafafa; --fg: #1d1d1f; --muted: #6b6b72; --card: #fff; --line: #e3e3e8; --accent: #2f5fd0;
+        --l5: #1f9d55; --l4: #6aa84f; --l3: #b8901a; --l2: #e07b39; --l1: #c0392b;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root { --bg: #131316; --fg: #ececf0; --muted: #9a9aa4; --card: #1c1c21; --line: #2e2e36; --accent: #7b9cf0; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { font-size: 1.5rem; margin: 0 0 4px; }
+    .muted { color: var(--muted); }
+    textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--fg); font: inherit; resize: vertical; }
+    textarea:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 12px; }
+    button { padding: 8px 14px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font: inherit; cursor: pointer; }
+    button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--line); }
+    button.link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font-size: .9rem; }
+    .icons { display: flex; gap: 6px; margin-left: auto; }
+    .icon { width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: var(--accent); border: 1px solid var(--line); }
+    .icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    /* noinspection CssUnusedSymbol */
+    .icon .ok, .icon.done .lnk { display: none; }
+    .icon.done .ok { display: block; }
+    #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: 8px; background: var(--fg); color: var(--bg); font-size: .9rem; box-shadow: 0 2px 10px rgba(0,0,0,.25); cursor: pointer; z-index: 10; }
+    #toast[hidden] { display: none; }
+    #summary { margin-bottom: 8px; font-size: .95rem; }
+    .scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 8px; font-variant-numeric: tabular-nums; }
+    th, td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    th { font-weight: 600; color: var(--muted); font-size: .8rem; line-height: 1.2; white-space: normal; cursor: pointer; user-select: none; }
+    th:hover { color: var(--fg); }
+    th:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .arrow { font-size: .7em; margin-left: 2px; color: var(--accent); }
+    tr:last-child td { border-bottom: 0; }
+    @media (hover: none) { .mouseOnly { display: none; } }
+    tr { scroll-margin-top: 16px; }
+    @keyframes pick { from { background-color: color-mix(in srgb, var(--accent) 35%, transparent); } to { background-color: transparent; } }
+    tr:target > td { animation: pick 1.5s ease-out; }
+    td:nth-child(3) { color: var(--accent); font-weight: 600; }
+    td:nth-child(4) { color: var(--muted); }
+    /* noinspection CssUnusedSymbol */
+    .lv { display: inline-block; min-width: 1.6em; padding: 0 6px; border-radius: 10px; color: #fff; text-align: center; font-weight: 600; }
+    dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--fg); padding: 20px; width: min(340px, 92vw); }
+    dialog::backdrop { background: rgba(0, 0, 0, .45); }
+    dialog h2 { font-size: 1.15rem; margin: 0 0 12px; }
+    dialog h3 { font-size: .95rem; margin: 0 0 6px; }
+    dialog label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; }
+    dialog input[type="checkbox"] { width: auto; margin: 0; }
+    dialog input { width: 120px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; text-align: right; }
+    .bounds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+    .bounds label { min-width: 0; margin: 0; justify-content: flex-start; gap: 8px; font-weight: 600; }
+    dialog .bounds input { flex: 1; width: 0; min-width: 0; }
+    #dlgError { color: var(--l1); min-height: 1.4em; font-size: .9rem; }
+    .dlgButtons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    @media (max-width: 560px) {
+        th, td { padding: 6px 7px; }
+    }
+</style>
+</head>
+<body>
+<main>
+    <h1>Редкость русских слов</h1>
+    <p id="meta" class="muted">Загрузка списка слов…</p>
+    <textarea id="input" rows="5" placeholder="несуразица, зарница, здравомыслие, индульгенция, сверстник, корова" spellcheck="false" autofocus aria-label="Слова для проверки" aria-describedby="inputHint"></textarea>
+    <p id="inputHint" class="muted" style="margin:4px 0 0;font-size:.85rem">Слова через пробел, запятую или с новой строки; можно вставить целый текст<span class="mouseOnly">. Ctrl+Enter — проверить, Ctrl+клик — переход к слову</span>.</p>
+    <div class="row">
+        <button id="go">Проверить</button>
+        <div class="icons">
+            <button class="icon" id="copy" title="Скопировать ссылку" aria-label="Скопировать ссылку">
+                <svg class="lnk" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <svg class="ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>
+            <button class="icon" id="boundsBtn" title="Настройки" aria-label="Настройки">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+        </div>
+    </div>
+    <div id="toast" role="status" hidden></div>
+    <div id="summary"></div>
+    <div class="scroll">
+        <table id="table" hidden>
+            <thead><tr><th data-key="word" tabindex="0">слово<span class="arrow"></span></th><th data-key="rank" tabindex="0">ранг<span class="arrow"></span></th><th data-key="perMillion" tabindex="0">на млн<span class="arrow"></span></th><th data-key="volumes" tabindex="0">тыс. томов<span class="arrow"></span></th><th data-key="level" tabindex="0" title="Уровень" aria-label="Уровень">★<span class="arrow"></span></th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</main>
+
+<dialog id="dlg">
+    <h2>Настройки</h2>
+    <h3>Границы уровней по рангу</h3>
+    <div class="bounds">
+        <label>5 <input id="b0" type="text" inputmode="numeric" maxlength="6" aria-label="Уровень 5, ранг до"></label>
+        <label>4 <input id="b1" type="text" inputmode="numeric" maxlength="6" aria-label="Уровень 4, ранг до"></label>
+        <label>3 <input id="b2" type="text" inputmode="numeric" maxlength="6" aria-label="Уровень 3, ранг до"></label>
+        <label>2 <input id="b3" type="text" inputmode="numeric" maxlength="6" aria-label="Уровень 2, ранг до"></label>
+    </div>
+    <p class="muted" style="margin:6px 0 4px;font-size:.85rem">Верхняя граница ранга для уровней 5, 4, 3 и 2; дальше уровень 1. Числа по возрастанию.</p>
+    <h3 style="margin-top:14px">Словарь</h3>
+    <label>Сокращённый словарь <input id="lite" type="checkbox"></label>
+    <p id="liteHint" class="muted" style="margin:4px 0;font-size:.85rem"></p>
+    <button id="dlgReset" class="link">Сбросить к значениям по умолчанию</button>
+    <div id="dlgError"></div>
+    <div class="dlgButtons">
+        <button id="dlgCancel" class="secondary">Отмена</button>
+        <button id="dlgSave">Сохранить</button>
+    </div>
+</dialog>
+
+<script>
+const FULL_URL = "/json/ranks_RU.web.gz";
+const LITE_URL = "/json/ranks_RU_lite.web.gz";
+const DEFAULT_BOUNDS = [1000, 4000, 10000, 30000];
+const MAX_WORDS_IN_URL = 200;
+// Страницы русских и английских слов лежат на одном домене и делят localStorage: у русской ключи с суффиксом Ru.
+const BOUNDS_KEY = "wordRanksBoundsRu";
+const SORT_KEY = "wordRanksSortRu";
+const LITE_KEY = "wordRanksLiteRu";
+const $ = id => document.getElementById(id);
+const input = $("input");
+const table = $("table");
+const toast = $("toast");
+const copyButton = $("copy");
+const dialog = $("dlg");
+const liteCheckbox = $("lite");
+const liteHint = $("liteHint");
+const dialogError = $("dlgError");
+const boundInputs = [0, 1, 2, 3].map(i => $(`b${i}`));
+for (const field of boundInputs) {
+    field.oninput = () => { field.value = field.value.replace(/\D/g, ""); };   // только цифры, длину ограничивает maxlength
+}
+const format = number => number.toLocaleString();
+const saved = key => { try { return localStorage.getItem(key); } catch { return null; } };
+const save = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
+
+let loading = null;   // { lite, promise }: загрузка, которая идёт сейчас
+let ready = null;     // { lite, data }: в памяти только один вариант (сокращённый или полный)
+let bounds = readBounds();
+let lite = readLite();
+
+function parseBounds(text) {
+    const values = (text || "").split(",").map(Number);
+    const valid = values.length === 4 && values.every((value, i) => Number.isInteger(value) && value > 0 && (i === 0 || value > values[i - 1]));
+    return valid ? values : null;
+}
+
+function readBounds() {
+    return parseBounds(new URLSearchParams(location.search).get("b")) || parseBounds(saved(BOUNDS_KEY)) || [...DEFAULT_BOUNDS];
+}
+
+function readLite() {
+    return saved(LITE_KEY) !== "0";
+}
+
+function levelByRank(rank) {
+    const index = bounds.findIndex(limit => rank <= limit);
+    return index < 0 ? 1 : 5 - index;
+}
+
+// Текст рейтинга: первая строка meta (JSON), далее "слово<tab>на млн<tab>тома", ранг равен номеру строки данных.
+// Возвращает { meta, words: { слово: [ранг, на млн, тома] } }.
+function parseRanks(text) {
+    const lines = text.split("\n");
+    const meta = JSON.parse(lines[0]);
+    const words = {};
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line) continue;
+        const first = line.indexOf("\t");
+        const second = line.indexOf("\t", first + 1);
+        words[line.slice(0, first)] = [i, +line.slice(first + 1, second), +line.slice(second + 1)];
+    }
+    return { meta, words };
+}
+
+async function fetchRanks(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes[0] === 0x50 && bytes[1] === 0x4b) throw new Error("файл оказался ZIP-архивом, а нужен именно gzip");
+    if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
+        if (typeof DecompressionStream === "undefined") throw new Error("браузер не умеет распаковывать gzip, обновите его");
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+        return parseRanks(await new Response(stream).text());
+    }
+    return parseRanks(new TextDecoder().decode(bytes));
+}
+
+// Возвращает { lite, data } для нужного варианта словаря. Если в памяти другой вариант, он выбрасывается.
+function loadRanks() {
+    if (ready && ready.lite === lite) return Promise.resolve(ready);
+    if (loading && loading.lite === lite) return loading.promise;
+    ready = null;
+    const variant = lite;
+    const entry = { lite: variant };
+    entry.promise = fetchRanks(variant ? LITE_URL : FULL_URL)
+        .then(data => {
+            if (loading === entry) {
+                loading = null;
+                ready = { lite: variant, data };
+            }
+            return { lite: variant, data };
+        })
+        .catch(error => {
+            if (loading === entry) loading = null;
+            throw error;
+        });
+    loading = entry;
+    return entry.promise;
+}
+
+// Слово: буква и дальше буквы и комбинирующие знаки (ударение в сло́во, разложенное й), чтобы слово не распалось на части.
+// Слова с латинскими буквами тоже попадают сюда и просто не находятся в словаре.
+const WORD_RE = /\p{L}[\p{L}\p{M}]*/gu;
+
+// Приводит слово из текста к виду, в котором оно ищется в словаре: без знаков ударения, NFC, нижний регистр.
+function cleanToken(token) {
+    return token.replace(/[̀́]/g, "").normalize("NFC").toLowerCase();
+}
+
+function parseWords(text) {
+    const tokens = text.match(WORD_RE) || [];
+    return [...new Set(tokens.map(cleanToken).filter(Boolean))];
+}
+
+// Слово под позицией курсора (позиция на краю слова тоже считается его), или null.
+function wordAt(text, position) {
+    for (const match of text.matchAll(WORD_RE)) {
+        if (position >= match.index && position <= match.index + match[0].length) return cleanToken(match[0]) || null;
+    }
+    return null;
+}
+
+// id строки таблицы: префикс с минусом, чтобы слово не совпало с id других элементов страницы.
+const rowId = word => `w-${word}`;
+
+function lookup(data, word) {
+    if (!Object.hasOwn(data.words, word)) return { word, rank: null, level: 0 };
+    const [rank, perMillion, volumes] = data.words[word];
+    return { word, rank, perMillion, volumes, level: levelByRank(rank) };
+}
+
+function thousands(volumes) {
+    const value = volumes / 1000;
+    return value < 99.95 ? value.toFixed(1) : String(Math.round(value));
+}
+
+function formatPerMillion(value) {
+    if (value < 0.00005) return "<0.0001";
+    return String(Number(value.toFixed(4)));
+}
+
+function addCell(row, text, className) {
+    const cell = row.insertCell();
+    cell.textContent = text;
+    if (className) cell.className = className;
+    return cell;
+}
+
+function render(rows) {
+    const body = table.tBodies[0];
+    body.replaceChildren();
+    for (const row of rows) {
+        const tr = body.insertRow();
+        tr.id = rowId(row.word);
+        addCell(tr, row.word);
+        if (row.rank === null) {
+            addCell(tr, "не найдено", "muted").colSpan = 4;
+            continue;
+        }
+        addCell(tr, String(row.rank));
+        addCell(tr, formatPerMillion(row.perMillion));
+        addCell(tr, thousands(row.volumes));
+        const level = addCell(tr, "").appendChild(document.createElement("span"));
+        level.className = "lv";
+        level.style.background = `var(--l${row.level})`;
+        level.textContent = row.level;
+    }
+    table.hidden = rows.length === 0;
+    const summary = $("summary");
+    summary.replaceChildren();
+    if (rows.length) {
+        [5, 4, 3, 2, 1].forEach((level, i) => {
+            const star = document.createElement("span");
+            star.textContent = `${level}★`;
+            star.style.color = `var(--l${level})`;
+            summary.append(i ? ", " : "", star, ` - ${rows.filter(row => row.level === level).length}`);
+        });
+        summary.append(`; не найдено - ${rows.filter(row => row.rank === null).length}`);
+    }
+}
+
+let view = null;
+const COLUMNS = {
+    word: { dir: 1 },
+    rank: { dir: 1 },
+    perMillion: { dir: -1 },
+    volumes: { dir: -1 },
+    level: { dir: -1 },
+};
+const DEFAULT_SORT = [{ key: "level", dir: -1 }, { key: "word", dir: 1 }];
+
+function readSort() {
+    try {
+        const stack = JSON.parse(saved(SORT_KEY));
+        const valid = Array.isArray(stack) && stack.length === 2 && stack[0].key !== stack[1].key &&
+            stack.every(item => Object.hasOwn(COLUMNS, item.key) && (item.dir === 1 || item.dir === -1));
+        if (valid) return stack.map(({ key, dir }) => ({ key, dir }));
+    } catch {}
+    return DEFAULT_SORT.map(item => ({ ...item }));
+}
+
+let sortStack = readSort();
+
+function compareRows(a, b) {
+    if ((a.rank === null) !== (b.rank === null)) return a.rank === null ? 1 : -1;
+    if (a.rank !== null) {
+        for (const { key, dir } of sortStack) {
+            const x = a[key], y = b[key];
+            const result = typeof x === "string" ? (x < y ? -1 : x > y ? 1 : 0) : x - y;
+            if (result !== 0) return result * dir;
+        }
+    }
+    return a.word < b.word ? -1 : a.word > b.word ? 1 : 0;
+}
+
+function sortBy(key) {
+    const [first, second] = sortStack;
+    if (first.key === key) {
+        first.dir = -first.dir;
+    } else {
+        const dir = second.key === key ? second.dir : COLUMNS[key].dir;
+        sortStack = [{ key, dir }, first];
+    }
+    save(SORT_KEY, JSON.stringify(sortStack));
+    draw();
+}
+
+function updateHeaders() {
+    for (const th of document.querySelectorAll("th[data-key]")) {
+        const active = sortStack[0].key === th.dataset.key;
+        th.querySelector(".arrow").textContent = active ? (sortStack[0].dir === 1 ? "▲" : "▼") : "";
+        if (active) th.setAttribute("aria-sort", sortStack[0].dir === 1 ? "ascending" : "descending");
+        else th.removeAttribute("aria-sort");
+    }
+}
+
+function draw() {
+    updateHeaders();
+    if (view) render([...view.rows].sort(compareRows));
+}
+
+function showMeta(entry) {
+    const { meta } = entry.data;
+    $("meta").textContent = `Окно лет ${meta.from}–${meta.to}, слов ${format(meta.words)}`;
+}
+
+function updateUrl(words) {
+    const params = new URLSearchParams();
+    if (words.length > 0 && words.length <= MAX_WORDS_IN_URL) params.set("words", words.join(","));
+    if (bounds.join() !== DEFAULT_BOUNDS.join()) params.set("b", bounds.join(","));
+    const query = params.toString().replaceAll("%2C", ",");
+    history.replaceState(null, "", query ? `?${query}` : location.pathname);
+}
+
+let toastTimer = 0;
+
+// Всплывающее уведомление; delay откладывает показ, duration (мс) скрывает само, 0 - до hideToast().
+function showToast(text, { delay = 0, duration = 0 } = {}) {
+    hideToast();
+    toastTimer = setTimeout(() => {
+        toast.textContent = text;
+        toast.hidden = false;
+        if (duration) toastTimer = setTimeout(hideToast, duration);
+    }, delay);
+}
+
+function hideToast() {
+    clearTimeout(toastTimer);
+    toast.hidden = true;
+}
+
+toast.onclick = hideToast;
+
+async function analyze() {
+    const variant = lite;
+    const words = parseWords(input.value);
+    updateUrl(words);
+    let entry = ready;
+    if (entry && entry.lite === variant) {
+        hideToast();
+    } else {
+        showToast("Загрузка словаря…", { delay: 300 });
+        try {
+            entry = await loadRanks();
+        } catch (error) {
+            if (lite === variant) showToast(`Не удалось загрузить словарь: ${error.message}`, { duration: 6000 });
+            return;
+        }
+        if (lite !== variant) return;
+        hideToast();
+    }
+    showMeta(entry);
+    view = { rows: words.map(word => lookup(entry.data, word)) };
+    draw();
+}
+
+function updateLiteHint() {
+    liteHint.textContent = liteCheckbox.checked
+        ? "Сокращённый словарь: загружается быстрее, но без самых редких слов."
+        : "Полный словарь: больше редких слов, но загружается дольше.";
+}
+
+function fillDialog(values, liteValue) {
+    values.forEach((value, i) => { boundInputs[i].value = value; });
+    liteCheckbox.checked = liteValue;
+    updateLiteHint();
+    dialogError.textContent = "";
+}
+
+liteCheckbox.onchange = updateLiteHint;
+
+$("go").onclick = analyze;
+for (const th of document.querySelectorAll("th[data-key]")) {
+    th.onclick = () => sortBy(th.dataset.key);
+    th.onkeydown = event => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); sortBy(th.dataset.key); }
+    };
+}
+updateHeaders();
+input.addEventListener("keydown", event => {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) analyze();
+});
+// Ctrl/Cmd+клик по слову: переход к его строке в таблице (прокрутку и вспышку делает браузер через якорь).
+input.addEventListener("click", async event => {
+    if (!event.ctrlKey && !event.metaKey) return;
+    const word = wordAt(input.value, input.selectionStart);
+    if (!word) return;
+    if (!$(rowId(word))) await analyze();
+    if ($(rowId(word))) location.replace(`#${rowId(word)}`);
+});
+copyButton.onclick = async () => {
+    await analyze();
+    try {
+        await navigator.clipboard.writeText(location.href);
+        copyButton.classList.add("done");
+        setTimeout(() => copyButton.classList.remove("done"), 2000);
+    } catch {
+        showToast("Не удалось скопировать, возьмите ссылку из адресной строки", { duration: 6000 });
+    }
+};
+$("boundsBtn").onclick = () => { fillDialog(bounds, lite); dialog.showModal(); };
+$("dlgCancel").onclick = () => dialog.close();
+$("dlgReset").onclick = () => fillDialog(DEFAULT_BOUNDS, true);
+$("dlgSave").onclick = () => {
+    const values = parseBounds(boundInputs.map(field => field.value).join(","));
+    if (!values) {
+        dialogError.textContent = "Нужны четыре целых числа по возрастанию.";
+        return;
+    }
+    bounds = values;
+    lite = liteCheckbox.checked;
+    save(BOUNDS_KEY, values.join(","));
+    save(LITE_KEY, lite ? "1" : "0");
+    dialog.close();
+    analyze();
+};
+
+const initial = new URLSearchParams(location.search).get("words");
+if (initial) input.value = initial.split(",").join(", ");
+loadRanks()
+    .then(entry => { showMeta(entry); if (initial) analyze(); })
+    .catch(error => { $("meta").textContent = `Не удалось загрузить список слов: ${error.message}`; });
+</script>
+</body>
+</html>
