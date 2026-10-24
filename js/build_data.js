@@ -17,7 +17,7 @@ function newCountry(name) {
         name,
         tfr_2025: null, tfr_2100: null, tfr_c: 0,
         e0m_2100: null, e0m_c: 0, e0f_2100: null, e0f_c: 0,
-        mac: null, srb: null, nmr: null,
+        mac: null, srb: null, nmr: null, migration_profile: null,
         pyramid: { male: nulls(21), female: nulls(21) },
         mortality: { male: { m: nulls(22), q: nulls(22) }, female: { m: nulls(22), q: nulls(22) } },
         population: nulls(years)                   // оба пола, с BASE_YEAR по END_YEAR

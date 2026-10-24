@@ -117,6 +117,7 @@
         <label>Средний возраст матери (MAC) <input type="number" id="mac" step="0.05" min="20" max="40"></label>
         <label>SRB, мальчиков на 100 девочек <input type="number" id="srb" step="0.5" min="90" max="130"></label>
         <label>Чистая миграция, ‰ в год <input type="number" id="nmr" step="0.05" min="-20" max="20"></label>
+        <label>Профиль миграции <select id="mprofile"></select></label>
       </div>
       <p class="note">Траектории: если флажок включён, параметр линейно или с затуханием идёт от значения 2025 года (верхние поля) к значению 2100 года.
         Форма: x = (год − 2025)/75, доля пути g(x) = (1 − e^(−c·x)) / (1 − e^(−c)); c = 0 — прямая линия, c &gt; 0 — быстрее в начале и медленнее в конце.
@@ -181,6 +182,7 @@ const COUNTRIES = {
     "mac": 29.15,
     "srb": 105,
     "nmr": -0.24,
+    "migration_profile": null,
     "pyramid": {
       "male": [
         24942279, 42739276, 48511730, 45686204, 42526154, 44377128, 52145494, 63281937, 52676265, 47064933, 58045377,
@@ -237,6 +239,31 @@ const DEFAULTS = {};
 
 /* ===== МОДЕЛЬ ===== */
 const ASFR_SD = 5.0;   // стандартное отклонение возраста матери, лет: одинаково для всех стран (влияет слабо)
+
+// Возрастной профиль чистой миграции: ключ — последний год возраста диапазона (включительно), значение — доля мигрантов
+// диапазона; доли нормируются на сумму. Внутри диапазона мигранты делятся поровну по годам возраста; пол поровну.
+// ages: null — без профиля: миграция распределяется пропорционально населению.
+const MIGRATION_PROFILES = {
+  typical_2015: { label: "Типовой 2015–2020", ages: { 14: 0.203, 24: 0.224, 54: 0.474, 99: 0.099 } },   // по данным Евростата
+  none: { label: "Без профиля", ages: null }
+};
+const DEFAULT_MIGRATION_PROFILE = "typical_2015";
+
+// Веса 21 возрастной группы (0–4 … 95–99, 100+; для группы 100+ принято 100–104 года) или null для профиля «без профиля»
+function migrationWeights(name) {
+  const prof = MIGRATION_PROFILES[name] ?? MIGRATION_PROFILES[DEFAULT_MIGRATION_PROFILE];
+  if (!prof.ages) return null;
+  const top = [...Object.keys(prof.ages)].map(Number).sort((a, b) => a - b);
+  const total = top.reduce((s, hi) => s + prof.ages[hi], 0);
+  const perAge = new Array(105).fill(0);
+  let lo = 0;
+  for (const hi of top) {
+    const last = Math.min(hi, 104);
+    for (let a = lo; a <= last; a++) perAge[a] = prof.ages[hi] / total / (last - lo + 1);
+    lo = hi + 1;
+  }
+  return Array.from({ length: 21 }, (_, g) => perAge.slice(5 * g, 5 * g + 5).reduce((s, x) => s + x, 0));
+}
 // Население по прогнозу ООН на год (2025–2100), человек
 const wppAt = year => COUNTRY.population[year - DATA.base_year];
 
@@ -304,7 +331,7 @@ function setCountry(iso) {
   const e0m = round2(lifeTable(c.mortality.male, 1).e0), e0f = round2(lifeTable(c.mortality.female, 1).e0);
   for (const k of Object.keys(DEFAULTS)) delete DEFAULTS[k];
   Object.assign(DEFAULTS, {
-    tfr: c.tfr_2025, mac: c.mac, srb: c.srb ?? 105, nmr: c.nmr, e0m, e0f,
+    tfr: c.tfr_2025, mac: c.mac, srb: c.srb ?? 105, nmr: c.nmr, mprofile: c.migration_profile ?? DEFAULT_MIGRATION_PROFILE, e0m, e0f,
     tfr_on: false, tfr_end: c.tfr_2100 ?? c.tfr_2025, tfr_c: c.tfr_c ?? 0,
     e0m_on: false, e0m_end: c.e0m_2100 ?? e0m, e0m_c: c.e0m_c ?? 0,
     e0f_on: false, e0f_end: c.e0f_2100 ?? e0f, e0f_c: c.e0f_c ?? 0
@@ -331,6 +358,9 @@ function runModel(p) {
   const Mo = mortalityFor(COUNTRY.mortality.male, p.e0m), Fo = mortalityFor(COUNTRY.mortality.female, p.e0f);
   const horizon = 2100 - DATA.base_year;
   const mig = Math.pow(1 + p.nmr / 1000, DATA.step);
+  const mw = migrationWeights(p.mprofile);
+  // добавляет x человек в группу i; при оттоке нельзя забрать больше, чем в группе есть; возвращает фактическое изменение
+  const addMigrants = (a, i, x) => { const d = Math.max(x, -a[i]); a[i] += d; return d; };
   const nSteps = Math.round((2100 - DATA.base_year) / DATA.step);
 
   let M = COUNTRY.pyramid.male.slice(), F = COUNTRY.pyramid.female.slice();
@@ -359,12 +389,17 @@ function runModel(p) {
     for (let i = 0; i <= 19; i++) { Mn[i + 1] = M[i] * Sm[i]; Fn[i + 1] = F[i] * Sf[i]; }
     Mn[20] += M[20] * Sm[20]; Fn[20] += F[20] * Sf[20]; // остаются в открытой группе 100+
 
-    // миграция
+    // миграция: чистый приток N (со знаком) делится по возрастным группам по профилю, поровну между полами
+    const N = (mig - 1) * (sum(Mn) + sum(Fn));
     let migTotal = 0;
-    for (let i = 1; i <= 20; i++) {
-      const m2 = Mn[i] * mig, f2 = Fn[i] * mig;
-      migTotal += (m2 - Mn[i]) + (f2 - Fn[i]);
-      Mn[i] = m2; Fn[i] = f2;
+    if (mw) {
+      for (let i = 1; i <= 20; i++) migTotal += addMigrants(Mn, i, N * mw[i] / 2) + addMigrants(Fn, i, N * mw[i] / 2);
+    } else {
+      for (let i = 1; i <= 20; i++) {   // без профиля: каждая группа меняется в одной и той же пропорции
+        const m2 = Mn[i] * mig, f2 = Fn[i] * mig;
+        migTotal += (m2 - Mn[i]) + (f2 - Fn[i]);
+        Mn[i] = m2; Fn[i] = f2;
+      }
     }
 
     // рождения: женщины 15-49 в начале и в конце шага
@@ -375,8 +410,13 @@ function runModel(p) {
     const bM = births * p.srb / (p.srb + 100), bF = births * 100 / (p.srb + 100);
     const sbM = mo.sb, sbF = fo.sb;
     dM += bM * (1 - sbM); dF += bF * (1 - sbF);
-    Mn[0] = bM * sbM * mig; Fn[0] = bF * sbF * mig;
-    migTotal += (Mn[0] - bM * sbM) + (Fn[0] - bF * sbF);
+    Mn[0] = bM * sbM; Fn[0] = bF * sbF;
+    if (mw) migTotal += addMigrants(Mn, 0, N * mw[0] / 2) + addMigrants(Fn, 0, N * mw[0] / 2);
+    else {
+      const m2 = Mn[0] * mig, f2 = Fn[0] * mig;
+      migTotal += (m2 - Mn[0]) + (f2 - Fn[0]);
+      Mn[0] = m2; Fn[0] = f2;
+    }
 
     const popEnd = sum(Mn) + sum(Fn);
     const tot = i0 => sum(Mn.slice(i0[0], i0[1])) + sum(Fn.slice(i0[0], i0[1]));
@@ -412,6 +452,7 @@ if (typeof document !== "undefined") {
   const FIELDS = ["tfr", "e0m", "e0f", "mac", "srb", "nmr",
                   "tfr_end", "tfr_c", "e0m_end", "e0m_c", "e0f_end", "e0f_c"];
   const CHECKS = ["tfr_on", "e0m_on", "e0f_on"];
+  const SELECTS = ["mprofile"];
 
   // Все элементы ищем один раз
   const byId = id => document.getElementById(id);
@@ -421,7 +462,8 @@ if (typeof document !== "undefined") {
     toast: byId("toast"), copy: byId("copy"), reset: byId("reset"), mln: byId("mln"),
     fields: {}
   };
-  for (const k of FIELDS.concat(CHECKS)) ui.fields[k] = byId(k);
+  for (const k of FIELDS.concat(CHECKS, SELECTS)) ui.fields[k] = byId(k);
+  ui.fields.mprofile.innerHTML = Object.entries(MIGRATION_PROFILES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join("");
   const TRAJ = ["tfr", "e0m", "e0f"];
 
   let result = null;
@@ -455,11 +497,13 @@ if (typeof document !== "undefined") {
       p[k] = v;
     }
     for (const k of CHECKS) p[k] = !!ui.fields[k].checked;
+    for (const k of SELECTS) if (Object.hasOwn(MIGRATION_PROFILES, ui.fields[k].value)) p[k] = ui.fields[k].value;
     return p;
   }
   function writeParams(p) {
     for (const k of FIELDS) ui.fields[k].value = p[k];
     for (const k of CHECKS) ui.fields[k].checked = !!p[k];
+    for (const k of SELECTS) ui.fields[k].value = p[k];
     syncTraj();
   }
   // затемняем поля траектории, пока флажок выключен
@@ -478,7 +522,7 @@ if (typeof document !== "undefined") {
   function saveState() {
     try {
       const p = readParams(), overrides = {};
-      for (const k of FIELDS.concat(CHECKS)) if (p[k] !== DEFAULTS[k]) overrides[k] = p[k];
+      for (const k of FIELDS.concat(CHECKS, SELECTS)) if (p[k] !== DEFAULTS[k]) overrides[k] = p[k];
       localStorage.setItem(storageKey(), JSON.stringify({ params: overrides, mln: ui.mln.checked }));
     } catch (e) { /* storage недоступен — работаем без сохранения */ }
   }
@@ -613,6 +657,7 @@ if (typeof document !== "undefined") {
     if (saved.params) {
       for (const k of FIELDS) if (Number.isFinite(saved.params[k])) start[k] = saved.params[k];
       for (const k of CHECKS) if (typeof saved.params[k] === "boolean") start[k] = saved.params[k];
+      for (const k of SELECTS) if (Object.hasOwn(MIGRATION_PROFILES, saved.params[k])) start[k] = saved.params[k];
     }
     writeParams(start);
     if (first) ui.mln.checked = saved.mln !== false;
@@ -638,6 +683,7 @@ if (typeof document !== "undefined") {
 
   for (const k of FIELDS) ui.fields[k].addEventListener("input", () => { update(); saveState(); });
   for (const k of CHECKS) ui.fields[k].addEventListener("change", () => { syncTraj(); update(); saveState(); });
+  for (const k of SELECTS) ui.fields[k].addEventListener("change", () => { update(); saveState(); });
   ui.mln.addEventListener("change", () => { renderTable(); saveState(); });
   ui.copy.addEventListener("click", copyJson);
   ui.reset.addEventListener("click", () => { writeParams(DEFAULTS); update(); saveState(); showToast("Параметры сброшены"); });
