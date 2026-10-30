@@ -38,7 +38,9 @@ export function escapeHtml(unsafe) {
 export function createElement(tagName, classList = [], attributes = {}, text = undefined) { 
     const newElem = document.createElement(tagName);
     for (let cls of classList) if (cls !== '') newElem.classList.add(cls);
-    for (let [name, value] of Object.entries(attributes)) newElem.setAttribute(name, value.toString());
+    for (let [name, value] of Object.entries(attributes)) {
+        if (value !==undefined) newElem.setAttribute(name, value.toString());
+    }
     if (text !== undefined) newElem.appendChild(document.createTextNode(text));
     return newElem;
 }

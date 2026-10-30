@@ -371,7 +371,11 @@ function showToast(message, isError = false) {
     el.classList.add('toast--visible');
 }
 
-document.addEventListener('visibilitychange', () => {
+function onToastAnimationEnd(e) {
+    e.currentTarget.classList.remove('toast--visible');
+}
+
+function onVisibilityChange() {
     if (document.visibilityState !== 'visible') return;
     const confStr = loadFromStorage(lsPrefix + 'config');
     if (!confStr) return;
@@ -379,11 +383,11 @@ document.addEventListener('visibilitychange', () => {
     if ((updatedAt ?? 0) > (config.updatedAt ?? 0)) {
         if (document.getElementById('sourceModal').classList.contains('show')) {
             sForm.modal.hide();
+            showToast('Данные обновлены из другой вкладки');
         }
-        showToast('Данные обновлены из другой вкладки');
         updateConfig(confStr);
     }
-});
+}
 
 /* ---- инициализация ---- */
 
@@ -400,6 +404,8 @@ function init() {
         'click-exp-clip': exportClipboard,
         'click-imp-clip': importClipboard
     });
+    document.getElementById('appToast').addEventListener('animationend', onToastAnimationEnd);
+    document.addEventListener('visibilitychange', onVisibilityChange);
     const confStr = loadFromStorage(lsPrefix + 'config');
     if (confStr) updateConfig(confStr);
     else resetCfg();
