@@ -135,7 +135,7 @@ function generatePage() {
     years.appendChild(createElement('th', [], {colspan: 2}));
 
     // [2] Строка разбита на две ячейки: метка + суммы по investment-источникам.
-    //     Monthly-источники не суммируются — у них нет вложенной суммы и дохода.
+    //     monthly-источники не суммируются — у них нет вложенной суммы и дохода.
     const investSources = config.incomes.filter(s => s.type === 'investment');
     const totalInvestSum    = investSources.reduce((acc, s) => acc + s.sum, 0);
     const totalInvestIncome = investSources.reduce((acc, s) => acc + (s.income ?? 0), 0);
@@ -209,6 +209,11 @@ function onConfigUpdate() {
 
 function updateConfig(confStr) {
     config = JSON.parse(confStr, dateReviver);
+    // Обратная совместимость: добавляем updatedAt в старые конфиги без него
+    if (!config.updatedAt) {
+        config.updatedAt = Date.now();
+        saveConfig();
+    }
     onConfigUpdate();
 }
 
@@ -236,17 +241,17 @@ function importConfig() {
 }
 
 function exportClipboard() {
-    const json = JSON.stringify(config, dateReplacer, 2);
-    navigator.clipboard.writeText(json).then(() => alert('Настройки скопированы в буфер обмена'));
+    const json = JSON.stringify(config, dateReplacer); // без форматирования — для передачи в мессенджере
+    navigator.clipboard.writeText(json).then(() => showToast('Настройки скопированы в буфер обмена'));
 }
 
 function importClipboard() {
     navigator.clipboard.readText().then(text => {
         try {
             updateConfig(text);
-            alert('Настройки импортированы из буфера обмена');
+            showToast('Настройки импортированы из буфера обмена');
         } catch {
-            alert('Не удалось прочитать настройки');
+            showToast('Не удалось прочитать настройки', true);
         }
     });
 }
@@ -333,6 +338,7 @@ function saveSource() {
     if (editingIndex === -1) config.incomes.push(source);
     else config.incomes[editingIndex] = source;
 
+    config.updatedAt = Date.now();
     onConfigUpdate();
     sForm.modal.hide();
 }
@@ -340,6 +346,7 @@ function saveSource() {
 function deleteSource() {
     lastDeleted = config.incomes.splice(editingIndex, 1)[0];
     document.getElementById('btnRestore').disabled = false;
+    config.updatedAt = Date.now();
     onConfigUpdate();
     sForm.modal.hide();
 }
@@ -349,8 +356,34 @@ function restoreSource() {
     config.incomes.push(lastDeleted);
     lastDeleted = null;
     document.getElementById('btnRestore').disabled = true;
+    config.updatedAt = Date.now();
     onConfigUpdate();
 }
+
+/* ---- синхронизация вкладок ---- */
+
+function showToast(message, isError = false) {
+    const el = document.getElementById('appToast');
+    el.textContent = message;
+    el.classList.toggle('toast--error', isError);
+    el.classList.remove('toast--visible');
+    void el.offsetWidth; // reflow для перезапуска анимации
+    el.classList.add('toast--visible');
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    const confStr = loadFromStorage(lsPrefix + 'config');
+    if (!confStr) return;
+    const {updatedAt} = JSON.parse(confStr);
+    if ((updatedAt ?? 0) > (config.updatedAt ?? 0)) {
+        if (document.getElementById('sourceModal').classList.contains('show')) {
+            sForm.modal.hide();
+        }
+        showToast('Данные обновлены из другой вкладки');
+        updateConfig(confStr);
+    }
+});
 
 /* ---- инициализация ---- */
 

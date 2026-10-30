@@ -105,6 +105,36 @@ main {
     color: var(--bs-secondary-color);
 }
 
+/* ── Тост уведомления ── */
+#appToast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1100;
+    opacity: 0;
+    pointer-events: none;
+}
+#appToast.toast--visible {
+    animation: toastLifecycle 3.5s ease forwards;
+    pointer-events: auto;
+}
+#appToast.toast--error {
+    background-color: var(--bs-danger-bg-subtle);
+    border-color: var(--bs-danger-border-subtle);
+}
+@keyframes toastLifecycle {
+    0%   { opacity: 0; transform: translateY(0.5rem); }
+    10%  { opacity: 1; transform: translateY(0); }
+    80%  { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; }
+}
+
 @media (max-width: 768px) {
     /* на будущее, чтобы не забыть */
 }
