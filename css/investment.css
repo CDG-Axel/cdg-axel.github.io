@@ -164,7 +164,6 @@ details.dropdown > ul a:hover { background: var(--color-secondary-bg); }
     width: 100%;
     /* При 35% + 10% колонках источника/суммы на 7 колонок по 80px нужно ~1020px.
        min-width не даёт таблице сжаться ниже этого предела на узких экранах. */
-    min-width: 1020px;
     border-collapse: collapse;
 }
 .timeline-table th,
