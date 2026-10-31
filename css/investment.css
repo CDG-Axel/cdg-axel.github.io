@@ -333,7 +333,7 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
 .dialog-footer .btn-danger { margin-right: auto; }
 
 /* ── Форма ── */
-#sourceForm { padding: 1rem 1.25rem; }
+#sourceForm { padding: 0.5rem 0.75rem 0.25rem; }
 
 .field { margin-bottom: 0.75rem; }
 .field:last-child { margin-bottom: 0; }
@@ -441,13 +441,6 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
     .summary-card   { flex-direction: column; }
     .summary-stats  { flex-direction: column; gap: 0.5rem; }
     .summary-actions { flex-direction: row; flex-wrap: wrap; }
-    /* Уменьшаем боковые отступы формы — date-inputs получают больше места */
-    #sourceForm { padding: 1rem 0.75rem; }
     /* Уменьшаем промежуток между полями дат, чтобы оба точно влезали в ряд */
     .field-row { gap: 0.4rem; }
-}
-
-/* Ландшафт на телефоне — высота маленькая, жмём вертикальные отступы формы */
-@media (max-height: 600px) {
-    #sourceForm { padding: 0.5rem 0.75rem 0.25rem; }
 }
