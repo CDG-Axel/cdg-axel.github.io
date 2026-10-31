@@ -1,38 +1,193 @@
+/* ── Переменные: светлая тема ── */
 :root {
+    color-scheme: light dark;
+    --color-bg:           #f8f9fa;
+    --color-surface:      #ffffff;
+    --color-text:         #212529;
+    --color-text-muted:   #6c757d;
+    --color-border:       #dee2e6;
+    --color-accent:       #0d6efd;
+    --color-accent-hover: #0b5ed7;
+    --color-accent-text:  #ffffff;
+    --color-danger:       #dc3545;
+    --color-danger-bg:    #f8d7da;
+    --color-warning-bg:   #fff3cd;
+    --color-success-bg:   #d1e7dd;
+    --color-secondary-bg: #e9ecef;
+    --color-primary-bg:   #cfe2ff;
+    --color-shadow:       rgba(0, 0, 0, 0.1);
+
     --timeline-col-source: 35%;
     --timeline-col-amount: 10%;
-    --timeline-month-min: 80px;
-    --main-max-width: 1200px;
+    --timeline-month-min:  80px;
+    --main-max-width:      1200px;
+}
+
+/* ── Переменные: тёмная тема ── */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-bg:           #212529;
+        --color-surface:      #2c3034;
+        --color-text:         #dee2e6;
+        --color-text-muted:   #adb5bd;
+        --color-border:       #495057;
+        --color-accent:       #6ea8fe;
+        --color-accent-hover: #8bb9fe;
+        --color-accent-text:  #000000;
+        --color-danger:       #ea868f;
+        --color-danger-bg:    #2c0b0e;
+        --color-warning-bg:   #332701;
+        --color-success-bg:   #0a3622;
+        --color-secondary-bg: #343a40;
+        --color-primary-bg:   #031633;
+        --color-shadow:       rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* ── Базовые стили ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 main {
     max-width: var(--main-max-width);
-    margin-inline: auto;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
 }
 
+/* ── Сводка ── */
+.summary-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+.summary-stats {
+    display: flex;
+    flex: 1;
+    gap: 2rem;
+}
+.summary-stats > div {
+    flex: 1;
+}
+.summary-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+/* ── Кнопки ── */
+button {
+    cursor: pointer;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.85rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    transition: background 0.15s;
+}
+button:hover:not(:disabled) { background: var(--color-secondary-bg); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.btn-primary {
+    background: var(--color-accent);
+    color: var(--color-accent-text);
+    border-color: var(--color-accent);
+}
+button.btn-primary:hover:not(:disabled) {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+button.btn-danger {
+    background: transparent;
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+button.btn-danger:hover:not(:disabled) { background: var(--color-danger-bg); }
+
+/* ── Дропдаун ── */
+details.dropdown { position: relative; }
+details.dropdown > summary {
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.85rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    transition: background 0.15s;
+    user-select: none;
+}
+details.dropdown > summary::-webkit-details-marker { display: none; }
+details.dropdown > summary:hover { background: var(--color-secondary-bg); }
+details.dropdown > ul {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    min-width: 200px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    list-style: none;
+    padding: 0.25rem 0;
+    margin: 0;
+    box-shadow: 0 4px 12px var(--color-shadow);
+    z-index: 100;
+}
+details.dropdown > ul a {
+    display: block;
+    padding: 0.4rem 1rem;
+    color: var(--color-text);
+    text-decoration: none;
+    cursor: pointer;
+}
+details.dropdown > ul a:hover { background: var(--color-secondary-bg); }
+
 /* ── Таблица ── */
+.table-wrap { overflow-x: auto; }
+
 .timeline-table {
     table-layout: fixed;
-    min-width: 100%;
+    width: 100%;
+    /* При 35% + 10% колонках источника/суммы на 7 колонок по 80px нужно ~1020px.
+       min-width не даёт таблице сжаться ниже этого предела на узких экранах. */
+    min-width: 1020px;
+    border-collapse: collapse;
 }
-.timeline-table :where(th, td):nth-child(-n+2) {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    word-wrap: break-word;
+.timeline-table th,
+.timeline-table td {
+    border: 1px solid var(--color-border);
 }
 .timeline-table :where(th, td):first-child {
     width: var(--timeline-col-source);
     white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
 }
 .timeline-table :where(th, td):nth-child(2) {
     width: var(--timeline-col-amount);
     white-space: nowrap;
+    overflow: hidden;
 }
 
 /* ── Строки данных ── */
 .timeline-row { height: 40px; }
 .timeline-row td:nth-child(2),
-.monthly-sum  td:nth-child(2) { text-align: right; }
+.monthly-sum  td:nth-child(2) { text-align: right; padding: 0 0.3rem; }
 .timeline-row td:nth-child(n+3) {
     position: relative;
     padding: 0;
@@ -40,27 +195,32 @@ main {
 
 /* [1] Выделение ячейки суммы для ежемесячных источников — они не входят
        в суммарные инвестиции, поэтому это визуально разграничивает типы. */
-.timeline-row--monthly td:nth-child(2) { background-color: var(--bs-secondary-bg-subtle); }
+.timeline-row--monthly td:nth-child(2) { background-color: var(--color-secondary-bg); }
 
-/* ── Шапка: месяцы, год, итого ── */
-.timeline-month th { background-color: var(--bs-secondary-bg-subtle); }
-.timeline-month :where(th:nth-child(n+3), td:nth-child(n+3)),
-.monthly-sum    :where(th:nth-child(n+2), td:nth-child(n+2)) {
+/* ── Шапка ── */
+.timeline-month th {
+    background-color: var(--color-secondary-bg);
+    padding: 0.25rem 0.4rem;
+    font-size: 0.9rem;
+}
+.timeline-month th:nth-child(n+3) {
     min-width: var(--timeline-month-min);
     text-align: center;
-    vertical-align: middle;
-    padding: 0.25rem !important;
-}
-.timeline-month :where(th:nth-child(n+3), td:nth-child(n+3)) { font-size: 0.9rem; }
-.monthly-sum    :where(th:nth-child(n+2), td:nth-child(n+2)) {
-    font-weight: bold;
-    font-size: 0.8rem;
 }
 .timeline-year :where(th, td) {
-    min-width: var(--timeline-month-min);
     text-align: center;
     font-weight: bold;
     font-size: 0.9rem;
+    padding: 0.2rem 0.25rem;
+}
+.monthly-sum :where(th, td) {
+    padding: 0.2rem 0.25rem;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+.monthly-sum :where(th:nth-child(n+2), td:nth-child(n+2)) {
+    min-width: var(--timeline-month-min);
 }
 
 /* Подсветка текущего месяца.
@@ -69,7 +229,7 @@ main {
 .timeline-month th:nth-child(4),
 .monthly-sum    td:nth-child(4),
 .timeline-row   td:nth-child(4) {
-    background-color: var(--bs-primary-bg-subtle);
+    background-color: var(--color-primary-bg);
 }
 
 /* ── Бар дохода ── */
@@ -85,27 +245,137 @@ main {
     justify-content: center;
 
     font-size: 0.7rem;
-    color: var(--bs-body-color);
+    color: var(--color-text);
     border: 1px solid rgba(0, 0, 0, 0.1);
     padding: 0 0.1rem;
     border-radius: 3px;
-    background-color: var(--bs-success-bg-subtle);
+    background-color: var(--color-success-bg);
 
     overflow: hidden;
     white-space: nowrap;
 }
-.income-bar.yellow { background-color: var(--bs-warning-bg-subtle); }
-.income-bar.red    { background-color: var(--bs-danger-bg-subtle); }
-.income-bar.gray   { background-color: var(--bs-secondary-bg); }
+.income-bar.yellow { background-color: var(--color-warning-bg); }
+.income-bar.red    { background-color: var(--color-danger-bg); }
+.income-bar.gray   { background-color: var(--color-secondary-bg); }
 
-/* ── Описание источника ── */
+/* ── Ячейка источника ── */
+.source-cell {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    padding: 0.15rem 0.4rem;
+}
 .source-desc {
     display: block;
     font-size: 0.8rem;
-    color: var(--bs-secondary-color);
+    color: var(--color-text-muted);
+}
+.edit-btn {
+    flex-shrink: 0;
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 0.2rem 0.25rem;
+    font-size: 0.9rem;
+    opacity: 0.35;
+    line-height: 1;
+    transition: opacity 0.15s;
+}
+.edit-btn:hover  { opacity: 1; background: transparent; }
+.edit-btn:active { opacity: 1; background: transparent; border-color: var(--color-border); }
+
+/* ── Диалог ── */
+dialog {
+    border: none;
+    padding: 0;
+    border-radius: 10px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    max-width: 480px;
+    width: 90vw;
+}
+dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+dialog[open] { animation: dialogOpen 0.2s ease; }
+@keyframes dialogOpen {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Тост уведомления ── */
+.dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.dialog-header h5 { margin: 0; font-size: 1rem; font-weight: 600; }
+.dialog-close {
+    border: none;
+    background: transparent;
+    font-size: 1.1rem;
+    padding: 0.2rem 0.4rem;
+    opacity: 0.5;
+    line-height: 1;
+}
+.dialog-close:hover { opacity: 1; background: transparent; }
+
+.dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--color-border);
+}
+.dialog-footer .btn-danger { margin-right: auto; }
+
+/* ── Форма ── */
+#sourceForm { padding: 1rem 1.25rem; }
+
+.field { margin-bottom: 0.75rem; }
+.field:last-child { margin-bottom: 0; }
+.field label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+.field input,
+.field select {
+    display: block;
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 0.9rem;
+}
+.field input:focus,
+.field select:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -1px;
+    border-color: var(--color-accent);
+}
+.field-row {
+    display: flex;
+    gap: 0.75rem;
+}
+.field-row > .field { flex: 1; }
+.field-error {
+    display: none;
+    font-size: 0.78rem;
+    color: var(--color-danger);
+    margin-top: 0.2rem;
+}
+/* Валидация — показываем ошибки только после попытки сохранить */
+#sourceForm.was-validated input:invalid,
+#sourceForm.was-validated select:invalid { border-color: var(--color-danger); }
+#sourceForm.was-validated input:invalid ~ .field-error,
+#sourceForm.was-validated select:invalid ~ .field-error { display: block; }
+
+/* ── Тост ── */
 #appToast {
     position: fixed;
     bottom: 1.5rem;
@@ -113,9 +383,9 @@ main {
     padding: 0.6rem 1rem;
     border-radius: 6px;
     font-size: 0.9rem;
-    background-color: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 2px 8px var(--color-shadow);
     z-index: 1100;
     opacity: 0;
     pointer-events: none;
@@ -125,8 +395,8 @@ main {
     pointer-events: auto;
 }
 #appToast.toast--error {
-    background-color: var(--bs-danger-bg-subtle);
-    border-color: var(--bs-danger-border-subtle);
+    background: var(--color-danger-bg);
+    border-color: var(--color-danger);
 }
 @keyframes toastLifecycle {
     0%   { opacity: 0; transform: translateY(0.5rem); }
@@ -135,6 +405,8 @@ main {
     100% { opacity: 0; }
 }
 
-@media (max-width: 768px) {
-    /* на будущее, чтобы не забыть */
+@media (max-width: 600px) {
+    .summary-card   { flex-direction: column; }
+    .summary-stats  { flex-direction: column; gap: 0.5rem; }
+    .summary-actions { flex-direction: row; flex-wrap: wrap; }
 }
