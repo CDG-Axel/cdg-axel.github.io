@@ -15,96 +15,107 @@
         gtag('js', new Date());
         gtag('config', 'G-VCTDGHCKB3');
     </script>
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="/css/theme.css" rel="stylesheet">
     <link href="/css/investment.css" rel="stylesheet">
+    <script src="/js/color-modes.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/investment.js"></script>
 </head>
 <body>
-<main>
-    <div class="summary-card">
-        <div class="summary-stats">
-            <div aria-label="Доход / прогноз">
-                <strong>Текущий доход:</strong> <span id="pIncomeCur"></span>
-                <br><strong>Прогноз через 3 мес:</strong> <span id="pIncome3m"></span>
+<main class="container-fluid my-4">
+    <!-- Summary -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col" aria-label="Доход / прогноз">
+                    <strong>Текущий доход:</strong> <span id="pIncomeCur"></span>
+                    <br><strong>Прогноз через 3 мес:</strong> <span id="pIncome3m"></span>
+                </div>
+                <div class="col" aria-label="Проблемные источники">
+                    <strong>Проблемные источники:</strong>
+                    <span id="pTroubles"></span>
+                </div>
+                <div class="d-grid gap-1 col-auto">
+                    <button class="btn btn-primary btn-sm" evnt-click-add>+ Добавить</button>
+                    <button class="btn btn-outline-secondary btn-sm" id="btnRestore" title="Отменить удаление" evnt-click-restore disabled>Отменить</button>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown">☰ меню</button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" evnt-click-export>Экспорт конфига (файл)</a></li>
+                            <li><a class="dropdown-item" evnt-click-import>Импорт конфига (файл)</a></li>
+                            <li><a class="dropdown-item" evnt-click-exp-clip>Экспорт конфига (буфер обмена)</a></li>
+                            <li><a class="dropdown-item" evnt-click-imp-clip>Импорт конфига (буфер обмена)</a></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div aria-label="Проблемные источники">
-                <strong>Проблемные источники:</strong>
-                <span id="pTroubles"></span>
-            </div>
-        </div>
-        <div class="summary-actions">
-            <button evnt-click-add>+ Добавить</button>
-            <button id="btnRestore" title="Отменить удаление" evnt-click-restore disabled>Отменить</button>
-            <details id="menuDropdown" class="dropdown">
-                <summary>☰ меню</summary>
-                <ul>
-                    <li><a evnt-click-export>Экспорт конфига (файл)</a></li>
-                    <li><a evnt-click-import>Импорт конфига (файл)</a></li>
-                    <li><a evnt-click-exp-clip>Экспорт конфига (буфер обмена)</a></li>
-                    <li><a evnt-click-imp-clip>Импорт конфига (буфер обмена)</a></li>
-                </ul>
-            </details>
         </div>
     </div>
 
-    <div class="table-wrap">
-        <table class="timeline-table">
+    <div class="table-responsive">
+        <table class="timeline-table table table-bordered">
             <thead id="tlHeader"></thead>
             <tbody id="tlBody"></tbody>
         </table>
     </div>
 </main>
 
-<dialog id="sourceModal" aria-labelledby="sourceModalTitle">
-    <div class="dialog-header">
-        <h5 id="sourceModalTitle">Источник дохода</h5>
-        <button type="button" class="dialog-close" evnt-click-modal-close aria-label="Закрыть">✕</button>
+<div class="modal fade" id="sourceModal" tabindex="-1" aria-labelledby="sourceModalTitle">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sourceModalTitle">Источник дохода</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sourceForm" novalidate>
+                    <div class="mb-3">
+                        <label for="fName" class="form-label">Название</label>
+                        <input type="text" class="form-control" id="fName" required>
+                        <div class="invalid-feedback">Введите название источника</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fType" class="form-label">Тип</label>
+                        <select class="form-select" id="fType" required evnt-change-type>
+                            <option value="monthly">Ежемесячный (зарплата, аренда…)</option>
+                            <option value="investment">Инвестиция (депозит, акции…)</option>
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="fSum" class="form-label" id="fSumLabel">Сумма, руб.</label>
+                            <input type="number" class="form-control" id="fSum" min="0" step="any" required>
+                            <div class="invalid-feedback">Введите положительное число</div>
+                        </div>
+                        <div class="col" id="fIncomeGroup">
+                            <label for="fIncome" class="form-label">Ожидаемый доход, руб.</label>
+                            <input type="number" class="form-control" id="fIncome" min="0" step="any">
+                            <div class="invalid-feedback">Введите ожидаемый доход</div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="fStart" class="form-label">Дата начала</label>
+                            <input type="date" class="form-control" id="fStart" required evnt-change-dates>
+                            <div class="invalid-feedback">Укажите дату начала</div>
+                        </div>
+                        <div class="col">
+                            <label for="fEnd" class="form-label" id="fEndLabel">Дата окончания</label>
+                            <input type="date" class="form-control" id="fEnd" evnt-change-dates>
+                            <div class="invalid-feedback" id="fEndFeedback">Укажите дату окончания</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger me-auto" id="btnDelete" evnt-click-delete>Удалить</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="btnSave" evnt-click-save>Сохранить</button>
+            </div>
+        </div>
     </div>
-    <form id="sourceForm" novalidate>
-        <div class="field">
-            <label for="fName">Название</label>
-            <input type="text" id="fName" required>
-            <div class="field-error">Введите название источника</div>
-        </div>
-        <div class="field">
-            <label for="fType">Тип</label>
-            <select id="fType" required evnt-change-type>
-                <option value="monthly">Ежемесячный (зарплата, аренда…)</option>
-                <option value="investment" selected>Инвестиция (депозит, акции…)</option>
-            </select>
-        </div>
-        <div class="field-row">
-            <div class="field">
-                <label for="fSum" id="fSumLabel">Сумма, руб.</label>
-                <input type="number" id="fSum" min="0" step="any" required>
-                <div class="field-error">Введите положительное число</div>
-            </div>
-            <div class="field" id="fIncomeGroup">
-                <label for="fIncome">Ожидаемый доход, руб.</label>
-                <input type="number" id="fIncome" min="0" step="any">
-                <div class="field-error">Введите ожидаемый доход</div>
-            </div>
-        </div>
-        <div class="field-row">
-            <div class="field">
-                <label for="fStart">Дата начала</label>
-                <input type="date" id="fStart" required evnt-change-dates>
-                <div class="field-error">Укажите дату начала</div>
-            </div>
-            <div class="field">
-                <label for="fEnd" id="fEndLabel">Дата окончания</label>
-                <input type="date" id="fEnd" evnt-change-dates>
-                <div class="field-error" id="fEndFeedback">Укажите дату окончания</div>
-            </div>
-        </div>
-    </form>
-    <div class="dialog-footer">
-        <button type="button" class="btn-danger" id="btnDelete" evnt-click-delete>Удалить</button>
-        <button type="button" evnt-click-modal-close>Отмена</button>
-        <button type="button" class="btn-primary" id="btnSave" evnt-click-save>Сохранить</button>
-    </div>
-</dialog>
+</div>
 
-<div id="appToast" role="alert" aria-live="polite"></div>
-
-<script type="module" src="js/investment.js"></script>
 </body>
 </html>

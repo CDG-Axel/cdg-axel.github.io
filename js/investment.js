@@ -45,19 +45,19 @@ function activityColor(source, now) {
 }
 
 function calcMonthData(source, monthStart, now) {
-    const monthEnd = new Date(Date.UTC(monthStart.getUTCFullYear(), 1 + monthStart.getUTCMonth(), 0));
-    const daysInMonth = monthEnd.getUTCDate();
+    const monthEnd = new Date(monthStart.getFullYear(), 1 + monthStart.getMonth(), 0);
+    const daysInMonth = monthEnd.getDate();
     let income, activeDays = 0;
     let style;
 
-    if (source.start_date <= monthEnd && (!source.end_date || source.end_date >= monthStart)) {
+    if (source.start_date < monthEnd && (!source.end_date || source.end_date > monthStart)) {
         const activeStart = source.start_date > monthStart ? source.start_date : monthStart;
         const activeEnd = (!source.end_date || source.end_date > monthEnd) ? monthEnd : source.end_date;
         activeDays = Math.floor((activeEnd - activeStart) / msPerDay) + 1;
 
         // Ограничения 70/30 гарантируют минимальную видимую ширину бара при коротких периодах
-        let barSt = Math.min(70, Math.round((activeStart.getUTCDate() - 1) / daysInMonth * 100));
-        let barEd = Math.max(30, Math.round(activeEnd.getUTCDate() / daysInMonth * 100));
+        let barSt = Math.min(70, Math.round((activeStart.getDate() - 1) / daysInMonth * 100));
+        let barEd = Math.max(30, Math.round(activeEnd.getDate() / daysInMonth * 100));
         if (barEd - barSt < 100) {
             style = (barSt ? `left: ${barSt}%; ` : '') + `width: ${barEd - barSt}%`;
         }
@@ -91,19 +91,19 @@ function createSource(source, idx) {
     // [1] Класс timeline-row--monthly для визуального выделения ежемесячных источников
     const row = createElement('tr', ['timeline-row', source.type === 'monthly' ? 'timeline-row--monthly' : '']);
     const nameCell = createElement('td');
-    const from = source.start_date.toLocaleDateString(lang, {timeZone: 'UTC'});
+    const from = source.start_date.toLocaleDateString(lang);
     const days = source.end_date ? Math.round(1 + (source.end_date - source.start_date) / msPerDay) : 0;
-    const end = days > 0 ? `по ${source.end_date.toLocaleDateString(lang, {timeZone: 'UTC'})}, ${days} ${pluralDays(days)}` : '(бессрочно)';
+    const end = days > 0 ? `по ${source.end_date.toLocaleDateString(lang)}, ${days} ${pluralDays(days)}` : '(бессрочно)';
     const period = `C ${from} ${end}`;
 
-    const wrapper = createElement('div', ['source-cell']);
+    const wrapper = createElement('div', ['d-flex', 'justify-content-between', 'align-items-center']);
     const textBlock = createElement('div');
     textBlock.append(
         document.createTextNode(source.name),
         createElement('br'),
         createElement('span', ['source-desc'], {}, period)
     );
-    const editBtn = createElement('button', ['edit-btn'], {title: 'Редактировать / удалить'}, '✎');
+    const editBtn = createElement('button', ['btn', 'flex-shrink-0', 'px-1'], {title: 'Редактировать / удалить'}, '✎');
     editBtn.addEventListener('click', () => openModal(idx));
 
     wrapper.append(textBlock, editBtn);
@@ -156,11 +156,11 @@ function generatePage() {
     const sources = config.incomes.map(createSource);
 
     for (let i = -1; i <= 5; i++) {
-        const monthStart = new Date(Date.UTC(now.getFullYear(), now.getMonth() + i, 1));
-        const year = monthStart.getUTCFullYear();
+        const monthStart = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const year = monthStart.getFullYear();
         monthsPerYear[year] = (monthsPerYear[year] || 0) + 1;
 
-        const monthLabel = monthStart.toLocaleDateString(lang, {month: 'short', timeZone: 'UTC'});
+        const monthLabel = monthStart.toLocaleDateString(lang, {month: 'short'});
         months.appendChild(createElement('th', [], attrScope,
             monthLabel.at(0).toUpperCase() + monthLabel.slice(1, 3)));
 
@@ -209,11 +209,6 @@ function onConfigUpdate() {
 
 function updateConfig(confStr) {
     config = JSON.parse(confStr, dateReviver);
-    // Обратная совместимость: добавляем updatedAt в старые конфиги без него
-    if (!config.updatedAt) {
-        config.updatedAt = Date.now();
-        saveConfig();
-    }
     onConfigUpdate();
 }
 
@@ -241,17 +236,17 @@ function importConfig() {
 }
 
 function exportClipboard() {
-    const json = JSON.stringify(config, dateReplacer); // без форматирования — для передачи в мессенджере
-    navigator.clipboard.writeText(json).then(() => showToast('Настройки скопированы в буфер обмена'));
+    const json = JSON.stringify(config, dateReplacer, 2);
+    navigator.clipboard.writeText(json).then(() => alert('Настройки скопированы в буфер обмена'));
 }
 
 function importClipboard() {
     navigator.clipboard.readText().then(text => {
         try {
             updateConfig(text);
-            showToast('Настройки импортированы из буфера обмена');
+            alert('Настройки импортированы из буфера обмена');
         } catch {
-            showToast('Не удалось прочитать настройки', true);
+            alert('Не удалось прочитать настройки');
         }
     });
 }
@@ -259,7 +254,7 @@ function importClipboard() {
 /* ---- модальная форма ---- */
 
 const sForm = {
-    dialog:      document.getElementById('sourceModal'),
+    modal:       new bootstrap.Modal(document.getElementById('sourceModal')),
     form:        document.getElementById('sourceForm'),
     title:       document.getElementById('sourceModalTitle'),
     name:        document.getElementById('fName'),
@@ -318,7 +313,7 @@ function openModal(idx = -1) {
         sForm.bDelete.style.display = '';
     }
     updateFieldsByType();
-    sForm.dialog.showModal();
+    sForm.modal.show();
 }
 
 function saveSource() {
@@ -338,17 +333,15 @@ function saveSource() {
     if (editingIndex === -1) config.incomes.push(source);
     else config.incomes[editingIndex] = source;
 
-    config.updatedAt = Date.now();
     onConfigUpdate();
-    sForm.dialog.close();
+    sForm.modal.hide();
 }
 
 function deleteSource() {
     lastDeleted = config.incomes.splice(editingIndex, 1)[0];
     document.getElementById('btnRestore').disabled = false;
-    config.updatedAt = Date.now();
     onConfigUpdate();
-    sForm.dialog.close();
+    sForm.modal.hide();
 }
 
 function restoreSource() {
@@ -356,72 +349,23 @@ function restoreSource() {
     config.incomes.push(lastDeleted);
     lastDeleted = null;
     document.getElementById('btnRestore').disabled = true;
-    config.updatedAt = Date.now();
     onConfigUpdate();
-}
-
-/* ---- синхронизация вкладок ---- */
-
-function showToast(message, isError = false) {
-    const el = document.getElementById('appToast');
-    el.textContent = message;
-    el.classList.toggle('toast--error', isError);
-    el.classList.remove('toast--visible');
-    void el.offsetWidth; // reflow для перезапуска анимации
-    el.classList.add('toast--visible');
-}
-
-function onToastAnimationEnd(e) {
-    e.currentTarget.classList.remove('toast--visible');
-}
-
-function onDialogClose() {
-    // Убираем фокус с элемента, который открыл диалог (напр. кнопка ✎),
-    // чтобы после закрытия через ESC не оставалась обводка
-    document.activeElement?.blur();
-}
-
-function onVisibilityChange() {
-    if (document.visibilityState !== 'visible') return;
-    const confStr = loadFromStorage(lsPrefix + 'config');
-    if (!confStr) return;
-    const {updatedAt} = JSON.parse(confStr);
-    if ((updatedAt ?? 0) > (config.updatedAt ?? 0)) {
-        if (sForm.dialog.open) {
-            sForm.dialog.close();
-            showToast('Данные обновлены из другой вкладки');
-        }
-        updateConfig(confStr);
-    }
 }
 
 /* ---- инициализация ---- */
 
 function init() {
     addHandlers({
-        'click-add':        () => openModal(),
-        'click-restore':    restoreSource,
-        'click-modal-close': () => sForm.dialog.close(),
-        'change-type':      updateFieldsByType,
-        'change-dates':     validateDates,
-        'click-save':       saveSource,
-        'click-delete':     deleteSource,
-        'click-export':     exportConfig,
-        'click-import':     importConfig,
-        'click-exp-clip':   exportClipboard,
-        'click-imp-clip':   importClipboard
-    });
-    document.getElementById('appToast').addEventListener('animationend', onToastAnimationEnd);
-    sForm.dialog.addEventListener('close', onDialogClose);
-    document.addEventListener('visibilitychange', onVisibilityChange);
-
-    // Закрывать дропдаун при клике на пункт меню или за его пределами
-    const dropdown = document.getElementById('menuDropdown');
-    dropdown.addEventListener('click', e => {
-        if (e.target.closest('a')) dropdown.open = false;
-    });
-    document.addEventListener('click', e => {
-        if (!dropdown.contains(e.target)) dropdown.open = false;
+        'click-add':      () => openModal(),
+        'click-restore':  restoreSource,
+        'change-type':    updateFieldsByType,
+        'change-dates':   validateDates,
+        'click-save':     saveSource,
+        'click-delete':   deleteSource,
+        'click-export':   exportConfig,
+        'click-import':   importConfig,
+        'click-exp-clip': exportClipboard,
+        'click-imp-clip': importClipboard
     });
     const confStr = loadFromStorage(lsPrefix + 'config');
     if (confStr) updateConfig(confStr);
