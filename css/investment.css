@@ -361,7 +361,7 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
 .field input[type="date"] {
     -webkit-appearance: none;
     appearance: none;
-    line-height: inherit;
+    line-height: normal; /* не inherit — у body 1.5, у input UA-default normal (~1.15) */
 }
 
 .field input:focus,
