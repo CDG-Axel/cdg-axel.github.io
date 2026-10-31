@@ -364,8 +364,9 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
     display: flex;
     gap: 0.75rem;
 }
-/* min-width: 0 нужен, иначе iOS может раздуть flex-элемент по содержимому */
-.field-row > .field { flex: 1; min-width: 0; }
+/* min-width: 0 + overflow: hidden — без этого iOS Safari может раздуть date-input
+   за пределы flex-контейнера и "наложить" его на соседнее поле */
+.field-row > .field { flex: 1; min-width: 0; overflow: hidden; }
 .field-error {
     display: none;
     font-size: 0.78rem;
@@ -413,6 +414,8 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
     .summary-card   { flex-direction: column; }
     .summary-stats  { flex-direction: column; gap: 0.5rem; }
     .summary-actions { flex-direction: row; flex-wrap: wrap; }
-    /* На узких экранах поля в строчку слишком тесные — складываем в столбец */
-    .field-row { flex-direction: column; gap: 0; }
+    /* Уменьшаем боковые отступы формы — date-inputs получают больше места */
+    #sourceForm { padding: 1rem 0.75rem; }
+    /* Уменьшаем промежуток между полями дат, чтобы оба точно влезали в ряд */
+    .field-row { gap: 0.4rem; }
 }
