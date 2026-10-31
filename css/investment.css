@@ -446,3 +446,8 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
     /* Уменьшаем промежуток между полями дат, чтобы оба точно влезали в ряд */
     .field-row { gap: 0.4rem; }
 }
+
+/* Ландшафт на телефоне — высота маленькая, жмём вертикальные отступы формы */
+@media (max-height: 600px) {
+    #sourceForm { padding: 0.5rem 0.75rem 0.25rem; }
+}
