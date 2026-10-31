@@ -59,7 +59,7 @@ body {
 main {
     max-width: var(--main-max-width);
     margin: 1.5rem auto;
-    padding: 0 1rem;
+    padding: 0 0.25rem;
 }
 
 /* ── Сводка ── */
