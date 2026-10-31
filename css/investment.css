@@ -354,6 +354,16 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
     color: var(--color-text);
     font-size: 0.9rem;
 }
+/* appearance: none убирает нативную хромовую вёрстку date-input:
+   — нормализует высоту (Chrome/Safari иначе добавляют +2px)
+   — убирает смещение текста кверху на iOS
+   — позволяет полю уважать width: 100% внутри flex-контейнера */
+.field input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    line-height: inherit;
+}
+
 .field input:focus,
 .field select:focus {
     outline: 2px solid var(--color-accent);
