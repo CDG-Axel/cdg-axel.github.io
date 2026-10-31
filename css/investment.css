@@ -59,7 +59,7 @@ body {
 main {
     max-width: var(--main-max-width);
     margin: 1.5rem auto;
-    padding: 0 0.25rem;
+    padding: 0 1rem;
 }
 
 /* ── Сводка ── */
@@ -153,6 +153,7 @@ details.dropdown > ul a {
     color: var(--color-text);
     text-decoration: none;
     cursor: pointer;
+    white-space: nowrap;
 }
 details.dropdown > ul a:hover { background: var(--color-secondary-bg); }
 
@@ -162,8 +163,10 @@ details.dropdown > ul a:hover { background: var(--color-secondary-bg); }
 .timeline-table {
     table-layout: fixed;
     width: 100%;
-    /* При 35% + 10% колонках источника/суммы на 7 колонок по 80px нужно ~1020px.
-       min-width не даёт таблице сжаться ниже этого предела на узких экранах. */
+    /* 732px — минимум, при котором первая колонка не переносит текст,
+       а цифры вмещаются в ячейки (проверено на ~732px viewport).
+       Ниже этого — горизонтальный скролл через .table-wrap. */
+    min-width: 732px;
     border-collapse: collapse;
 }
 .timeline-table th,
@@ -361,7 +364,8 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
     display: flex;
     gap: 0.75rem;
 }
-.field-row > .field { flex: 1; }
+/* min-width: 0 нужен, иначе iOS может раздуть flex-элемент по содержимому */
+.field-row > .field { flex: 1; min-width: 0; }
 .field-error {
     display: none;
     font-size: 0.78rem;
@@ -405,7 +409,10 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
 }
 
 @media (max-width: 600px) {
+    main { padding: 0 0.25rem; }
     .summary-card   { flex-direction: column; }
     .summary-stats  { flex-direction: column; gap: 0.5rem; }
     .summary-actions { flex-direction: row; flex-wrap: wrap; }
+    /* На узких экранах поля в строчку слишком тесные — складываем в столбец */
+    .field-row { flex-direction: column; gap: 0; }
 }
