@@ -1,119 +1,119 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23171b26'/><text dominant-baseline='central' text-anchor='middle' x='50' y='48' font-size='72' fill='%23f0b429'>★</text></svg>">
-    <title data-i18n="app-title">Card Exchange</title>
-    <link rel="stylesheet" href="css/hs-exchange.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23171b26'/><text dominant-baseline='central' text-anchor='middle' x='50' y='48' font-size='72' fill='%23f0b429'>★</text></svg>">
+<title data-i18n="app-title">Card Exchange</title>
+<link rel="stylesheet" href="css/hs-exchange.css">
 </head>
 <body>
 
 <!-- ── Header ─────────────────────────────────────────────── -->
 <header>
-    <div class="header-title">
-        <span class="star-deco">★</span>
-        <span data-i18n="app-title">Card Exchange</span>
+  <div class="header-title">
+    <span class="star-deco">★</span>
+    <span data-i18n="app-title">Card Exchange</span>
+  </div>
+  <div id="season-wrap">
+    <input id="season-input" class="season-field" type="text" maxlength="40"
+      enterkeyhint="done" data-i18n title="Season name" aria-label="Season name">
+    <button id="btn-mode-toggle" data-i18n title="Switch view mode">⟳</button>
+  </div>
+  <div class="menu-wrap">
+    <button id="btn-lang" class="btn-lang-toggle" data-i18n title="Language">🌐</button>
+    <button id="btn-menu" data-i18n title="Menu">☰</button>
+    <div id="lang-dropdown">
+      <button class="lang-btn" data-lang="en">English</button>
+      <button class="lang-btn" data-lang="de">Deutsch</button>
+      <button class="lang-btn" data-lang="ru">Русский</button>
     </div>
-    <div id="season-wrap">
-        <input id="season-input" class="season-field" type="text" maxlength="40"
-               enterkeyhint="done" data-i18n title="Season name" aria-label="Season name">
-        <button id="btn-mode-toggle" data-i18n title="Switch view mode">⟳</button>
+    <div id="menu-dropdown">
+      <div class="menu-section">
+        <div class="menu-section-label" data-i18n="menu-section-season">Season</div>
+        <button class="menu-item" id="btn-new-season" data-i18n>🔄 New season</button>
+        <button class="menu-item" id="btn-stats-all" data-i18n>📊 Season statistics</button>
+      </div>
+      <div class="menu-section">
+        <div class="menu-section-label" data-i18n="menu-section-export">Export</div>
+        <button class="menu-item" id="menu-export-file" data-i18n>💾 Download JSON file</button>
+        <button class="menu-item" id="menu-export-clip" data-i18n>📋 Copy to clipboard</button>
+      </div>
+      <div class="menu-section">
+        <div class="menu-section-label" data-i18n="menu-section-import">Import</div>
+        <button class="menu-item" id="menu-import-file" data-i18n>📂 Load JSON file</button>
+        <button class="menu-item" id="menu-import-clip" data-i18n>📋 Paste from clipboard</button>
+      </div>
     </div>
-    <div class="menu-wrap">
-        <button id="btn-lang" class="btn-lang-toggle" data-i18n title="Language">🌐</button>
-        <button id="btn-menu" data-i18n title="Menu">☰</button>
-        <div id="lang-dropdown">
-            <button class="lang-btn" data-lang="en">English</button>
-            <button class="lang-btn" data-lang="de">Deutsch</button>
-            <button class="lang-btn" data-lang="ru">Русский</button>
-        </div>
-        <div id="menu-dropdown">
-            <div class="menu-section">
-                <div class="menu-section-label" data-i18n="menu-section-season">Season</div>
-                <button class="menu-item" id="btn-new-season" data-i18n>🔄 New season</button>
-                <button class="menu-item" id="btn-stats-all" data-i18n>📊 Season statistics</button>
-            </div>
-            <div class="menu-section">
-                <div class="menu-section-label" data-i18n="menu-section-export">Export</div>
-                <button class="menu-item" id="menu-export-file" data-i18n>💾 Download JSON file</button>
-                <button class="menu-item" id="menu-export-clip" data-i18n>📋 Copy to clipboard</button>
-            </div>
-            <div class="menu-section">
-                <div class="menu-section-label" data-i18n="menu-section-import">Import</div>
-                <button class="menu-item" id="menu-import-file" data-i18n>📂 Load JSON file</button>
-                <button class="menu-item" id="menu-import-clip" data-i18n>📋 Paste from clipboard</button>
-            </div>
-        </div>
-    </div>
+  </div>
 </header>
 
 <!-- ── Table ─────────────────────────────────────────────── -->
 <div class="scroll-area">
-    <table>
-        <colgroup>
-            <col class="col-name">
-            <col class="col-num"><col class="col-num"><col class="col-num">
-            <col class="col-num"><col class="col-num">
-            <col class="col-bal">
-            <col class="col-note">
-        </colgroup>
-        <thead>
-        <tr>
-            <th rowspan="2" class="th-name" data-i18n="th-player">Player</th>
-            <th colspan="3" class="th-group th-recv" data-i18n="th-received">Received</th>
-            <th colspan="2" class="th-group th-sent" data-i18n="th-sent">Sent</th>
-            <th rowspan="2" class="th-bal th-sortable" data-i18n="th-balance" data-sort="balance">Balance ★</th>
-            <th rowspan="2" class="th-note" data-i18n="th-note">Note</th>
-        </tr>
-        <tr>
-            <th class="th-recv" data-i18n="th-recv-total">Total</th>
-            <th class="th-recv th-sortable" data-i18n="th-recv-new" data-sort="new_cards">New</th>
-            <th class="th-recv">★</th>
-            <th class="th-sent" data-i18n="th-recv-total">Total</th>
-            <th class="th-sent">★</th>
-        </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-    </table>
-    <div class="add-row-wrap">
-        <button id="btn-add-row" data-i18n>＋ Add player</button>
-    </div>
+  <table>
+    <colgroup>
+      <col class="col-name">
+      <col class="col-num"><col class="col-num"><col class="col-num">
+      <col class="col-num"><col class="col-num">
+      <col class="col-bal">
+      <col class="col-note">
+    </colgroup>
+    <thead>
+      <tr>
+        <th rowspan="2" class="th-name" data-i18n="th-player">Player</th>
+        <th colspan="3" class="th-group th-recv" data-i18n="th-received">Received</th>
+        <th colspan="2" class="th-group th-sent" data-i18n="th-sent">Sent</th>
+        <th rowspan="2" class="th-bal th-sortable" data-i18n="th-balance" data-sort="balance">Balance ★</th>
+        <th rowspan="2" class="th-note" data-i18n="th-note">Note</th>
+      </tr>
+      <tr>
+        <th class="th-recv" data-i18n="th-recv-total">Total</th>
+        <th class="th-recv th-sortable" data-i18n="th-recv-new" data-sort="new_cards">New</th>
+        <th class="th-recv">★</th>
+        <th class="th-sent" data-i18n="th-recv-total">Total</th>
+        <th class="th-sent">★</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="add-row-wrap">
+    <button id="btn-add-row" data-i18n>＋ Add player</button>
+  </div>
 </div>
 
 <!-- ── Quick Panel ────────────────────────────────────────── -->
 <div id="quick-panel">
-    <div class="panel-inner">
-        <div class="panel-top">
-            <span id="panel-player">Выберите игрока</span>
-            <div class="panel-controls">
-                <div class="toggle-wrap">
-                    <label for="toggle-new" data-i18n="panel-toggle-new">New card</label>
-                    <input type="checkbox" id="toggle-new" data-i18n aria-label="New card">
-                    <label class="toggle-slider" for="toggle-new"></label>
-                </div>
-                <button id="btn-undo" class="btn-undo" data-i18n title="Undo last action" disabled>↩ Undo</button>
-            </div>
+  <div class="panel-inner">
+    <div class="panel-top">
+      <span id="panel-player">Выберите игрока</span>
+      <div class="panel-controls">
+        <div class="toggle-wrap">
+          <label for="toggle-new" data-i18n="panel-toggle-new">New card</label>
+          <input type="checkbox" id="toggle-new" data-i18n aria-label="New card">
+          <label class="toggle-slider" for="toggle-new"></label>
         </div>
-        <div class="panel-rows">
-            <div class="panel-row">
-                <span class="panel-row-label recv-lbl" data-i18n="panel-recv">Received:</span>
-                <button class="star-btn" data-dir="recv" data-stars="1" disabled>1★</button>
-                <button class="star-btn" data-dir="recv" data-stars="2" disabled>2★</button>
-                <button class="star-btn" data-dir="recv" data-stars="3" disabled>3★</button>
-                <button class="star-btn" data-dir="recv" data-stars="4" disabled>4★</button>
-                <button class="star-btn" data-dir="recv" data-stars="5" disabled>5★</button>
-            </div>
-            <div class="panel-row">
-                <span class="panel-row-label sent-lbl" data-i18n="panel-sent">Sent:</span>
-                <button class="star-btn" data-dir="sent" data-stars="1" disabled>1★</button>
-                <button class="star-btn" data-dir="sent" data-stars="2" disabled>2★</button>
-                <button class="star-btn" data-dir="sent" data-stars="3" disabled>3★</button>
-                <button class="star-btn" data-dir="sent" data-stars="4" disabled>4★</button>
-                <button class="star-btn" data-dir="sent" data-stars="5" disabled>5★</button>
-            </div>
-        </div>
+        <button id="btn-undo" class="btn-undo" data-i18n title="Undo last action" disabled>↩ Undo</button>
+      </div>
     </div>
+    <div class="panel-rows">
+      <div class="panel-row">
+        <span class="panel-row-label recv-lbl" data-i18n="panel-recv">Received:</span>
+        <button class="star-btn" data-dir="recv" data-stars="1" disabled>1★</button>
+        <button class="star-btn" data-dir="recv" data-stars="2" disabled>2★</button>
+        <button class="star-btn" data-dir="recv" data-stars="3" disabled>3★</button>
+        <button class="star-btn" data-dir="recv" data-stars="4" disabled>4★</button>
+        <button class="star-btn" data-dir="recv" data-stars="5" disabled>5★</button>
+      </div>
+      <div class="panel-row">
+        <span class="panel-row-label sent-lbl" data-i18n="panel-sent">Sent:</span>
+        <button class="star-btn" data-dir="sent" data-stars="1" disabled>1★</button>
+        <button class="star-btn" data-dir="sent" data-stars="2" disabled>2★</button>
+        <button class="star-btn" data-dir="sent" data-stars="3" disabled>3★</button>
+        <button class="star-btn" data-dir="sent" data-stars="4" disabled>4★</button>
+        <button class="star-btn" data-dir="sent" data-stars="5" disabled>5★</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ── Overlay ────────────────────────────────────────────── -->
@@ -121,131 +121,131 @@
 
 <!-- ── Modal: Confirm ─────────────────────────────────────── -->
 <div class="modal" id="modal-confirm">
-    <p id="confirm-msg"></p>
-    <div class="modal-btns">
-        <button class="btn-secondary" id="confirm-cancel"></button>
-        <button class="btn-primary"   id="confirm-ok"></button>
-    </div>
+  <p id="confirm-msg"></p>
+  <div class="modal-btns">
+    <button class="btn-secondary" id="confirm-cancel"></button>
+    <button class="btn-primary"   id="confirm-ok"></button>
+  </div>
 </div>
 
 <!-- ── Modal: Edit ────────────────────────────────────────── -->
 <div class="modal modal-wide" id="modal-edit">
-    <div class="modal-header">
-        <span class="modal-title">✎ <span id="edit-title"></span></span>
-        <button class="modal-close" data-closes="modal-edit" data-i18n="modal-close-btn" aria-label="Close">✕</button>
+  <div class="modal-header">
+    <span class="modal-title">✎ <span id="edit-title"></span></span>
+    <button class="modal-close" data-closes="modal-edit" data-i18n="modal-close-btn" aria-label="Close">✕</button>
+  </div>
+  <div class="edit-grid">
+    <div class="edit-header-row">
+      <div></div>
+      <div>1★</div><div>2★</div><div>3★</div><div>4★</div><div>5★</div>
     </div>
-    <div class="edit-grid">
-        <div class="edit-header-row">
-            <div></div>
-            <div>1★</div><div>2★</div><div>3★</div><div>4★</div><div>5★</div>
-        </div>
-        <div class="edit-data-row">
-            <div class="recv-lbl" data-i18n="edit-rn-label">Received new</div>
-            <input class="edit-inp" id="edit-rn-0" data-i18n type="number" min="0" value="0" aria-label="Received new 1★">
-            <input class="edit-inp" id="edit-rn-1" data-i18n type="number" min="0" value="0" aria-label="Received new 2★">
-            <input class="edit-inp" id="edit-rn-2" data-i18n type="number" min="0" value="0" aria-label="Received new 3★">
-            <input class="edit-inp" id="edit-rn-3" data-i18n type="number" min="0" value="0" aria-label="Received new 4★">
-            <input class="edit-inp" id="edit-rn-4" data-i18n type="number" min="0" value="0" aria-label="Received new 5★">
-        </div>
-        <div class="edit-data-row">
-            <div class="recv-lbl" data-i18n="edit-rd-label">Received doubles</div>
-            <input class="edit-inp" id="edit-rd-0" data-i18n type="number" min="0" value="0" aria-label="Received doubles 1★">
-            <input class="edit-inp" id="edit-rd-1" data-i18n type="number" min="0" value="0" aria-label="Received doubles 2★">
-            <input class="edit-inp" id="edit-rd-2" data-i18n type="number" min="0" value="0" aria-label="Received doubles 3★">
-            <input class="edit-inp" id="edit-rd-3" data-i18n type="number" min="0" value="0" aria-label="Received doubles 4★">
-            <input class="edit-inp" id="edit-rd-4" data-i18n type="number" min="0" value="0" aria-label="Received doubles 5★">
-        </div>
-        <div class="edit-data-row">
-            <div class="sent-lbl" data-i18n="edit-st-label">Gifted</div>
-            <input class="edit-inp" id="edit-st-0" data-i18n type="number" min="0" value="0" aria-label="Gifted 1★">
-            <input class="edit-inp" id="edit-st-1" data-i18n type="number" min="0" value="0" aria-label="Gifted 2★">
-            <input class="edit-inp" id="edit-st-2" data-i18n type="number" min="0" value="0" aria-label="Gifted 3★">
-            <input class="edit-inp" id="edit-st-3" data-i18n type="number" min="0" value="0" aria-label="Gifted 4★">
-            <input class="edit-inp" id="edit-st-4" data-i18n type="number" min="0" value="0" aria-label="Gifted 5★">
-        </div>
+    <div class="edit-data-row">
+      <div class="recv-lbl" data-i18n="edit-rn-label">Received new</div>
+      <input class="edit-inp" id="edit-rn-0" data-i18n type="number" min="0" value="0" aria-label="Received new 1★">
+      <input class="edit-inp" id="edit-rn-1" data-i18n type="number" min="0" value="0" aria-label="Received new 2★">
+      <input class="edit-inp" id="edit-rn-2" data-i18n type="number" min="0" value="0" aria-label="Received new 3★">
+      <input class="edit-inp" id="edit-rn-3" data-i18n type="number" min="0" value="0" aria-label="Received new 4★">
+      <input class="edit-inp" id="edit-rn-4" data-i18n type="number" min="0" value="0" aria-label="Received new 5★">
     </div>
-    <div class="edit-summary">
-        <div class="edit-sum-row">
-            <span class="edit-sum-label recv-lbl" data-i18n="edit-recv-label">Received —</span>
-            <span id="edit-recv-summary" class="edit-sum-val">0</span>
-        </div>
-        <div class="edit-sum-row">
-            <span class="edit-sum-label sent-lbl" data-i18n="edit-sent-label">Gifted —</span>
-            <span id="edit-sent-summary" class="edit-sum-val">0</span>
-        </div>
-        <div class="edit-sum-row edit-sum-balance-row">
-            <span class="edit-sum-label" data-i18n="edit-balance-label">Balance —</span>
-            <span id="edit-balance" class="edit-bal-val">0★</span>
-        </div>
+    <div class="edit-data-row">
+      <div class="recv-lbl" data-i18n="edit-rd-label">Received doubles</div>
+      <input class="edit-inp" id="edit-rd-0" data-i18n type="number" min="0" value="0" aria-label="Received doubles 1★">
+      <input class="edit-inp" id="edit-rd-1" data-i18n type="number" min="0" value="0" aria-label="Received doubles 2★">
+      <input class="edit-inp" id="edit-rd-2" data-i18n type="number" min="0" value="0" aria-label="Received doubles 3★">
+      <input class="edit-inp" id="edit-rd-3" data-i18n type="number" min="0" value="0" aria-label="Received doubles 4★">
+      <input class="edit-inp" id="edit-rd-4" data-i18n type="number" min="0" value="0" aria-label="Received doubles 5★">
     </div>
-    <div class="modal-btns">
-        <button class="btn-secondary" data-closes="modal-edit" data-i18n="confirm_cancel">Cancel</button>
-        <button class="btn-primary" id="btn-edit-save" data-i18n>Save</button>
+    <div class="edit-data-row">
+      <div class="sent-lbl" data-i18n="edit-st-label">Gifted</div>
+      <input class="edit-inp" id="edit-st-0" data-i18n type="number" min="0" value="0" aria-label="Gifted 1★">
+      <input class="edit-inp" id="edit-st-1" data-i18n type="number" min="0" value="0" aria-label="Gifted 2★">
+      <input class="edit-inp" id="edit-st-2" data-i18n type="number" min="0" value="0" aria-label="Gifted 3★">
+      <input class="edit-inp" id="edit-st-3" data-i18n type="number" min="0" value="0" aria-label="Gifted 4★">
+      <input class="edit-inp" id="edit-st-4" data-i18n type="number" min="0" value="0" aria-label="Gifted 5★">
     </div>
+  </div>
+  <div class="edit-summary">
+    <div class="edit-sum-row">
+      <span class="edit-sum-label recv-lbl" data-i18n="edit-recv-label">Received —</span>
+      <span id="edit-recv-summary" class="edit-sum-val">0</span>
+    </div>
+    <div class="edit-sum-row">
+      <span class="edit-sum-label sent-lbl" data-i18n="edit-sent-label">Gifted —</span>
+      <span id="edit-sent-summary" class="edit-sum-val">0</span>
+    </div>
+    <div class="edit-sum-row edit-sum-balance-row">
+      <span class="edit-sum-label" data-i18n="edit-balance-label">Balance —</span>
+      <span id="edit-balance" class="edit-bal-val">0★</span>
+    </div>
+  </div>
+  <div class="modal-btns">
+    <button class="btn-secondary" data-closes="modal-edit" data-i18n="confirm_cancel">Cancel</button>
+    <button class="btn-primary" id="btn-edit-save" data-i18n>Save</button>
+  </div>
 </div>
 
 <!-- ── Modal: Stats ───────────────────────────────────────── -->
 <div class="modal modal-stats-modal" id="modal-stats">
-    <div class="modal-header">
-        <span class="modal-title">📊 <span id="stats-title"></span></span>
-        <button class="modal-close" data-closes="modal-stats" data-i18n="modal-close-btn" aria-label="Close">✕</button>
+  <div class="modal-header">
+    <span class="modal-title">📊 <span id="stats-title"></span></span>
+    <button class="modal-close" data-closes="modal-stats" data-i18n="modal-close-btn" aria-label="Close">✕</button>
+  </div>
+  <div class="stats-body">
+    <div class="stats-left">
+      <ul id="stats-season-list" class="stats-season-list"></ul>
     </div>
-    <div class="stats-body">
-        <div class="stats-left">
-            <ul id="stats-season-list" class="stats-season-list"></ul>
+    <div class="stats-right">
+      <div class="sdt-grid">
+        <div class="sdt-header-row">
+          <div></div>
+          <div>1★</div><div>2★</div><div>3★</div><div>4★</div><div>5★</div>
         </div>
-        <div class="stats-right">
-            <div class="sdt-grid">
-                <div class="sdt-header-row">
-                    <div></div>
-                    <div>1★</div><div>2★</div><div>3★</div><div>4★</div><div>5★</div>
-                </div>
-                <div class="sdt-data-row">
-                    <div class="recv-lbl" data-i18n="stats-rn-label">Received new</div>
-                    <div id="sd-rn-0">0</div><div id="sd-rn-1">0</div>
-                    <div id="sd-rn-2">0</div><div id="sd-rn-3">0</div><div id="sd-rn-4">0</div>
-                </div>
-                <div class="sdt-data-row">
-                    <div class="recv-lbl" data-i18n="stats-rd-label">Received doubles</div>
-                    <div id="sd-rd-0">0</div><div id="sd-rd-1">0</div>
-                    <div id="sd-rd-2">0</div><div id="sd-rd-3">0</div><div id="sd-rd-4">0</div>
-                </div>
-                <div class="sdt-data-row">
-                    <div class="sent-lbl" data-i18n="stats-st-label">Gifted</div>
-                    <div id="sd-st-0">0</div><div id="sd-st-1">0</div>
-                    <div id="sd-st-2">0</div><div id="sd-st-3">0</div><div id="sd-st-4">0</div>
-                </div>
-            </div>
-            <div class="stats-summary">
-                <div class="stats-sum-row">
-                    <span class="stats-sum-label recv-lbl" data-i18n="stats-recv-label">Received —</span>
-                    <span id="sd-recv-summary" class="stats-sum-val">0</span>
-                </div>
-                <div class="stats-sum-row">
-                    <span class="stats-sum-label sent-lbl" data-i18n="stats-sent-label">Gifted —</span>
-                    <span id="sd-sent-summary" class="stats-sum-val">0</span>
-                </div>
-                <div class="stats-sum-row stats-sum-balance">
-                    <span class="stats-sum-label" data-i18n="stats-balance-label">Balance —</span>
-                    <span id="sd-balance" class="sd-bal-val">0★</span>
-                </div>
-            </div>
+        <div class="sdt-data-row">
+          <div class="recv-lbl" data-i18n="stats-rn-label">Received new</div>
+          <div id="sd-rn-0">0</div><div id="sd-rn-1">0</div>
+          <div id="sd-rn-2">0</div><div id="sd-rn-3">0</div><div id="sd-rn-4">0</div>
         </div>
+        <div class="sdt-data-row">
+          <div class="recv-lbl" data-i18n="stats-rd-label">Received doubles</div>
+          <div id="sd-rd-0">0</div><div id="sd-rd-1">0</div>
+          <div id="sd-rd-2">0</div><div id="sd-rd-3">0</div><div id="sd-rd-4">0</div>
+        </div>
+        <div class="sdt-data-row">
+          <div class="sent-lbl" data-i18n="stats-st-label">Gifted</div>
+          <div id="sd-st-0">0</div><div id="sd-st-1">0</div>
+          <div id="sd-st-2">0</div><div id="sd-st-3">0</div><div id="sd-st-4">0</div>
+        </div>
+      </div>
+      <div class="stats-summary">
+        <div class="stats-sum-row">
+          <span class="stats-sum-label recv-lbl" data-i18n="stats-recv-label">Received —</span>
+          <span id="sd-recv-summary" class="stats-sum-val">0</span>
+        </div>
+        <div class="stats-sum-row">
+          <span class="stats-sum-label sent-lbl" data-i18n="stats-sent-label">Gifted —</span>
+          <span id="sd-sent-summary" class="stats-sum-val">0</span>
+        </div>
+        <div class="stats-sum-row stats-sum-balance">
+          <span class="stats-sum-label" data-i18n="stats-balance-label">Balance —</span>
+          <span id="sd-balance" class="sd-bal-val">0★</span>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- ── Modal: Paste ───────────────────────────────────────── -->
 <div class="modal" id="modal-paste">
-    <div class="modal-header">
-        <span class="modal-title" data-i18n="paste-modal-title">Paste data</span>
-        <button class="modal-close" data-closes="modal-paste" data-i18n="modal-close-btn" aria-label="Close">✕</button>
-    </div>
-    <p class="modal-hint" data-i18n="paste-modal-hint">Paste clipboard contents below (Ctrl+V / ⌘+V) and click Import.</p>
-    <textarea id="paste-area" data-i18n aria-label="Paste data here"></textarea>
-    <div class="modal-btns">
-        <button class="btn-secondary" data-closes="modal-paste" data-i18n="confirm_cancel">Cancel</button>
-        <button class="btn-primary" id="btn-paste-import" data-i18n>Import</button>
-    </div>
+  <div class="modal-header">
+    <span class="modal-title" data-i18n="paste-modal-title">Paste data</span>
+    <button class="modal-close" data-closes="modal-paste" data-i18n="modal-close-btn" aria-label="Close">✕</button>
+  </div>
+  <p class="modal-hint" data-i18n="paste-modal-hint">Paste clipboard contents below (Ctrl+V / ⌘+V) and click Import.</p>
+  <textarea id="paste-area" data-i18n aria-label="Paste data here"></textarea>
+  <div class="modal-btns">
+    <button class="btn-secondary" data-closes="modal-paste" data-i18n="confirm_cancel">Cancel</button>
+    <button class="btn-primary" id="btn-paste-import" data-i18n>Import</button>
+  </div>
 </div>
 
 <!-- ── Hidden file input ──────────────────────────────────── -->
