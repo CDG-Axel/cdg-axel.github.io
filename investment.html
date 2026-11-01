@@ -31,15 +31,15 @@
             </div>
         </div>
         <div class="summary-actions">
-            <button evnt-click-add>+ Добавить</button>
-            <button id="btnRestore" title="Отменить удаление" evnt-click-restore disabled>Отменить</button>
+            <button data-ev="click-add">+ Добавить</button>
+            <button id="btnRestore" title="Отменить удаление" data-ev="click-restore" disabled>Отменить</button>
             <details id="menuDropdown" class="dropdown">
                 <summary>☰ меню</summary>
                 <ul>
-                    <li><a evnt-click-export>Экспорт конфига (файл)</a></li>
-                    <li><a evnt-click-import>Импорт конфига (файл)</a></li>
-                    <li><a evnt-click-exp-clip>Экспорт конфига (буфер обмена)</a></li>
-                    <li><a evnt-click-imp-clip>Импорт конфига (буфер обмена)</a></li>
+                    <li><a data-ev="click-export">Экспорт конфига (файл)</a></li>
+                    <li><a data-ev="click-import">Импорт конфига (файл)</a></li>
+                    <li><a data-ev="click-exp-clip">Экспорт конфига (буфер обмена)</a></li>
+                    <li><a data-ev="click-imp-clip">Импорт конфига (буфер обмена)</a></li>
                 </ul>
             </details>
         </div>
@@ -56,7 +56,7 @@
 <dialog id="sourceModal" aria-labelledby="sourceModalTitle">
     <div class="dialog-header">
         <h5 id="sourceModalTitle">Источник дохода</h5>
-        <button type="button" class="dialog-close" evnt-click-modal-close aria-label="Закрыть">✕</button>
+        <button type="button" class="dialog-close" data-ev="click-modal-close" aria-label="Закрыть">✕</button>
     </div>
     <form id="sourceForm" novalidate>
         <div class="field">
@@ -66,7 +66,7 @@
         </div>
         <div class="field">
             <label for="fType">Тип</label>
-            <select id="fType" required evnt-change-type>
+            <select id="fType" required data-ev="change-type">
                 <option value="monthly">Ежемесячный (зарплата, аренда…)</option>
                 <option value="investment" selected>Инвестиция (депозит, акции…)</option>
             </select>
@@ -86,20 +86,20 @@
         <div class="field-row">
             <div class="field">
                 <label for="fStart">Дата начала</label>
-                <input type="date" id="fStart" required evnt-change-dates>
+                <input type="date" id="fStart" required data-ev="change-dates">
                 <div class="field-error">Укажите дату начала</div>
             </div>
             <div class="field">
                 <label for="fEnd" id="fEndLabel">Дата окончания</label>
-                <input type="date" id="fEnd" evnt-change-dates>
+                <input type="date" id="fEnd" data-ev="change-dates">
                 <div class="field-error" id="fEndFeedback">Укажите дату окончания</div>
             </div>
         </div>
     </form>
     <div class="dialog-footer">
-        <button type="button" class="btn-danger" id="btnDelete" evnt-click-delete>Удалить</button>
-        <button type="button" evnt-click-modal-close>Отмена</button>
-        <button type="button" class="btn-primary" id="btnSave" evnt-click-save>Сохранить</button>
+        <button type="button" class="btn-danger" id="btnDelete" data-ev="click-delete">Удалить</button>
+        <button type="button" data-ev="click-modal-close">Отмена</button>
+        <button type="button" class="btn-primary" id="btnSave" data-ev="click-save">Сохранить</button>
     </div>
 </dialog>
 

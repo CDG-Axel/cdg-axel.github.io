@@ -23,12 +23,14 @@ export function setStatus(text) {
 }
 
 export function addHandlers(handlers) {
-    for (let [kind, handler] of Object.entries(handlers)) {
-        const elements = document.querySelectorAll(`*[evnt-${kind}]`);
-        console.log(kind, elements);
-        const [eventType] = kind.split('-',1);
-        elements.forEach(element => element.addEventListener(eventType, handler));
-    }
+    document.querySelectorAll('[data-ev]').forEach(el => {
+        const kind = el.dataset.ev;
+        const handler = handlers[kind];
+        if (!handler) return;
+        console.log(kind, el.tagName, el.id);
+        const [eventType] = kind.split('-', 1);
+        el.addEventListener(eventType, handler);
+    });
 }
 
 export function escapeHtml(unsafe) {
@@ -47,7 +49,7 @@ export function createElement(tagName, classList = [], attributes = {}, text = u
 
 export function createTooltip(tagName, tooltip, classList = [], text = undefined, customClass = undefined) {
     return createElement(tagName, classList, {
-        'data-bs-toggle': 'tooltip', 
+        'data-bs-toggle': 'tooltip',
         'data-bs-html': true, 
         'data-bs-custom-class': customClass,
         'data-bs-title': tooltip

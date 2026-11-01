@@ -291,9 +291,14 @@ function updateFieldsByType() {
 
 function validateDates() {
     if (sForm.end.value && sForm.start.value && sForm.end.value <= sForm.start.value) {
-        sForm.end.setCustomValidity('Дата окончания должна быть позже даты начала');
+        const msg = 'Дата окончания должна быть позже даты начала';
+        sForm.end.setCustomValidity(msg);
+        sForm.endFeedback.textContent = msg;
     } else {
         sForm.end.setCustomValidity('');
+        sForm.endFeedback.textContent = sForm.end.required
+            ? 'Укажите дату окончания'
+            : 'Дата окончания раньше даты начала';
     }
 }
 
