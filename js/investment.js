@@ -89,7 +89,7 @@ function pluralDays(n) {
 
 function createSource(source, idx) {
     // [1] Класс timeline-row--monthly для визуального выделения ежемесячных источников
-    const row = createElement('tr', ['timeline-row', source.type === 'monthly' ? 'timeline-row--monthly' : '']);
+    const row = createElement('tr', ['timeline-row', source.type === 'monthly' ? 'monthly' : '']);
     const nameCell = createElement('td');
     const from = source.start_date.toLocaleDateString(lang, {timeZone: 'UTC'});
     const days = source.end_date ? Math.round(1 + (source.end_date - source.start_date) / msPerDay) : 0;
@@ -150,7 +150,7 @@ function generatePage() {
     }
 
     const sums = createElement('tr', ['monthly-sum']);
-    sums.append(createElement('th', [], {}, 'Итого'), investCell);
+    sums.append(createElement('td', [], {}, 'Итого'), investCell);
 
     const monthsPerYear = {};
     const sources = config.incomes.map(createSource);

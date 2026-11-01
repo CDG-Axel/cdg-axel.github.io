@@ -157,7 +157,7 @@ details.dropdown > ul a {
 }
 details.dropdown > ul a:hover { background: var(--color-secondary-bg); }
 
-/* ── Таблица ── */
+/* ── Таблица: базовые стили ── */
 .table-wrap { overflow-x: auto; }
 
 .timeline-table {
@@ -169,70 +169,61 @@ details.dropdown > ul a:hover { background: var(--color-secondary-bg); }
     min-width: 732px;
     border-collapse: collapse;
 }
-.timeline-table th,
-.timeline-table td {
-    border: 1px solid var(--color-border);
-}
-.timeline-table :where(th, td):first-child {
+.timeline-table :is(th, td)        { border: 1px solid var(--color-border); }
+.timeline-table tr > :first-child  {
     width: var(--timeline-col-source);
     white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
     word-wrap: break-word;
 }
-.timeline-table :where(th, td):nth-child(2) {
+.timeline-table tr > :nth-child(2) {
     width: var(--timeline-col-amount);
     white-space: nowrap;
     overflow: hidden;
 }
 
-/* ── Строки данных ── */
-.timeline-row { height: 40px; }
-.timeline-row td:nth-child(2),
-.monthly-sum  td:nth-child(2) { text-align: right; padding: 0 0.3rem; }
-.timeline-row td:nth-child(n+3) {
-    position: relative;
-    padding: 0;
-}
-
-/* [1] Выделение ячейки суммы для ежемесячных источников — они не входят
-       в суммарные инвестиции, поэтому это визуально разграничивает типы. */
-.timeline-row--monthly td:nth-child(2) { background-color: var(--color-secondary-bg); }
-
-/* ── Шапка ── */
+/* ── Строка заголовков месяцев ── */
 .timeline-month th {
     background-color: var(--color-secondary-bg);
     padding: 0.25rem 0.4rem;
     font-size: 0.9rem;
 }
-.timeline-month th:nth-child(n+3) {
-    min-width: var(--timeline-month-min);
-    text-align: center;
-}
-.timeline-year :where(th, td) {
+.timeline-month > :nth-child(n+3) { min-width: var(--timeline-month-min); text-align: center; }
+
+/* ── Строка года ── */
+.timeline-year > * {
     text-align: center;
     font-weight: bold;
     font-size: 0.9rem;
     padding: 0.2rem 0.25rem;
 }
-.monthly-sum :where(th, td) {
+
+/* ── Строка итогов ── */
+.monthly-sum td {
     padding: 0.2rem 0.25rem;
     text-align: center;
     font-weight: bold;
     font-size: 0.8rem;
 }
-.monthly-sum :where(th:nth-child(n+2), td:nth-child(n+2)) {
-    min-width: var(--timeline-month-min);
-}
+.monthly-sum > :nth-child(n+3) { min-width: var(--timeline-month-min); }
 
-/* Подсветка текущего месяца.
-   [2] В monthly-sum первая ячейка — th "Итого", вторая — td инвестиций,
-       поэтому текущий месяц (i=0, второй в цикле) попадает на 4-й child. */
-.timeline-month th:nth-child(4),
-.monthly-sum    td:nth-child(4),
-.timeline-row   td:nth-child(4) {
-    background-color: var(--color-primary-bg);
-}
+/* ── Строки данных ── */
+.timeline-row                          { height: 40px; }
+.timeline-row > :nth-child(n+3)        { position: relative; padding: 0; }
+/* [1] Ежемесячные источники не входят в суммарные инвестиции — визуальное разграничение */
+.timeline-row.monthly > :nth-child(2) { background-color: var(--color-secondary-bg); }
+
+/* ── Кросс-строчные правила ── */
+/* Колонка суммы — правое выравнивание */
+.timeline-row  > :nth-child(2),
+.monthly-sum   > :nth-child(2) { text-align: right; padding: 0 0.3rem; }
+
+/* Подсветка текущего месяца (4-й child во всех строках):
+   1=источник/метка, 2=сумма/инвестиции, 3=прошлый месяц, 4=текущий */
+.timeline-month > :nth-child(4),
+.monthly-sum    > :nth-child(4),
+.timeline-row   > :nth-child(4) { background-color: var(--color-primary-bg); }
 
 /* ── Бар дохода ── */
 .income-bar {
