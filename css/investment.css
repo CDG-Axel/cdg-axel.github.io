@@ -83,9 +83,20 @@ main {
 }
 .summary-actions {
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
+    flex-direction: row;
+    gap: 0.25rem;
     flex-shrink: 0;
+    align-items: flex-start;
+}
+.summary-actions button,
+.summary-actions > details.dropdown > summary {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* ── Кнопки ── */
@@ -431,7 +442,6 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
     main { padding: 0 0.25rem; }
     .summary-card   { flex-direction: column; }
     .summary-stats  { flex-direction: column; gap: 0.5rem; }
-    .summary-actions { flex-direction: row; flex-wrap: wrap; }
-    /* Уменьшаем промежуток между полями дат, чтобы оба точно влезали в ряд */
+/* Уменьшаем промежуток между полями дат, чтобы оба точно влезали в ряд */
     .field-row { gap: 0.4rem; }
 }
