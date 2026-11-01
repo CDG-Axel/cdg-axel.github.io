@@ -286,20 +286,14 @@ function updateFieldsByType() {
     sForm.end.required              = isInvestment;
     sForm.sumLabel.textContent      = isInvestment ? 'Вложенная сумма, руб.' : 'Сумма в месяц, руб.';
     sForm.endLabel.textContent      = isInvestment ? 'Дата окончания *' : 'Дата окончания';
-    sForm.endFeedback.textContent   = isInvestment ? 'Укажите дату окончания' : 'Дата окончания раньше даты начала';
 }
 
 function validateDates() {
-    if (sForm.end.value && sForm.start.value && sForm.end.value <= sForm.start.value) {
-        const msg = 'Дата окончания должна быть позже даты начала';
-        sForm.end.setCustomValidity(msg);
-        sForm.endFeedback.textContent = msg;
-    } else {
-        sForm.end.setCustomValidity('');
-        sForm.endFeedback.textContent = sForm.end.required
-            ? 'Укажите дату окончания'
-            : 'Дата окончания раньше даты начала';
-    }
+    sForm.endFeedback.textContent = sForm.end.value
+        ? 'Дата окончания раньше даты начала'
+        : 'Укажите дату окончания';
+    const notValid = sForm.end.value && sForm.start.value && sForm.end.value < sForm.start.value;
+    sForm.end.setCustomValidity(notValid ? sForm.endFeedback.textContent : '');
 }
 
 function openModal(idx = -1) {
