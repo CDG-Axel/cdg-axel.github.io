@@ -192,7 +192,7 @@ details.dropdown > ul a:hover { background: var(--color-secondary-bg); }
 .timeline-month > :nth-child(n+3) { min-width: var(--timeline-month-min); text-align: center; }
 
 /* ── Строка года ── */
-.timeline-year > * {
+.timeline-year td {
     text-align: center;
     font-weight: bold;
     font-size: 0.9rem;

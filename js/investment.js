@@ -132,10 +132,10 @@ function generatePage() {
     );
 
     const years = createElement('tr', ['timeline-year']);
-    years.appendChild(createElement('th', [], {colspan: 2}));
+    years.appendChild(createElement('td', [], {colspan: 2}));
 
     // [2] Строка разбита на две ячейки: метка + суммы по investment-источникам.
-    //     monthly-источники не суммируются — у них нет вложенной суммы и дохода.
+    //     Monthly-источники не суммируются — у них нет вложенной суммы и дохода.
     const investSources = config.incomes.filter(s => s.type === 'investment');
     const totalInvestSum    = investSources.reduce((acc, s) => acc + s.sum, 0);
     const totalInvestIncome = investSources.reduce((acc, s) => acc + (s.income ?? 0), 0);
@@ -266,12 +266,12 @@ const sForm = {
     type:        document.getElementById('fType'),
     sum:         document.getElementById('fSum'),
     income:      document.getElementById('fIncome'),
-    start:       document.getElementById('fStart'),
-    end:         document.getElementById('fEnd'),
+    start:       document.getElementById('edStart'),
+    end:         document.getElementById('edEnd'),
     incomeGroup: document.getElementById('fIncomeGroup'),
     sumLabel:    document.getElementById('fSumLabel'),
-    endLabel:    document.getElementById('fEndLabel'),
-    endFeedback: document.getElementById('fEndFeedback'),
+    endLabel:    document.getElementById('edEndLabel'),
+    endFeedback: document.getElementById('edEndFeedback'),
     bDelete:     document.getElementById('btnDelete')
 };
 
@@ -375,7 +375,7 @@ function onToastAnimationEnd(e) {
 }
 
 function onDialogClose() {
-    // Убираем фокус с элемента, который открыл диалог (напр. кнопка ✎),
+    // Убираем фокус с элемента, который открыл диалог (например кнопка ✎),
     // чтобы после закрытия через ESC не оставалась обводка
     document.activeElement?.blur();
 }
