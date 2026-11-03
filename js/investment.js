@@ -3,6 +3,7 @@ import {loadFromStorage, saveToStorage, createElement, addElement, addHandlers} 
 const lang = 'ru-RU'; // на время тестирования вместо navigator.language;
 const lsPrefix = 'hp_inv_';
 const msPerDay = 24 * 60 * 60 * 1000;
+const isInvestment = type => type === 'investment';
 const WARNING_DAYS = 30; // порог "скоро заканчивается"
 
 const intl = new Intl.NumberFormat(lang, {minimumFractionDigits: 0, maximumFractionDigits: 1});
@@ -51,7 +52,7 @@ function calcMonthData(source, monthStart, now) {
     let style;
 
     // Банки не начисляют процент за день открытия — realStart сдвигает точку отсчёта на +1 день
-    const realStart = source.type === 'investment'
+    const realStart = isInvestment(source.type)
         ? new Date(source.start_date.getTime() + msPerDay)
         : source.start_date;
 
@@ -68,11 +69,11 @@ function calcMonthData(source, monthStart, now) {
         }
     }
 
-    if (source.type === 'monthly') {
-        income = source.sum * (activeDays / daysInMonth) / 1000;
-    } else {
+    if (isInvestment(source.type)) {
         const totalDays = Math.floor((source.end_date - realStart) / msPerDay) + 1;
         income = source.income * activeDays / totalDays / 1000;
+    } else {
+        income = source.sum * (activeDays / daysInMonth) / 1000;
     }
 
     const column = createElement('td');
@@ -94,10 +95,10 @@ function pluralDays(n) {
 
 function createSource(source, idx) {
     // [1] Класс timeline-row--monthly для визуального выделения ежемесячных источников
-    const row = createElement('tr', ['timeline-row', source.type === 'monthly' ? 'monthly' : '']);
+    const row = createElement('tr', ['timeline-row', isInvestment(source.type) ? '' : 'monthly']);
     const nameCell = createElement('td');
     const from = source.start_date.toLocaleDateString(lang, {timeZone: 'UTC'});
-    const add  = source.type === 'investment' ? 0 : 1; // для инвестиций первый день не считается
+    const add  = isInvestment(source.type) ? 0 : 1; // для инвестиций первый день не считается
     const days = source.end_date ? Math.round(add + (source.end_date - source.start_date) / msPerDay) : 0;
     const end  = source.end_date
         ? `по ${source.end_date.toLocaleDateString(lang, {timeZone: 'UTC'})}, ${days} ${pluralDays(days)}`
@@ -144,7 +145,7 @@ function generatePage() {
 
     // [2] Строка разбита на две ячейки: метка + суммы по investment-источникам.
     //     Monthly-источники не суммируются — у них нет вложенной суммы и дохода.
-    const investSources = config.incomes.filter(s => s.type === 'investment');
+    const investSources = config.incomes.filter(s => isInvestment(s.type));
     const totalInvestSum    = investSources.reduce((acc, s) => acc + s.sum, 0);
     const totalInvestIncome = investSources.reduce((acc, s) => acc + (s.income ?? 0), 0);
 
@@ -294,12 +295,12 @@ function toInputDate(date) {
 }
 
 function updateFieldsByType() {
-    const isInvestment = sForm.type.value === 'investment';
-    sForm.incomeGroup.style.display = isInvestment ? '' : 'none';
-    sForm.income.required           = isInvestment;
-    sForm.end.required              = isInvestment;
-    sForm.sumLabel.textContent      = isInvestment ? 'Вложенная сумма, руб.' : 'Сумма в месяц, руб.';
-    sForm.endLabel.textContent      = isInvestment ? 'Дата окончания *' : 'Дата окончания';
+    const inv = isInvestment(sForm.type.value);
+    sForm.incomeGroup.style.display = inv ? '' : 'none';
+    sForm.income.required           = inv;
+    sForm.end.required              = inv;
+    sForm.sumLabel.textContent      = inv ? 'Вложенная сумма, руб.' : 'Сумма в месяц, руб.';
+    sForm.endLabel.textContent      = inv ? 'Дата окончания *' : 'Дата окончания';
 }
 
 function validateDates() {
@@ -344,7 +345,7 @@ function saveSource() {
         type:       sForm.type.value,
         sum:        Number(sForm.sum.value),
         start_date: new Date(sForm.start.value),
-        ...(sForm.income.value && {income: Number(sForm.income.value)}),
+        ...(isInvestment(sForm.type.value) && {income: Number(sForm.income.value)}),
         ...(sForm.end.value    && {end_date: new Date(sForm.end.value)})
     };
 
