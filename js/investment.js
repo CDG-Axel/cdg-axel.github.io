@@ -232,12 +232,18 @@ function exportConfig() {
     URL.revokeObjectURL(anchor.href);
 }
 
-function importConfig() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.addEventListener('change', () => input.files[0].text().then(updateConfig));
-    input.click();
+function importConfig(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = ''; // сброс, чтобы повторный импорт того же файла снова вызвал change
+    file.text().then(text => {
+        try {
+            updateConfig(text);
+            showToast('Настройки импортированы');
+        } catch {
+            showToast('Не удалось прочитать настройки', true);
+        }
+    }).catch(() => showToast('Не удалось прочитать файл', true));
 }
 
 function exportClipboard() {
@@ -307,13 +313,13 @@ function openModal(idx = -1) {
         sForm.bDelete.style.display = 'none';
     } else {
         const s = config.incomes[idx];
-        sForm.name.value  = s.name;
-        sForm.type.value  = s.type;
-        sForm.sum.value   = s.sum;
-        sForm.income.value = s.income ?? '';
-        sForm.start.value = toInputDate(s.start_date);
-        sForm.end.value   = toInputDate(s.end_date);
-        sForm.title.textContent     = 'Редактирование источника';
+        sForm.name.value     = s.name;
+        sForm.type.value     = s.type;
+        sForm.sum.value      = s.sum;
+        sForm.income.value   = s.income ?? '';
+        sForm.start.value  = toInputDate(s.start_date);
+        sForm.end.value    = toInputDate(s.end_date);
+        sForm.title.textContent = 'Редактирование источника';
         sForm.bDelete.style.display = '';
     }
     updateFieldsByType();
@@ -398,28 +404,25 @@ function onVisibilityChange() {
 
 function init() {
     addHandlers({
-        'click-add':        () => openModal(),
-        'click-restore':    restoreSource,
+        'click-add':     () => openModal(),
+        'click-save':    saveSource,
+        'click-delete':  deleteSource,
+        'click-restore': restoreSource,
+        'change-type':   updateFieldsByType,
+        'change-dates':  validateDates,
+        'close-modal':   onDialogClose,
+        'click-export':  exportConfig,
+        'click-import':  () => document.getElementById('importInput').click(),
         'click-modal-close': () => sForm.dialog.close(),
-        'change-type':      updateFieldsByType,
-        'change-dates':     validateDates,
-        'click-save':       saveSource,
-        'click-delete':     deleteSource,
-        'click-export':     exportConfig,
-        'click-import':     importConfig,
-        'click-exp-clip':   exportClipboard,
-        'click-imp-clip':   importClipboard
+        'animationend-toast': onToastAnimationEnd,
+        'click-dropdown': e => { if (e.target.closest('a')) e.currentTarget.open = false; },
+        'change-import':  importConfig,
+        'click-exp-clip': exportClipboard,
+        'click-imp-clip': importClipboard
     });
-    document.getElementById('appToast').addEventListener('animationend', onToastAnimationEnd);
-    sForm.dialog.addEventListener('close', onDialogClose);
     document.addEventListener('visibilitychange', onVisibilityChange);
-
-    // Закрывать дропдаун при клике на пункт меню или за его пределами
-    const dropdown = document.getElementById('menuDropdown');
-    dropdown.addEventListener('click', e => {
-        if (e.target.closest('a')) dropdown.open = false;
-    });
     document.addEventListener('click', e => {
+        const dropdown = document.getElementById('menuDropdown');
         if (!dropdown.contains(e.target)) dropdown.open = false;
     });
     const confStr = loadFromStorage(lsPrefix + 'config');

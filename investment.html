@@ -33,7 +33,7 @@
         <div class="summary-actions">
             <button title="Добавить источник" data-ev="click-add">+</button>
             <button id="btnRestore" title="Отменить удаление" data-ev="click-restore" disabled>↺</button>
-            <details id="menuDropdown" class="dropdown">
+            <details id="menuDropdown" class="dropdown" data-ev="click-dropdown">
                 <summary title="Меню">☰</summary>
                 <ul>
                     <li><a data-ev="click-export">Экспорт конфига (файл)</a></li>
@@ -53,7 +53,7 @@
     </div>
 </main>
 
-<dialog id="sourceModal" aria-labelledby="sourceModalTitle">
+<dialog id="sourceModal" aria-labelledby="sourceModalTitle" data-ev="close-modal">
     <div class="dialog-header">
         <h5 id="sourceModalTitle">Источник дохода</h5>
         <button type="button" class="dialog-close" data-ev="click-modal-close" aria-label="Закрыть">✕</button>
@@ -103,7 +103,8 @@
     </div>
 </dialog>
 
-<div id="appToast" role="alert" aria-live="polite"></div>
+<input type="file" id="importInput" accept=".json" hidden data-ev="change-import">
+<div id="appToast" role="alert" aria-live="polite" data-ev="animationend-toast"></div>
 
 <script type="module" src="js/investment.js"></script>
 </body>
