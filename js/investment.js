@@ -1,6 +1,6 @@
 import {loadFromStorage, saveToStorage, createElement, addElement, addHandlers} from "./hp_common.js";
 
-const lang = 'ru-RU'; // на время тестирования вместо navigator.language;
+const lang = 'ru-RU'; // страница на русском языке, пусть даты и числа тоже будут с русской локалью
 const lsPrefix = 'hp_inv_';
 const msPerDay = 24 * 60 * 60 * 1000;
 const isInvestment = type => type === 'investment';
@@ -94,7 +94,7 @@ function pluralDays(n) {
 }
 
 function createSource(source, idx) {
-    // [1] Класс timeline-row--monthly для визуального выделения ежемесячных источников
+    // [1] Класс timeline-row.monthly для визуального выделения ежемесячных источников
     const row = createElement('tr', ['timeline-row', isInvestment(source.type) ? '' : 'monthly']);
     const nameCell = createElement('td');
     const from = source.start_date.toLocaleDateString(lang, {timeZone: 'UTC'});
@@ -103,7 +103,7 @@ function createSource(source, idx) {
     const end  = source.end_date
         ? `по ${source.end_date.toLocaleDateString(lang, {timeZone: 'UTC'})}, ${days} ${pluralDays(days)}`
         : '(бессрочно)';
-    const period = `C ${from} ${end}`;
+    const period = `С ${from} ${end}`;
 
     const wrapper = createElement('div', ['source-cell']);
     const textBlock = createElement('div');
@@ -165,7 +165,7 @@ function generatePage() {
     const sources = config.incomes.map(createSource);
 
     for (let i = -1; i <= 5; i++) {
-        const monthStart = new Date(Date.UTC(now.getFullYear(), now.getMonth() + i, 1));
+        const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + i, 1));
         const year = monthStart.getUTCFullYear();
         monthsPerYear[year] = (monthsPerYear[year] || 0) + 1;
 
@@ -273,6 +273,9 @@ function importClipboard() {
 
 /* ---- модальная форма ---- */
 
+const btnRestore   = document.getElementById('btnRestore');
+const menuDropdown = document.getElementById('menuDropdown');
+
 const sForm = {
     dialog:      document.getElementById('sourceModal'),
     form:        document.getElementById('sourceForm'),
@@ -322,10 +325,10 @@ function openModal(idx = -1) {
         sForm.bDelete.style.display = 'none';
     } else {
         const s = config.incomes[idx];
-        sForm.name.value     = s.name;
-        sForm.type.value     = s.type;
-        sForm.sum.value      = s.sum;
-        sForm.income.value   = s.income ?? '';
+        sForm.name.value   = s.name;
+        sForm.type.value   = s.type;
+        sForm.sum.value    = s.sum;
+        sForm.income.value = s.income ?? '';
         sForm.start.value  = toInputDate(s.start_date);
         sForm.end.value    = toInputDate(s.end_date);
         sForm.title.textContent = 'Редактирование источника';
@@ -359,7 +362,7 @@ function saveSource() {
 
 function deleteSource() {
     lastDeleted = config.incomes.splice(editingIndex, 1)[0];
-    document.getElementById('btnRestore').disabled = false;
+    btnRestore.disabled = false;
     config.updatedAt = Date.now();
     onConfigUpdate();
     sForm.dialog.close();
@@ -369,7 +372,7 @@ function restoreSource() {
     if (!lastDeleted) return;
     config.incomes.push(lastDeleted);
     lastDeleted = null;
-    document.getElementById('btnRestore').disabled = true;
+    btnRestore.disabled = true;
     config.updatedAt = Date.now();
     onConfigUpdate();
 }
@@ -424,15 +427,14 @@ function init() {
         'click-import':  () => document.getElementById('importInput').click(),
         'click-modal-close': () => sForm.dialog.close(),
         'animationend-toast': onToastAnimationEnd,
-        'click-dropdown': e => { if (e.target.closest('a')) e.currentTarget.open = false; },
+        'click-dropdown': e => { if (e.target.closest('a')) menuDropdown.open = false; },
         'change-import':  importConfig,
         'click-exp-clip': exportClipboard,
         'click-imp-clip': importClipboard
     });
     document.addEventListener('visibilitychange', onVisibilityChange);
     document.addEventListener('click', e => {
-        const dropdown = document.getElementById('menuDropdown');
-        if (!dropdown.contains(e.target)) dropdown.open = false;
+        if (!menuDropdown.contains(e.target)) menuDropdown.open = false;
     });
     const confStr = loadFromStorage(lsPrefix + 'config');
     if (confStr) updateConfig(confStr);
