@@ -50,8 +50,13 @@ function calcMonthData(source, monthStart, now) {
     let income, activeDays = 0;
     let style;
 
-    if (source.start_date <= monthEnd && (!source.end_date || source.end_date >= monthStart)) {
-        const activeStart = source.start_date > monthStart ? source.start_date : monthStart;
+    // Банки не начисляют процент за день открытия — realStart сдвигает точку отсчёта на +1 день
+    const realStart = source.type === 'investment'
+        ? new Date(source.start_date.getTime() + msPerDay)
+        : source.start_date;
+
+    if (realStart <= monthEnd && (!source.end_date || source.end_date >= monthStart)) {
+        const activeStart = realStart > monthStart ? realStart : monthStart;
         const activeEnd = (!source.end_date || source.end_date > monthEnd) ? monthEnd : source.end_date;
         activeDays = Math.floor((activeEnd - activeStart) / msPerDay) + 1;
 
@@ -66,7 +71,7 @@ function calcMonthData(source, monthStart, now) {
     if (source.type === 'monthly') {
         income = source.sum * (activeDays / daysInMonth) / 1000;
     } else {
-        const totalDays = Math.floor(1 + (source.end_date - source.start_date) / msPerDay);
+        const totalDays = Math.floor((source.end_date - realStart) / msPerDay) + 1;
         income = source.income * activeDays / totalDays / 1000;
     }
 
@@ -92,8 +97,11 @@ function createSource(source, idx) {
     const row = createElement('tr', ['timeline-row', source.type === 'monthly' ? 'monthly' : '']);
     const nameCell = createElement('td');
     const from = source.start_date.toLocaleDateString(lang, {timeZone: 'UTC'});
-    const days = source.end_date ? Math.round(1 + (source.end_date - source.start_date) / msPerDay) : 0;
-    const end = days > 0 ? `по ${source.end_date.toLocaleDateString(lang, {timeZone: 'UTC'})}, ${days} ${pluralDays(days)}` : '(бессрочно)';
+    const add  = source.type === 'investment' ? 0 : 1; // для инвестиций первый день не считается
+    const days = source.end_date ? Math.round(add + (source.end_date - source.start_date) / msPerDay) : 0;
+    const end  = source.end_date
+        ? `по ${source.end_date.toLocaleDateString(lang, {timeZone: 'UTC'})}, ${days} ${pluralDays(days)}`
+        : '(бессрочно)';
     const period = `C ${from} ${end}`;
 
     const wrapper = createElement('div', ['source-cell']);
