@@ -14,7 +14,7 @@ const intl = new Intl.NumberFormat(lang, {minimumFractionDigits: 0, maximumFract
  *             start_date: Date, end_date?: Date }} IncomeSource
  * @type {{ incomes: IncomeSource[] }}
  */
-let config = { incomes: [] };
+let config = resetCfg(); // демо; в сторадж не пишется, пока пользователь ничего не изменит
 
 let lastDeleted = null; // Последний удалённый источник для функции "Вернуть"
 let editingIndex = -1;  // индекс в config.incomes, -1 для добавления
@@ -24,9 +24,21 @@ const dateFields = new Set(['start_date', 'end_date']);
 function dateReviver(key, value) {
     if (dateFields.has(key) && typeof value === 'string') {
         const date = new Date(value);
-        return isNaN(date.getTime()) ? undefined : date; // защита от битых дат
+        if (isNaN(date.getTime())) throw new Error('Некорректная дата'); // битые данные не должны проходить молча
+        return date;
     }
     return value;
+}
+
+// Парсит JSON и проверяет только то, без чего расчёты и отрисовка упадут. Любая проблема — исключение
+function parseAndValidateJson(text) {
+    const data = JSON.parse(text, dateReviver);
+    for (const s of data.incomes) {
+        if (typeof s.sum !== 'number' || !s.start_date ||
+            (isInvestment(s.type) && (typeof s.income !== 'number' || !s.end_date)))
+            throw new Error('Некорректный источник');
+    }
+    return data;
 }
 
 function dateReplacer(key, value) {
@@ -210,21 +222,60 @@ function sortIncomes() {
     });
 }
 
+// updateDate = false — перерисовка без сохранения: загруженное из стоража и демо-данные в сторадж не пишутся,
+// пока пользователь что-то не изменит (демо при этом всегда остаётся с актуальными датами)
 function onConfigUpdate(updateDate = true) {
     sortIncomes();
-    // Обратная совместимость: старые конфиги без updatedAt получают его при первом сохранении
-    if (updateDate || !config.updatedAt) config.updatedAt = Date.now();
-    saveConfig();
+    if (updateDate) {
+        config.updatedAt = Date.now();
+        saveConfig();
+    }
     generatePage();
 }
 
-function updateConfig(confStr, updateDate = true) {
-    config = JSON.parse(confStr, dateReviver);
-    onConfigUpdate(updateDate);
+// Подменяет config версией из стоража, если она новее. Возвращает true, если config заменён
+function loadConfigFromStorage() {
+    const confStr = loadFromStorage(lsPrefix + 'config');
+    if (!confStr) return false;
+    let changed = false;
+    try {
+        const incoming = parseAndValidateJson(confStr);
+        incoming.updatedAt ??= 1; // старый конфиг без даты: новее демо (0), старее любой реальной правки
+        if (incoming.updatedAt > config.updatedAt) {
+            config = incoming;
+            changed = true;
+        }
+    } catch {
+        showToast('Не удалось прочитать сохранённые данные', true);
+    }
+    return changed;
 }
 
+// Возвращает демо-набор для первого запуска. Даты считаются от сегодняшнего дня,
+// чтобы примеры (все цвета, разные типы, неполные месяцы) были актуальны в любой момент
 function resetCfg() {
-    fetch('json/investment_def.json').then(res => res.text()).then(updateConfig);
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const dateShift = (date, days) => new Date(date.getTime() + days * msPerDay);
+
+    const salary     = {name: 'Зарплата',                    type: 'monthly',    sum: 90000};
+    const rent       = {name: 'Аренда квартиры',             type: 'monthly',    sum: 30000};
+    const deposit    = {name: 'Депозит (Альфа-банк, 13.5%)', type: 'investment', sum: 600000, income: 27000};
+    const stocks     = {name: 'Акции (Ozon)',                type: 'investment', sum: 70000,  income: 12000};
+    const newDeposit = {name: 'Новый депозит (ВТБ)',         type: 'investment', sum: 200000, income: 8000};
+
+    salary.start_date = dateShift(today, -730);              // бессрочный, давно начался
+    rent.start_date = dateShift(today, -45);                 // начался в середине месяца
+    rent.end_date = dateShift(today, 20);                    // скоро закончится (жёлтый)
+    deposit.start_date = dateShift(today, -20);              // активный
+    deposit.end_date = dateShift(today, 110);
+    stocks.start_date = dateShift(today, -200);              // начался раньше видимых месяцев
+    stocks.end_date = dateShift(today, -5);                  // уже закончился (красный)
+    newDeposit.start_date = dateShift(today, 10);            // ещё не начался (серый)
+    newDeposit.end_date = dateShift(today, 100);
+
+    // updatedAt = 0: любой реальный конфиг (из стораджа) новее демо
+    return {updatedAt: 0, incomes: [salary, rent, deposit, stocks, newDeposit]};
 }
 
 /* ---- меню ---- */
@@ -238,18 +289,21 @@ function exportConfig() {
     setTimeout(() => URL.revokeObjectURL(anchor.href), 0);
 }
 
+function applyImportedConfig(text) {
+    try {
+        config = parseAndValidateJson(text); // при ошибке парсинга или проверки текущий config не изменится
+        onConfigUpdate(true);
+        showToast('Настройки импортированы');
+    } catch {
+        showToast('Не удалось прочитать настройки', true);
+    }
+}
+
 function importConfig(e) {
     const file = e.target.files[0];
     if (!file) return;
     e.target.value = ''; // сброс, чтобы повторный импорт того же файла снова вызвал change
-    file.text().then(text => {
-        try {
-            updateConfig(text);
-            showToast('Настройки импортированы');
-        } catch {
-            showToast('Не удалось прочитать настройки', true);
-        }
-    }).catch(() => showToast('Не удалось прочитать файл', true));
+    file.text().then(applyImportedConfig).catch(() => showToast('Не удалось прочитать файл', true));
 }
 
 function exportClipboard() {
@@ -258,14 +312,8 @@ function exportClipboard() {
 }
 
 function importClipboard() {
-    navigator.clipboard.readText().then(text => {
-        try {
-            updateConfig(text);
-            showToast('Настройки импортированы из буфера обмена');
-        } catch {
-            showToast('Не удалось прочитать настройки', true);
-        }
-    });
+    navigator.clipboard.readText().then(applyImportedConfig)
+        .catch(() => showToast('Не удалось прочитать буфер обмена', true));
 }
 
 const btnRestore   = document.getElementById('btnRestore');
@@ -391,15 +439,11 @@ function onDialogClose() {
 
 function onVisibilityChange() {
     if (document.visibilityState !== 'visible') return;
-    const confStr = loadFromStorage(lsPrefix + 'config');
-    if (!confStr) return;
-    const {updatedAt} = JSON.parse(confStr);
-    if ((updatedAt ?? 0) > (config.updatedAt ?? 0)) {
-        if (sForm.dialog.open) {
-            sForm.dialog.close();
-            showToast('Данные обновлены из другой вкладки');
-        }
-        updateConfig(confStr, false);
+    if (!loadConfigFromStorage()) return;
+    onConfigUpdate(false);
+    if (sForm.dialog.open) {
+        sForm.dialog.close();
+        showToast('Данные обновлены из другой вкладки');
     }
 }
 
@@ -427,9 +471,8 @@ function init() {
     document.addEventListener('click', e => {
         if (!menuDropdown.contains(e.target)) menuDropdown.open = false;
     });
-    const confStr = loadFromStorage(lsPrefix + 'config');
-    if (confStr) updateConfig(confStr, false);
-    else resetCfg();
+    loadConfigFromStorage();
+    onConfigUpdate(false); // отрисовка нужна и для демо, когда в сторадже пусто
 }
 
 init();
