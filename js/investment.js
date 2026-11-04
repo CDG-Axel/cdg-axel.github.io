@@ -94,7 +94,7 @@ function pluralDays(n) {
 }
 
 function createSource(source, idx) {
-    // [1] Класс timeline-row.monthly для визуального выделения ежемесячных источников
+    // Класс timeline-row.monthly для визуального выделения ежемесячных источников
     const row = createElement('tr', ['timeline-row', isInvestment(source.type) ? '' : 'monthly']);
     const nameCell = createElement('td');
     const from = source.start_date.toLocaleDateString(lang, {timeZone: 'UTC'});
@@ -143,7 +143,7 @@ function generatePage() {
     const years = createElement('tr', ['timeline-year']);
     years.appendChild(createElement('td', [], {colspan: 2}));
 
-    // [2] Строка разбита на две ячейки: метка + суммы по investment-источникам.
+    // Строка разбита на две ячейки: метка + суммы по investment-источникам.
     //     Monthly-источники не суммируются — у них нет вложенной суммы и дохода.
     const investSources = config.incomes.filter(s => isInvestment(s.type));
     const totalInvestSum    = investSources.reduce((acc, s) => acc + s.sum, 0);
@@ -194,7 +194,7 @@ function generatePage() {
 
     const troubles = document.getElementById('pTroubles');
     const troubledSources = config.incomes.filter(s =>
-        s.end_date && (s.end_date < now || s.end_date - now < WARNING_DAYS * msPerDay)
+        s.end_date && s.end_date - now < WARNING_DAYS * msPerDay
     );
     troubles.replaceChildren(
         ...troubledSources.flatMap(s => [createElement('br'), document.createTextNode(s.name)])
@@ -210,20 +210,17 @@ function sortIncomes() {
     });
 }
 
-function onConfigUpdate() {
+function onConfigUpdate(updateDate = true) {
     sortIncomes();
+    // Обратная совместимость: старые конфиги без updatedAt получают его при первом сохранении
+    if (updateDate || !config.updatedAt) config.updatedAt = Date.now();
     saveConfig();
     generatePage();
 }
 
-function updateConfig(confStr) {
+function updateConfig(confStr, updateDate = true) {
     config = JSON.parse(confStr, dateReviver);
-    // Обратная совместимость: добавляем updatedAt в старые конфиги без него
-    if (!config.updatedAt) {
-        config.updatedAt = Date.now();
-        saveConfig();
-    }
-    onConfigUpdate();
+    onConfigUpdate(updateDate);
 }
 
 function resetCfg() {
@@ -238,7 +235,7 @@ function exportConfig() {
     anchor.href = URL.createObjectURL(new Blob([json], {type: 'application/json'}));
     anchor.download = 'investment_config.json';
     anchor.click();
-    URL.revokeObjectURL(anchor.href);
+    setTimeout(() => URL.revokeObjectURL(anchor.href), 0);
 }
 
 function importConfig(e) {
@@ -271,10 +268,10 @@ function importClipboard() {
     });
 }
 
-/* ---- модальная форма ---- */
-
 const btnRestore   = document.getElementById('btnRestore');
 const menuDropdown = document.getElementById('menuDropdown');
+
+/* ---- модальная форма ---- */
 
 const sForm = {
     dialog:      document.getElementById('sourceModal'),
@@ -355,7 +352,6 @@ function saveSource() {
     if (editingIndex === -1) config.incomes.push(source);
     else config.incomes[editingIndex] = source;
 
-    config.updatedAt = Date.now();
     onConfigUpdate();
     sForm.dialog.close();
 }
@@ -363,7 +359,6 @@ function saveSource() {
 function deleteSource() {
     lastDeleted = config.incomes.splice(editingIndex, 1)[0];
     btnRestore.disabled = false;
-    config.updatedAt = Date.now();
     onConfigUpdate();
     sForm.dialog.close();
 }
@@ -373,7 +368,6 @@ function restoreSource() {
     config.incomes.push(lastDeleted);
     lastDeleted = null;
     btnRestore.disabled = true;
-    config.updatedAt = Date.now();
     onConfigUpdate();
 }
 
@@ -388,9 +382,6 @@ function showToast(message, isError = false) {
     el.classList.add('toast--visible');
 }
 
-function onToastAnimationEnd(e) {
-    e.currentTarget.classList.remove('toast--visible');
-}
 
 function onDialogClose() {
     // Убираем фокус с элемента, который открыл диалог (например кнопка ✎),
@@ -408,7 +399,7 @@ function onVisibilityChange() {
             sForm.dialog.close();
             showToast('Данные обновлены из другой вкладки');
         }
-        updateConfig(confStr);
+        updateConfig(confStr, false);
     }
 }
 
@@ -426,7 +417,7 @@ function init() {
         'click-export':  exportConfig,
         'click-import':  () => document.getElementById('importInput').click(),
         'click-modal-close': () => sForm.dialog.close(),
-        'animationend-toast': onToastAnimationEnd,
+        'animationend-toast': e => e.currentTarget.classList.remove('toast--visible'),
         'click-dropdown': e => { if (e.target.closest('a')) menuDropdown.open = false; },
         'change-import':  importConfig,
         'click-exp-clip': exportClipboard,
@@ -437,7 +428,7 @@ function init() {
         if (!menuDropdown.contains(e.target)) menuDropdown.open = false;
     });
     const confStr = loadFromStorage(lsPrefix + 'config');
-    if (confStr) updateConfig(confStr);
+    if (confStr) updateConfig(confStr, false);
     else resetCfg();
 }
 
