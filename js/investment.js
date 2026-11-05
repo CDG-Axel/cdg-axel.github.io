@@ -18,6 +18,7 @@ let config = resetCfg(); // демо; в сторадж не пишется, п�
 
 let lastDeleted = null; // Последний удалённый источник для функции "Вернуть"
 let editingIndex = -1;  // индекс в config.incomes, -1 для добавления
+let renderedDay = null; // дата (todayUTC), для которой отрисована страница: со сменой даты она устаревает
 
 const dateFields = new Set(['start_date', 'end_date']);
 
@@ -34,9 +35,12 @@ function dateReviver(key, value) {
 function parseAndValidateJson(text) {
     const data = JSON.parse(text, dateReviver);
     for (const s of data.incomes) {
-        if (typeof s.sum !== 'number' || !s.start_date ||
-            (isInvestment(s.type) && (typeof s.income !== 'number' || !s.end_date)))
-            throw new Error('Некорректный источник');
+        // dateReviver превращает в Date только строки, поэтому тип проверяем явно
+        const bad = typeof s.sum !== 'number'
+            || !(s.start_date instanceof Date)
+            || (s.end_date !== undefined && !(s.end_date instanceof Date))
+            || (isInvestment(s.type) && (typeof s.income !== 'number' || !s.end_date));
+        if (bad) throw new Error('Некорректный источник');
     }
     return data;
 }
@@ -45,20 +49,27 @@ function dateReplacer(key, value) {
     return dateFields.has(key) ? value.split('T')[0] : value;
 }
 
-function saveConfig() {
-    saveToStorage(lsPrefix + 'config', JSON.stringify(config, dateReplacer));
+// Сегодня по местному календарю в том же представлении, что и даты источников (полночь UTC)
+function todayUTC() {
+    const d = new Date();
+    return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+}
+
+// Дата со сдвигом на monthOffset месяцев и числом day (day = 0 — последний день предыдущего месяца)
+function dateUTC(date, monthOffset, day) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + monthOffset, day));
 }
 
 function activityColor(source, now) {
     if (source.start_date > now) return 'gray';
     if (!source.end_date) return '';
-    if (source.end_date < now) return 'red';
+    if (source.end_date <= now) return 'red'; // последний день — уже красный: пора действовать
     if (source.end_date - now < WARNING_DAYS * msPerDay) return 'yellow';
     return '';
 }
 
 function calcMonthData(source, monthStart, now) {
-    const monthEnd = new Date(Date.UTC(monthStart.getUTCFullYear(), 1 + monthStart.getUTCMonth(), 0));
+    const monthEnd = dateUTC(monthStart, 1, 0);
     const daysInMonth = monthEnd.getUTCDate();
     let income, activeDays = 0;
     let style;
@@ -143,7 +154,8 @@ function createSource(source, idx) {
 }
 
 function generatePage() {
-    const now = new Date();
+    const now = todayUTC();
+    renderedDay = now;
     const attrScope = {scope: 'col'};
 
     const months = createElement('tr', ['timeline-month']);
@@ -177,7 +189,7 @@ function generatePage() {
     const sources = config.incomes.map(createSource);
 
     for (let i = -1; i <= 5; i++) {
-        const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + i, 1));
+        const monthStart = dateUTC(now, i, 1);
         const year = monthStart.getUTCFullYear();
         monthsPerYear[year] = (monthsPerYear[year] || 0) + 1;
 
@@ -228,7 +240,7 @@ function onConfigUpdate(updateDate = true) {
     sortIncomes();
     if (updateDate) {
         config.updatedAt = Date.now();
-        saveConfig();
+        saveToStorage(lsPrefix + 'config', JSON.stringify(config, dateReplacer));
     }
     generatePage();
 }
@@ -243,6 +255,7 @@ function loadConfigFromStorage() {
         incoming.updatedAt ??= 1; // старый конфиг без даты: новее демо (0), старее любой реальной правки
         if (incoming.updatedAt > config.updatedAt) {
             config = incoming;
+            setLastDeleted(); // удалённый источник относился к прежнему набору
             changed = true;
         }
     } catch {
@@ -254,8 +267,7 @@ function loadConfigFromStorage() {
 // Возвращает демо-набор для первого запуска. Даты считаются от сегодняшнего дня,
 // чтобы примеры (все цвета, разные типы, неполные месяцы) были актуальны в любой момент
 function resetCfg() {
-    const now = new Date();
-    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const today = todayUTC();
     const dateShift = (date, days) => new Date(date.getTime() + days * msPerDay);
 
     const salary     = {name: 'Зарплата',                    type: 'monthly',    sum: 90000};
@@ -292,6 +304,7 @@ function exportConfig() {
 function applyImportedConfig(text) {
     try {
         config = parseAndValidateJson(text); // при ошибке парсинга или проверки текущий config не изменится
+        setLastDeleted(); // удалённый источник относился к прежнему набору
         onConfigUpdate(true);
         showToast('Настройки импортированы');
     } catch {
@@ -303,12 +316,14 @@ function importConfig(e) {
     const file = e.target.files[0];
     if (!file) return;
     e.target.value = ''; // сброс, чтобы повторный импорт того же файла снова вызвал change
-    file.text().then(applyImportedConfig).catch(() => showToast('Не удалось прочитать файл', true));
+    file.text().then(applyImportedConfig)
+        .catch(() => showToast('Не удалось прочитать файл', true));
 }
 
 function exportClipboard() {
     const json = JSON.stringify(config, dateReplacer); // без форматирования — для передачи в мессенджере
-    navigator.clipboard.writeText(json).then(() => showToast('Настройки скопированы в буфер обмена'));
+    navigator.clipboard.writeText(json).then(() => showToast('Настройки скопированы в буфер обмена'))
+        .catch(() => showToast('Не удалось скопировать в буфер обмена', true));
 }
 
 function importClipboard() {
@@ -318,6 +333,12 @@ function importClipboard() {
 
 const btnRestore   = document.getElementById('btnRestore');
 const menuDropdown = document.getElementById('menuDropdown');
+
+// Запоминает удалённый источник для кнопки "Вернуть"; без аргумента — сбрасывает
+function setLastDeleted(source = null) {
+    lastDeleted = source;
+    btnRestore.disabled = !source;
+}
 
 /* ---- модальная форма ---- */
 
@@ -405,8 +426,7 @@ function saveSource() {
 }
 
 function deleteSource() {
-    lastDeleted = config.incomes.splice(editingIndex, 1)[0];
-    btnRestore.disabled = false;
+    setLastDeleted(config.incomes.splice(editingIndex, 1)[0]);
     onConfigUpdate();
     sForm.dialog.close();
 }
@@ -414,8 +434,7 @@ function deleteSource() {
 function restoreSource() {
     if (!lastDeleted) return;
     config.incomes.push(lastDeleted);
-    lastDeleted = null;
-    btnRestore.disabled = true;
+    setLastDeleted();
     onConfigUpdate();
 }
 
@@ -439,11 +458,14 @@ function onDialogClose() {
 
 function onVisibilityChange() {
     if (document.visibilityState !== 'visible') return;
-    if (!loadConfigFromStorage()) return;
-    onConfigUpdate(false);
-    if (sForm.dialog.open) {
-        sForm.dialog.close();
-        showToast('Данные обновлены из другой вкладки');
+    if (loadConfigFromStorage()) {
+        onConfigUpdate(false);
+        if (sForm.dialog.open) {
+            sForm.dialog.close();
+            showToast('Данные обновлены из другой вкладки');
+        }
+    } else if (todayUTC() > renderedDay) {
+        generatePage(); // данные те же, но сменились сутки: пересчитать месяцы и цвета
     }
 }
 
