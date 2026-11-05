@@ -12,7 +12,7 @@ const intl = new Intl.NumberFormat(lang, {minimumFractionDigits: 0, maximumFract
  * @typedef {{ name: string, sum: number, income?: number,
  *             type: 'monthly'|'investment',
  *             start_date: Date, end_date?: Date }} IncomeSource
- * @type {{ incomes: IncomeSource[] }}
+ * @type {{ incomes: IncomeSource[], updatedAt: number }}
  */
 let config = resetCfg(); // демо; в сторадж не пишется, пока пользователь ничего не изменит
 
@@ -94,7 +94,8 @@ function calcMonthData(source, monthStart, now) {
 
     if (isInvestment(source.type)) {
         const totalDays = Math.floor((source.end_date - realStart) / msPerDay) + 1;
-        income = source.income * activeDays / totalDays / 1000;
+        // totalDays <= 0 — вырожденная инвестиция (окончание = началу): дней начисления нет, дохода нет
+        income = totalDays > 0 ? source.income * activeDays / totalDays / 1000 : 0;
     } else {
         income = source.sum * (activeDays / daysInMonth) / 1000;
     }
@@ -438,8 +439,6 @@ function restoreSource() {
     onConfigUpdate();
 }
 
-/* ---- синхронизация вкладок ---- */
-
 function showToast(message, isError = false) {
     const el = document.getElementById('appToast');
     el.textContent = message;
@@ -449,12 +448,13 @@ function showToast(message, isError = false) {
     el.classList.add('toast--visible');
 }
 
-
 function onDialogClose() {
     // Убираем фокус с элемента, который открыл диалог (например кнопка ✎),
     // чтобы после закрытия через ESC не оставалась обводка
     document.activeElement?.blur();
 }
+
+/* ---- синхронизация вкладок ---- */
 
 function onVisibilityChange() {
     if (document.visibilityState !== 'visible') return;
