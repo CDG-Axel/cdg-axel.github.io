@@ -1,0 +1,11 @@
+#cookie-banner {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+  display: none; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  padding: 14px 20px; background: #222; color: #eee; font: 14px/1.4 system-ui, sans-serif;
+}
+#cookie-banner a { color: #8ab4f8; }
+#cookie-banner .cb-actions { display: flex; gap: 8px; }
+#cookie-banner button {
+  padding: 8px 16px; border-radius: 6px; border: 1px solid #888;
+  background: transparent; color: #eee; cursor: pointer; font: inherit;
+}

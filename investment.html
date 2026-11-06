@@ -8,15 +8,8 @@
     <meta name="description" content="Планировщик доходов - позволяет оценивать ваши доходы за месяц от разных источников (зарплата, пенсия, депозиты, инвестиции)" />
     <meta name="robots" content="index, follow" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='50' font-size='90' text-anchor='middle' dy='.35em'>📈</text></svg>">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCTDGHCKB3"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-VCTDGHCKB3');
-    </script>
     <link href="css/investment.css" rel="stylesheet">
+    <link href="css/consent.css" rel="stylesheet">
 </head>
 <body>
 <main>
@@ -41,6 +34,7 @@
                     <li><a data-ev="click-import">Импорт конфига (файл)</a></li>
                     <li><a data-ev="click-exp-clip">Экспорт конфига (буфер обмена)</a></li>
                     <li><a data-ev="click-imp-clip">Импорт конфига (буфер обмена)</a></li>
+                    <li><a data-consent="reset">Сбросить выбор по cookie</a></li>
                 </ul>
             </details>
         </div>
@@ -106,6 +100,19 @@
 
 <input type="file" id="importInput" accept=".json" hidden data-ev="change-import">
 <div id="appToast" role="alert" data-ev="animationend-toast"></div>
+
+<div id="cookie-banner" role="region" aria-label="Настройки cookie">
+    <span>
+        Мы используем Google Analytics (cookie), чтобы понимать посещаемость и типы устройств.
+        Аналитика включится только с вашего согласия.
+        <a href="/privacy">Подробнее</a>
+    </span>
+    <div class="cb-actions">
+        <button type="button" data-consent="decline">Отклонить</button>
+        <button type="button" data-consent="accept">Принять</button>
+    </div>
+</div>
+<script type="module" src="js/consent.js?key=G-VCTDGHCKB3"></script>
 
 <script type="module" src="js/investment.js"></script>
 </body>

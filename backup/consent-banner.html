@@ -1,0 +1,125 @@
+<!-- ===== 1. СТИЛИ БАННЕРА (можно вынести в css) ===== -->
+<style>
+  #cookie-banner {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+    display: none; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    padding: 14px 20px; background: #222; color: #eee; font: 14px/1.4 system-ui, sans-serif;
+  }
+  #cookie-banner a { color: #8ab4f8; }
+  #cookie-banner .cb-actions { display: flex; gap: 8px; }
+  #cookie-banner button {
+    padding: 8px 16px; border-radius: 6px; border: 1px solid #888;
+    background: transparent; color: #eee; cursor: pointer; font: inherit;
+  }
+  #cookie-banner button.cb-accept { background: #8ab4f8; color: #111; border-color: #8ab4f8; }
+</style>
+
+<!-- ===== 2. РАЗМЕТКА БАННЕРА ===== -->
+<div id="cookie-banner" role="dialog" aria-label="Настройки cookie">
+  <span>
+    Мы используем Google Analytics (cookie), чтобы понимать посещаемость и типы устройств.
+    Аналитика включится только с вашего согласия.
+    <a href="/privacy">Подробнее</a>
+  </span>
+  <div class="cb-actions">
+    <button type="button" class="cb-decline">Отклонить</button>
+    <button type="button" class="cb-accept">Принять</button>
+  </div>
+</div>
+
+<!--
+  Ссылка для сброса выбора, её нужно разместить в футере страницы:
+  <a href="#" onclick="resetCookieConsent(); return false;">Настройки cookie</a>
+-->
+
+<!-- ===== 3. ЛОГИКА ===== -->
+<script>
+(function () {
+  const GA_ID = 'my_key';
+  const STORAGE_KEY = 'analytics_consent';
+  const GRANTED = 'granted';
+  const GOOGLE_COOKIE = /^(_ga(_.*)?|_gid|_gat.*)$/;
+
+  let analyticsStarted = false;
+
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+
+  function enableAnalytics() {
+    if (analyticsStarted) return;
+    analyticsStarted = true;
+
+    window.dataLayer = window.dataLayer || [];
+
+    gtag('consent', 'default', {
+      analytics_storage: 'granted',
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+    });
+    gtag('js', new Date());
+    gtag('config', GA_ID);
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    document.head.appendChild(script);
+  }
+
+  // cookie могла быть выставлена на родительский домен, поэтому пробуем все варианты
+  function deleteCookie(name) {
+    const expired = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    document.cookie = expired;
+
+    const parts = location.hostname.split('.');
+    for (let i = 0; i < parts.length - 1; i++) {
+      const domain = parts.slice(i).join('.');
+      document.cookie = `${expired}; domain=${domain}`;
+      document.cookie = `${expired}; domain=.${domain}`;
+    }
+  }
+
+  function deleteGoogleCookies() {
+    document.cookie
+      .split(';')
+      .map(item => item.split('=')[0].trim())
+      .filter(name => GOOGLE_COOKIE.test(name))
+      .forEach(deleteCookie);
+  }
+
+  function resetConsent() {
+    deleteGoogleCookies();
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+
+  function showBanner() {
+    const banner = document.getElementById('cookie-banner');
+    banner.style.display = 'flex';
+
+    function applyChoice(choice) {
+      localStorage.setItem(STORAGE_KEY, choice);
+      banner.style.display = 'none';
+      if (choice === GRANTED) enableAnalytics();
+    }
+
+    banner.querySelector('.cb-accept').addEventListener('click', () => applyChoice(GRANTED));
+    banner.querySelector('.cb-decline').addEventListener('click', () => applyChoice('denied'));
+  }
+
+  function start() {
+    const choice = localStorage.getItem(STORAGE_KEY);
+
+    if (choice === GRANTED) enableAnalytics();
+    else if (choice === null) showBanner();
+  }
+
+  function init() {
+    window.resetCookieConsent = resetConsent;
+    document.addEventListener('DOMContentLoaded', start);
+  }
+
+  init();
+})();
+</script>
