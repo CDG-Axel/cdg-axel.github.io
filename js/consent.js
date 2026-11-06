@@ -60,6 +60,12 @@ function deleteGoogleCookies() {
 }
 
 function resetConsent() {
+  gtag('consent', 'update', {
+    analytics_storage: 'denied',
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+  });
   deleteGoogleCookies();
   localStorage.removeItem(STORAGE_KEY);
   location.reload();

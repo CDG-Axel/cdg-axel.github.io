@@ -1,125 +1,73 @@
-<!-- ===== 1. СТИЛИ БАННЕРА (можно вынести в css) ===== -->
-<style>
-  #cookie-banner {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
-    display: none; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    padding: 14px 20px; background: #222; color: #eee; font: 14px/1.4 system-ui, sans-serif;
-  }
-  #cookie-banner a { color: #8ab4f8; }
-  #cookie-banner .cb-actions { display: flex; gap: 8px; }
-  #cookie-banner button {
-    padding: 8px 16px; border-radius: 6px; border: 1px solid #888;
-    background: transparent; color: #eee; cursor: pointer; font: inherit;
-  }
-  #cookie-banner button.cb-accept { background: #8ab4f8; color: #111; border-color: #8ab4f8; }
-</style>
+<!--
+  ИНСТРУКЦИЯ ПО ПОДКЛЮЧЕНИЮ БАННЕРА СОГЛАСИЯ НА GOOGLE ANALYTICS
 
-<!-- ===== 2. РАЗМЕТКА БАННЕРА ===== -->
-<div id="cookie-banner" role="dialog" aria-label="Настройки cookie">
+  Модуль состоит из трёх частей: consent.css (стили), consent.js (логика)
+  и этого фрагмента (разметка баннера). Аналитика Google не загружается,
+  пока посетитель не нажал «Принять».
+
+  Расположение файлов consent.css и consent.js определяет сам проект.
+  В href и src ниже нужно прописать те пути, по которым они лежат в проекте
+  (например, styles/consent.css и code/consent.js).
+
+  ШАГ 1. Удалить старый Google tag, если он есть.
+    Нужно удалить со страницы (или из общего шаблона) всё, что относится к Google Analytics:
+      - <script async src="https://www.googletagmanager.com/gtag/js?id=..."></script>
+      - блок с window.dataLayer, function gtag(), gtag('js', ...) и gtag('config', ...)
+    Если оставить их, аналитика будет работать без согласия посетителя.
+    Если проект сам вызывает gtag('event', ...), эти вызовы продолжат работать:
+    модуль создаёт глобальную gtag, а до согласия её вызовы ничего не делают.
+    Вызовы из скриптов, которые выполняются до consent.js, нужно писать
+    как window.gtag?.('event', ...), потому что на тот момент gtag ещё не создана.
+
+  ШАГ 2. Подключить стили.
+    Строку <link> ниже желательно перенести в <head> страницы.
+
+  ШАГ 3. Вставить разметку баннера.
+    Блок <div id="cookie-banner"> нужно поместить в HTML страницы перед </body>.
+    Он должен лежать прямо в HTML, а не создаваться скриптами позже.
+    Текст баннера можно менять, а ссылку /privacy нужно заменить
+    на страницу политики конфиденциальности проекта.
+    Кнопки находятся по атрибутам data-consent="accept" и data-consent="decline",
+    эти атрибуты менять нельзя.
+
+  ШАГ 4. Подключить скрипт.
+    Тег <script> ниже ставится сразу после баннера, перед </body>.
+      - вместо G-XXXXXXXXXX нужно указать идентификатор Google Analytics проекта;
+      - type="module" обязателен, async добавлять нельзя;
+      - по умолчанию рекламные параметры запрещены. Чтобы разрешить их,
+        нужно добавить к адресу &allowed= и буквы разрешаемых параметров:
+          s = ad_storage, u = ad_user_data, p = ad_personalization
+        Например: consent.js?key=G-XXXXXXXXXX&allowed=sup
+
+  ШАГ 5. Добавить элемент для сброса выбора (по желанию).
+    Любому элементу страницы нужно добавить атрибут data-consent="reset".
+    Это может быть ссылка, кнопка, пункт списка и т. д., например:
+      <a href="#" data-consent="reset">Настройки cookie</a>
+      <button type="button" data-consent="reset">Настройки cookie</button>
+      <li data-consent="reset">Настройки cookie</li>
+    Элементы, добавленные на страницу позже, тоже будут работать.
+    По клику удаляются cookie Google и сохранённый выбор, страница перезагружается
+    и баннер показывается снова.
+    ВАЖНО: по клику страница перезагружается, поэтому на такой элемент не стоит вешать
+    свои асинхронные действия (запросы на сервер, таймеры): перезагрузка может их прервать.
+    Синхронные обработчики выполнятся до перезагрузки.
+-->
+
+<!-- Шаг 2: желательно перенести в <head> -->
+<link href="/css/consent.css" rel="stylesheet">
+
+<!-- Шаг 3: разметка баннера, перед </body> -->
+<div id="cookie-banner" role="region" aria-label="Настройки cookie">
   <span>
     Мы используем Google Analytics (cookie), чтобы понимать посещаемость и типы устройств.
     Аналитика включится только с вашего согласия.
     <a href="/privacy">Подробнее</a>
   </span>
   <div class="cb-actions">
-    <button type="button" class="cb-decline">Отклонить</button>
-    <button type="button" class="cb-accept">Принять</button>
+    <button type="button" data-consent="decline">Отклонить</button>
+    <button type="button" data-consent="accept">Принять</button>
   </div>
 </div>
 
-<!--
-  Ссылка для сброса выбора, её нужно разместить в футере страницы:
-  <a href="#" onclick="resetCookieConsent(); return false;">Настройки cookie</a>
--->
-
-<!-- ===== 3. ЛОГИКА ===== -->
-<script>
-(function () {
-  const GA_ID = 'my_key';
-  const STORAGE_KEY = 'analytics_consent';
-  const GRANTED = 'granted';
-  const GOOGLE_COOKIE = /^(_ga(_.*)?|_gid|_gat.*)$/;
-
-  let analyticsStarted = false;
-
-  function gtag() {
-    dataLayer.push(arguments);
-  }
-
-  function enableAnalytics() {
-    if (analyticsStarted) return;
-    analyticsStarted = true;
-
-    window.dataLayer = window.dataLayer || [];
-
-    gtag('consent', 'default', {
-      analytics_storage: 'granted',
-      ad_storage: 'denied',
-      ad_user_data: 'denied',
-      ad_personalization: 'denied',
-    });
-    gtag('js', new Date());
-    gtag('config', GA_ID);
-
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
-    document.head.appendChild(script);
-  }
-
-  // cookie могла быть выставлена на родительский домен, поэтому пробуем все варианты
-  function deleteCookie(name) {
-    const expired = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-    document.cookie = expired;
-
-    const parts = location.hostname.split('.');
-    for (let i = 0; i < parts.length - 1; i++) {
-      const domain = parts.slice(i).join('.');
-      document.cookie = `${expired}; domain=${domain}`;
-      document.cookie = `${expired}; domain=.${domain}`;
-    }
-  }
-
-  function deleteGoogleCookies() {
-    document.cookie
-      .split(';')
-      .map(item => item.split('=')[0].trim())
-      .filter(name => GOOGLE_COOKIE.test(name))
-      .forEach(deleteCookie);
-  }
-
-  function resetConsent() {
-    deleteGoogleCookies();
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
-  }
-
-  function showBanner() {
-    const banner = document.getElementById('cookie-banner');
-    banner.style.display = 'flex';
-
-    function applyChoice(choice) {
-      localStorage.setItem(STORAGE_KEY, choice);
-      banner.style.display = 'none';
-      if (choice === GRANTED) enableAnalytics();
-    }
-
-    banner.querySelector('.cb-accept').addEventListener('click', () => applyChoice(GRANTED));
-    banner.querySelector('.cb-decline').addEventListener('click', () => applyChoice('denied'));
-  }
-
-  function start() {
-    const choice = localStorage.getItem(STORAGE_KEY);
-
-    if (choice === GRANTED) enableAnalytics();
-    else if (choice === null) showBanner();
-  }
-
-  function init() {
-    window.resetCookieConsent = resetConsent;
-    document.addEventListener('DOMContentLoaded', start);
-  }
-
-  init();
-})();
-</script>
+<!-- Шаг 4: сразу после баннера, перед </body> -->
+<script type="module" src="/js/consent.js?key=G-XXXXXXXXXX"></script>
