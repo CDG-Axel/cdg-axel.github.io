@@ -137,7 +137,7 @@ function createSource(source, idx) {
         createElement('br'),
         createElement('span', ['source-desc'], {}, period)
     );
-    const editBtn = createElement('button', ['edit-btn'], {title: 'Редактировать / удалить'}, '✎');
+    const editBtn = createElement('button', ['edit-btn'], {title: 'Редактировать / удалить', 'data-idx': idx}, '✎');
     editBtn.addEventListener('click', () => openModal(idx));
 
     wrapper.append(textBlock, editBtn);
@@ -405,9 +405,11 @@ function openModal(idx = -1) {
     }
     updateFieldsByType();
     sForm.dialog.showModal();
+    if (keyboardOpened) sForm.name.focus();
 }
 
-function saveSource() {
+function saveSource(e) {
+    e.preventDefault();
     validateDates();
     sForm.form.classList.add('was-validated');
     if (!sForm.form.checkValidity()) return;
@@ -426,6 +428,10 @@ function saveSource() {
 
     onConfigUpdate();
     sForm.dialog.close();
+    if (keyboardOpened) {
+        const idx = config.incomes.indexOf(source);
+        document.querySelector(`.edit-btn[data-idx="${idx}"]`)?.focus();
+    }
 }
 
 function deleteSource() {
@@ -498,7 +504,7 @@ function onVisibilityChange() {
 function init() {
     addHandlers({
         'click-add':     () => openModal(),
-        'click-save':    saveSource,
+        'submit-save':   saveSource,
         'click-delete':  deleteSource,
         'click-restore': restoreSource,
         'change-type':   updateFieldsByType,

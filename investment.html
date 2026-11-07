@@ -15,11 +15,11 @@
 <main>
     <div class="summary-card">
         <div class="summary-stats">
-            <div aria-label="Доход / прогноз">
+            <div>
                 <strong>Текущий доход:</strong> <span id="pIncomeCur"></span>
                 <br><strong>Прогноз через 3 мес:</strong> <span id="pIncome3m"></span>
             </div>
-            <div aria-label="Проблемные источники">
+            <div>
                 <strong>Проблемные источники:</strong>
                 <span id="pTroubles"></span>
             </div>
@@ -53,7 +53,7 @@
         <h5 id="sourceModalTitle">Источник дохода</h5>
         <button type="button" class="dialog-close" data-ev="click-modal-close" aria-label="Закрыть">✕</button>
     </div>
-    <form id="sourceForm" novalidate>
+    <form id="sourceForm" data-ev="submit-save" novalidate>
         <div class="field">
             <label for="fName">Название</label>
             <input type="text" id="fName" required>
@@ -94,7 +94,7 @@
     <div class="dialog-footer">
         <button type="button" class="btn-danger" id="btnDelete" data-ev="click-delete">Удалить</button>
         <button type="button" data-ev="click-modal-close">Отмена</button>
-        <button type="button" class="btn-primary" id="btnSave" data-ev="click-save">Сохранить</button>
+        <button type="submit" form="sourceForm" class="btn-primary">Сохранить</button>
     </div>
 </dialog>
 
