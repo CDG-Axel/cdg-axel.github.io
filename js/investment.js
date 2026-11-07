@@ -14,7 +14,7 @@ const intl = new Intl.NumberFormat(lang, {minimumFractionDigits: 0, maximumFract
  *             start_date: Date, end_date?: Date }} IncomeSource
  * @type {{ incomes: IncomeSource[], updatedAt: number }}
  */
-let config = resetCfg(); // демо; в сторадж не пишется, пока пользователь ничего не изменит
+let config = resetCfg(); // демо; в storage не пишется, пока пользователь ничего не изменит
 
 let lastDeleted = null; // Последний удалённый источник для функции "Вернуть"
 let editingIndex = -1;  // индекс в config.incomes, -1 для добавления
@@ -84,11 +84,12 @@ function calcMonthData(source, monthStart, now) {
         const activeEnd = (!source.end_date || source.end_date > monthEnd) ? monthEnd : source.end_date;
         activeDays = Math.floor((activeEnd - activeStart) / msPerDay) + 1;
 
-        // Ограничения 70/30 гарантируют минимальную видимую ширину бара при коротких периодах
-        let barSt = Math.min(70, Math.round((activeStart.getUTCDate() - 1) / daysInMonth * 100));
-        let barEd = Math.max(30, Math.round(activeEnd.getUTCDate() / daysInMonth * 100));
-        if (barEd - barSt < 100) {
-            style = (barSt ? `left: ${barSt}%; ` : '') + `width: ${barEd - barSt}%`;
+        // Начало и длина бара в процентах ячейки; минимальную ширину в пикселях
+        // и расширение у границ месяца считает CSS (.income-bar)
+        const barSt = (activeStart.getUTCDate() - 1) / daysInMonth * 100;
+        const barW = activeEnd.getUTCDate() / daysInMonth * 100 - barSt;
+        if (barW < 100) {
+            style = `--st: ${+barSt.toFixed(3)}; --w: ${+barW.toFixed(3)}`;
         }
     }
 
@@ -235,7 +236,7 @@ function sortIncomes() {
     });
 }
 
-// updateDate = false — перерисовка без сохранения: загруженное из стоража и демо-данные в сторадж не пишутся,
+// updateDate = false — перерисовка без сохранения: загруженное из storage и демо-данные в storage не пишутся,
 // пока пользователь что-то не изменит (демо при этом всегда остаётся с актуальными датами)
 function onConfigUpdate(updateDate = true) {
     sortIncomes();
@@ -246,7 +247,7 @@ function onConfigUpdate(updateDate = true) {
     generatePage();
 }
 
-// Подменяет config версией из стоража, если она новее. Возвращает true, если config заменён
+// Подменяет config версией из storage, если она новее. Возвращает true, если config заменён
 function loadConfigFromStorage() {
     const confStr = loadFromStorage(lsPrefix + 'config');
     if (!confStr) return false;
@@ -274,7 +275,7 @@ function resetCfg() {
     const salary     = {name: 'Зарплата',                    type: 'monthly',    sum: 90000};
     const rent       = {name: 'Аренда квартиры',             type: 'monthly',    sum: 30000};
     const deposit    = {name: 'Депозит (Альфа-банк, 13.5%)', type: 'investment', sum: 600000, income: 27000};
-    const stocks     = {name: 'Акции (Ozon)',                type: 'investment', sum: 70000,  income: 12000};
+    const stocks     = {name: 'Акции (Walmart)',             type: 'investment', sum: 70000,  income: 12000};
     const newDeposit = {name: 'Новый депозит (ВТБ)',         type: 'investment', sum: 200000, income: 8000};
 
     salary.start_date = dateShift(today, -730);              // бессрочный, давно начался
@@ -287,7 +288,7 @@ function resetCfg() {
     newDeposit.start_date = dateShift(today, 10);            // ещё не начался (серый)
     newDeposit.end_date = dateShift(today, 100);
 
-    // updatedAt = 0: любой реальный конфиг (из стораджа) новее демо
+    // updatedAt = 0: любой реальный конфиг (из storage) новее демо
     return {updatedAt: 0, incomes: [salary, rent, deposit, stocks, newDeposit]};
 }
 
@@ -494,7 +495,7 @@ function init() {
         if (!menuDropdown.contains(e.target)) menuDropdown.open = false;
     });
     loadConfigFromStorage();
-    onConfigUpdate(false); // отрисовка нужна и для демо, когда в сторадже пусто
+    onConfigUpdate(false); // отрисовка нужна и для демо, когда в storage пусто
 }
 
 init();
