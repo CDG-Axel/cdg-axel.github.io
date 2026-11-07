@@ -137,7 +137,7 @@ function createSource(source, idx) {
         createElement('br'),
         createElement('span', ['source-desc'], {}, period)
     );
-    const editBtn = createElement('button', ['edit-btn'], {title: 'Редактировать / удалить', 'data-idx': idx}, '✎');
+    const editBtn = createElement('button', ['edit-btn'], {title: 'Редактировать / удалить', 'aria-label': `Редактировать источник ${source.name}`, 'data-idx': idx}, '✎');
     editBtn.addEventListener('click', () => openModal(idx));
 
     wrapper.append(textBlock, editBtn);
@@ -242,7 +242,9 @@ function onConfigUpdate(updateDate = true) {
     sortIncomes();
     if (updateDate) {
         config.updatedAt = Date.now();
-        saveToStorage(lsPrefix + 'config', JSON.stringify(config, dateReplacer));
+        if (!saveToStorage(lsPrefix + 'config', JSON.stringify(config, dateReplacer))) {
+            showToast('Не удалось сохранить данные в браузере', true);
+        }
     }
     generatePage();
 }

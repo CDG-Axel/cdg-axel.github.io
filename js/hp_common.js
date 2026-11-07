@@ -3,13 +3,28 @@ const intl = new Intl.NumberFormat(lang,{minimumFractionDigits: 1, maximumFracti
 
 const capitalize = word => word.slice(0, 1).toUpperCase() + word.slice(1);
 export const snakeToFlu = word => word.split('_').map(capitalize).join(' ');
-export const loadFromStorage = name => localStorage?.getItem?.(name);
-export const saveToStorage = (name, value) => localStorage?.setItem?.(name, value);
 export let shortThousands = isMobileDevice();
 export const setShortThousands = value => shortThousands = value;
 
 export function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+export function loadFromStorage(name) {
+    try {
+        return localStorage.getItem(name);
+    } catch {
+        return null;
+    }
+}
+
+export function saveToStorage(name, value) {
+    try {
+        localStorage.setItem(name, value);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export function formatNumber(number, doShortThousands = undefined) {
