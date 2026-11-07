@@ -158,15 +158,19 @@ details.dropdown > ul {
     box-shadow: 0 4px 12px var(--color-shadow);
     z-index: 100;
 }
-details.dropdown > ul a {
+details.dropdown > ul button {
     display: block;
+    width: 100%;
+    height: auto; /* перекрывает .summary-actions button */
     padding: 0.4rem 1rem;
-    color: var(--color-text);
-    text-decoration: none;
-    cursor: pointer;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    font: inherit;
+    text-align: left;
     white-space: nowrap;
 }
-details.dropdown > ul a:hover { background: var(--color-secondary-bg); }
+details.dropdown > ul button:hover { background: var(--color-secondary-bg); }
 
 /* ── Таблица: базовые стили ── */
 .table-wrap { overflow-x: auto; }

@@ -384,6 +384,7 @@ function validateDates() {
 
 function openModal(idx = -1) {
     editingIndex = idx;
+    keyboardOpened = document.activeElement.matches(':focus-visible');
     sForm.form.classList.remove('was-validated');
     sForm.end.setCustomValidity('');
 
@@ -449,10 +450,32 @@ function showToast(message, isError = false) {
     el.classList.add('toast--visible');
 }
 
+/* ---- работа с клавиатурой ---- */
+
+let keyboardOpened = false; // диалог открыт с клавиатуры
+let menuKeyboard = false;   // меню управляется с клавиатуры
+
+function closeMenu() {
+    menuDropdown.open = false;
+    if (menuKeyboard) menuDropdown.querySelector('summary').focus();
+}
+
 function onDialogClose() {
-    // Убираем фокус с элемента, который открыл диалог (например кнопка ✎),
-    // чтобы после закрытия через ESC не оставалась обводка
-    document.activeElement?.blur();
+    if (!keyboardOpened) document.activeElement?.blur();
+}
+
+function onMenuClick(e) {
+    menuKeyboard = e.detail === 0; // у click от Enter/Space detail равен 0
+    if (e.target.closest('button')) closeMenu();
+}
+
+function onKeyDown(e) {
+    if (menuDropdown.open) {
+        if (e.key === 'Escape') {
+            closeMenu();
+            if (!menuKeyboard) document.activeElement.blur(); // мышь + ESC: иначе браузер покажет обводку
+        } else menuKeyboard = true;
+    }
 }
 
 /* ---- синхронизация вкладок ---- */
@@ -485,7 +508,7 @@ function init() {
         'click-import':  () => document.getElementById('importInput').click(),
         'click-modal-close': () => sForm.dialog.close(),
         'animationend-toast': e => e.currentTarget.classList.remove('toast--visible'),
-        'click-dropdown': e => { if (e.target.closest('a')) menuDropdown.open = false; },
+        'click-dropdown': onMenuClick,
         'change-import':  importConfig,
         'click-exp-clip': exportClipboard,
         'click-imp-clip': importClipboard
@@ -494,6 +517,7 @@ function init() {
     document.addEventListener('click', e => {
         if (!menuDropdown.contains(e.target)) menuDropdown.open = false;
     });
+    document.addEventListener('keydown', onKeyDown);
     loadConfigFromStorage();
     onConfigUpdate(false); // отрисовка нужна и для демо, когда в storage пусто
 }
