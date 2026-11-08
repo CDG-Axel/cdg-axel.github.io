@@ -82,12 +82,12 @@
         <div class="field-row">
             <div class="field">
                 <label for="edStart">Дата начала</label>
-                <input type="date" id="edStart" required data-ev="change-dates">
+                <input type="date" id="edStart" max="9999-12-31" required data-ev="change-dates">
                 <div class="field-error">Укажите дату начала</div>
             </div>
             <div class="field">
                 <label for="edEnd" id="edEndLabel">Дата окончания</label>
-                <input type="date" id="edEnd" data-ev="change-dates">
+                <input type="date" id="edEnd" max="9999-12-31" data-ev="change-dates">
                 <div class="field-error" id="edEndFeedback"></div>
             </div>
         </div>

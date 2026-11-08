@@ -42,7 +42,7 @@ export function addHandlers(handlers) {
         const kind = el.dataset.ev;
         const handler = handlers[kind];
         if (!handler) return;
-        console.log(kind, el.tagName, el.id);
+        console.log(kind, el.tagName, el.id); // это НЕ забыто, а специально
         const [eventType] = kind.split('-', 1);
         el.addEventListener(eventType, handler);
     });
