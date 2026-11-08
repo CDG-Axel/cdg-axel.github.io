@@ -391,7 +391,7 @@ dialog[open] { animation: dialogOpen 0.2s ease; }
 
 /* Chrome добавляет 2px к height у type="date" даже при appearance:none — фиксируем явно */
 .field input[type="date"] {
-    height: calc(1.5 * 1rem + 2 * 0.25rem + 0px);
+    height: calc(1.5 * 1rem + 2 * 0.25rem);
 }
 
 .field input:focus,
