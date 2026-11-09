@@ -6,8 +6,9 @@
  * друг друга. Конфигурация проверяется один раз после загрузки
  * (cr_validation.js).
  *
- * На верхнем уровне только импорты и глобальные переменные (пути к файлам),
- * весь код находится в функциях.
+ * На верхнем уровне импорты, глобальные переменные (пути к файлам) и единственный
+ * вызов main() в самом низу файла; весь остальной код находится в функциях.
+ * Импорт этого модуля запускает расчёт с пересчётом таблиц.
  *
  * Источник исходных данных один: crossroad_config.json.
  * Расчётные данные кешируются в отдельных файлах (cr_tables.json) и не
@@ -25,7 +26,8 @@ import { buildDischargeTable } from './cr_capacity.js';
 import { evaluatePlan, findMinimalPlan } from './cr_cycle.js';
 import { validateConfig } from './cr_validation.js';
 
-// Файлы лежат рядом с модулем, независимо от текущей папки запуска.
+// JSON-файлы лежат в папке ../json относительно этого модуля (папка должна
+// существовать), независимо от текущей папки запуска.
 const CONFIG_PATH = new URL('../json/crossroad_config.json', import.meta.url);
 const TABLES_PATH = new URL('../json/cr_tables.json', import.meta.url);
 
@@ -204,5 +206,9 @@ export async function main({ rebuild = false } = {}) {
 
   return { config, tables, evaluation, minimalPlan };
 }
+
+// ---------------------------------------------------------------------------
+// Запуск
+// ---------------------------------------------------------------------------
 
 await main({ rebuild: true });
