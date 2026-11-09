@@ -26,8 +26,8 @@ import { evaluatePlan, findMinimalPlan } from './cr_cycle.js';
 import { validateConfig } from './cr_validation.js';
 
 // Файлы лежат рядом с модулем, независимо от текущей папки запуска.
-const CONFIG_PATH = new URL('./crossroad_config.json', import.meta.url);
-const TABLES_PATH = new URL('./cr_tables.json', import.meta.url);
+const CONFIG_PATH = new URL('../json/crossroad_config.json', import.meta.url);
+const TABLES_PATH = new URL('../json/cr_tables.json', import.meta.url);
 
 // ---------------------------------------------------------------------------
 // Файлы и кеш
@@ -204,3 +204,5 @@ export async function main({ rebuild = false } = {}) {
 
   return { config, tables, evaluation, minimalPlan };
 }
+
+await main({ rebuild: true });
