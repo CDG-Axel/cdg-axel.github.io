@@ -1,0 +1,70 @@
+{
+  "name": "Пример: главная дорога с аллеей, трамвайные пути, пересекающая дорога",
+
+  "signal": {
+    "yellowS": 5,
+    "greenMinS": 15,
+    "greenMaxS": 75
+  },
+
+  "vehicle": {
+    "reactionTimeS": 1.3,
+    "reactionTimeDeviation": 0.35,
+    "accelerationMs2": 2.5,
+    "accelerationDeviation": 0.25,
+    "decelerationMs2": 3.5,
+    "decelerationDeviation": 0.25,
+    "carLengthM": 4.5,
+    "carLengthDeviation": 0.15,
+    "standingGapFraction": 0.6667,
+    "stopLineOffsetM": 1.0,
+    "stopLineOffsetDeviation": 0.3,
+    "nonPunishableThresholdKmh": 20
+  },
+
+  "laneGroups": {
+    "main": {
+      "name": "Одна сторона главной дороги (2 полосы)",
+      "speedLimitKmh": 60,
+      "lanes": 2
+    },
+    "minor": {
+      "name": "Пересекающая дорога, оба направления одновременно (по 1 полосе)",
+      "speedLimitKmh": 40,
+      "lanes": 2
+    }
+  },
+
+  "phases": [
+    {
+      "id": "main_a",
+      "name": "Главная дорога, сторона А (сначала трамвайные пути, потом дорога)",
+      "laneGroup": "main",
+      "greenS": 55,
+      "allRedAfterS": 0
+    },
+    {
+      "id": "main_b",
+      "name": "Главная дорога, сторона Б (сначала дорога, потом трамвайные пути)",
+      "laneGroup": "main",
+      "greenS": 25,
+      "allRedAfterS": 0
+    },
+    {
+      "id": "minor_tram",
+      "name": "Трамвайные пути и пересекающая дорога",
+      "laneGroup": "minor",
+      "greenS": 25,
+      "allRedAfterS": 5
+    }
+  ],
+
+  "tables": {
+    "trials": 1000,
+    "seed": 1
+  },
+
+  "optimization": {
+    "greenStepS": 5
+  }
+}
