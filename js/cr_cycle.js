@@ -4,6 +4,8 @@
  *
  * ПРИНЦИПЫ МОДУЛЯ:
  *  - Нет ввода-вывода, нет собственных данных и значений по умолчанию.
+ *  - Входные данные не проверяет: конфигурация проверяется один раз после
+ *    загрузки (cr_validation.js).
  *  - Не импортирует другие модули и не зависит от Node (годится для браузера).
  *  - Таблицы пропускной способности приходят аргументом как обычные данные:
  *    их строит и хранит вызывающий код (см. crossroad_model.js).
@@ -47,132 +49,19 @@
  * Пропускная способность за час = M(g) * 3600 / C.
  */
 
-const STATISTICS = ['mean', 'p5', 'p95'];
-
-// ---------------------------------------------------------------------------
-// Проверка конфигурации
-// ---------------------------------------------------------------------------
-
-function isPositiveNumber(x) {
-  return typeof x === 'number' && Number.isFinite(x) && x > 0;
-}
-
-function isPositiveInteger(x) {
-  return Number.isInteger(x) && x > 0;
-}
-
-function hasOwn(obj, key) {
-  return Object.prototype.hasOwnProperty.call(obj, key);
-}
-
-/**
- * Проверяет разделы конфигурации, которые использует этот модуль, и бросает
- * Error со списком всех найденных проблем. Возвращает конфигурацию.
- */
-export function validateCycleConfig(config) {
-  if (config === null || typeof config !== 'object') {
-    throw new Error('Конфигурация перекрёстка: ожидается объект');
-  }
-  const errors = [];
-
-  const signal = config.signal ?? {};
-  if (!isPositiveNumber(signal.yellowS)) {
-    errors.push('signal.yellowS: положительное число (секунды жёлтого)');
-  }
-  if (!isPositiveInteger(signal.greenMinS)) {
-    errors.push('signal.greenMinS: положительное целое число секунд');
-  }
-  if (!isPositiveInteger(signal.greenMaxS) || signal.greenMaxS < signal.greenMinS) {
-    errors.push('signal.greenMaxS: целое число секунд, не меньше greenMinS');
-  }
-
-  const groups = config.laneGroups;
-  const hasGroups = groups !== null && typeof groups === 'object' && Object.keys(groups).length > 0;
-  if (!hasGroups) {
-    errors.push('laneGroups: нужен объект хотя бы с одной группой полос');
-  }
-
-  const phaseIds = new Set();
-  if (!Array.isArray(config.phases) || config.phases.length === 0) {
-    errors.push('phases: нужен непустой массив фаз');
-  } else {
-    config.phases.forEach((phase, i) => {
-      const where = `phases[${i}]`;
-      if (typeof phase?.id !== 'string' || phase.id === '') {
-        errors.push(`${where}.id: непустая строка`);
-      } else if (phaseIds.has(phase.id)) {
-        errors.push(`${where}.id: "${phase.id}" повторяется`);
-      } else {
-        phaseIds.add(phase.id);
-      }
-      if (!hasGroups || !hasOwn(groups, phase?.laneGroup)) {
-        errors.push(`${where}.laneGroup: "${phase?.laneGroup}" нет среди laneGroups`);
-      }
-      if (
-        !Number.isFinite(phase?.greenS) ||
-        phase.greenS < signal.greenMinS ||
-        phase.greenS > signal.greenMaxS
-      ) {
-        errors.push(`${where}.greenS: число в диапазоне signal.greenMinS..greenMaxS`);
-      }
-      if (!Number.isFinite(phase?.allRedAfterS) || phase.allRedAfterS < 0) {
-        errors.push(`${where}.allRedAfterS: неотрицательное число`);
-      }
-    });
-  }
-
-  if (
-    config.optimization?.greenStepS !== undefined &&
-    !isPositiveInteger(config.optimization.greenStepS)
-  ) {
-    errors.push('optimization.greenStepS: положительное целое число');
-  }
-
-  for (const [id, value] of Object.entries(config.demandVehPerHour ?? {})) {
-    if (!phaseIds.has(id)) {
-      errors.push(`demandVehPerHour.${id}: такой фазы нет`);
-    } else if (!Number.isFinite(value) || value < 0) {
-      errors.push(`demandVehPerHour.${id}: неотрицательное число`);
-    }
-  }
-
-  if (errors.length > 0) {
-    throw new Error('Некорректная конфигурация перекрёстка:\n - ' + errors.join('\n - '));
-  }
-  return config;
-}
-
 // ---------------------------------------------------------------------------
 // Работа с таблицами
 // ---------------------------------------------------------------------------
-
-function tableFor(tables, groupId) {
-  const table = tables?.[groupId];
-  if (!Array.isArray(table) || table.length === 0) {
-    throw new Error(`В таблицах нет данных для группы полос "${groupId}"`);
-  }
-  return table;
-}
 
 /**
  * Число машин за зелёный greenS по таблице. statistic: 'mean' | 'p5' | 'p95'.
  * Для нецелых greenS значение интерполируется линейно.
  */
 export function lookupVehicles(table, greenS, statistic = 'mean') {
-  if (!STATISTICS.includes(statistic)) {
-    throw new Error(`Неизвестная статистика "${statistic}" (допустимо: ${STATISTICS.join(', ')})`);
-  }
   const first = table[0].greenDurationS;
-  const last = table[table.length - 1].greenDurationS;
-  if (!(greenS >= first && greenS <= last)) {
-    throw new RangeError(`Зелёный ${greenS} с вне диапазона таблицы ${first}..${last} с`);
-  }
   const lo = Math.floor(greenS);
   const hi = Math.ceil(greenS);
   const rowLo = table[lo - first];
-  if (rowLo?.greenDurationS !== lo) {
-    throw new Error('Таблица должна идти подряд с шагом 1 с');
-  }
   if (lo === hi) {
     return rowLo[statistic];
   }
@@ -217,12 +106,6 @@ export function fitSaturation(table) {
 // ---------------------------------------------------------------------------
 
 function resolveGreens(config, greensOverride) {
-  const ids = new Set(config.phases.map((p) => p.id));
-  for (const id of Object.keys(greensOverride)) {
-    if (!ids.has(id)) {
-      throw new Error(`Неизвестная фаза в greensOverride: "${id}"`);
-    }
-  }
   return Object.fromEntries(config.phases.map((p) => [p.id, greensOverride[p.id] ?? p.greenS]));
 }
 
@@ -245,15 +128,13 @@ export function cycleLengthS(config, greens) {
  * @returns {{cycleS:number, phases:object[], total:object}}
  */
 export function evaluatePlan(config, tables, greensOverride = {}) {
-  validateCycleConfig(config);
-
   const greens = resolveGreens(config, greensOverride);
   const cycleS = cycleLengthS(config, greens);
   const cyclesPerHour = 3600 / cycleS;
   const yellowS = config.signal.yellowS;
 
   const phases = config.phases.map((phase) => {
-    const table = tableFor(tables, phase.laneGroup);
+    const table = tables[phase.laneGroup];
     const greenS = greens[phase.id];
 
     const perCycle = {
@@ -319,24 +200,9 @@ export function evaluatePlan(config, tables, greensOverride = {}) {
  *   'mean'), greenStepS: шаг сетки (иначе optimization.greenStepS из конфигурации) }
  */
 export function findMinimalPlan(config, tables, demandVehPerHour, options = {}) {
-  validateCycleConfig(config);
-
   const demand = demandVehPerHour ?? {};
-  const phaseIds = new Set(config.phases.map((p) => p.id));
-  for (const [id, value] of Object.entries(demand)) {
-    if (!phaseIds.has(id)) {
-      throw new Error(`Спрос задан для неизвестной фазы "${id}"`);
-    }
-    if (!Number.isFinite(value) || value < 0) {
-      throw new Error(`Спрос для фазы "${id}" должен быть неотрицательным числом`);
-    }
-  }
-
   const statistic = options.statistic ?? 'mean';
-  const stepS = options.greenStepS ?? config.optimization?.greenStepS;
-  if (!isPositiveInteger(stepS)) {
-    throw new Error('Не задан шаг сетки: optimization.greenStepS в конфигурации или options.greenStepS');
-  }
+  const stepS = options.greenStepS ?? config.optimization.greenStepS;
 
   const { greenMinS, greenMaxS } = config.signal;
   const grid = [];
@@ -352,7 +218,7 @@ export function findMinimalPlan(config, tables, demandVehPerHour, options = {}) 
     const next = {};
 
     for (const phase of config.phases) {
-      const table = tableFor(tables, phase.laneGroup);
+      const table = tables[phase.laneGroup];
       const requiredPerCycle = ((demand[phase.id] ?? 0) * cycleS) / 3600;
       const green = grid.find((g) => lookupVehicles(table, g, statistic) >= requiredPerCycle);
       if (green === undefined) {

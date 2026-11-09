@@ -2,7 +2,9 @@
  * Запуск модели перекрёстка в Node. Здесь живёт всё, что связано с вводом-
  * выводом и сборкой данных: чтение конфигурации, построение таблиц модуля A,
  * кеш расчётных данных в файлах, отчёт. Расчётные модули (cr_capacity.js,
- * cr_cycle.js) ничего не читают и не пишут и не вызывают друг друга.
+ * cr_cycle.js) ничего не читают и не пишут, ничего не проверяют и не вызывают
+ * друг друга. Конфигурация проверяется один раз после загрузки
+ * (cr_validation.js).
  *
  * На верхнем уровне только импорты и глобальные переменные (пути к файлам),
  * весь код находится в функциях.
@@ -20,7 +22,8 @@
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { buildDischargeTable } from './cr_capacity.js';
-import { evaluatePlan, findMinimalPlan, validateCycleConfig } from './cr_cycle.js';
+import { evaluatePlan, findMinimalPlan } from './cr_cycle.js';
+import { validateConfig } from './cr_validation.js';
 
 // Файлы лежат рядом с модулем, независимо от текущей папки запуска.
 const CONFIG_PATH = new URL('./crossroad_config.json', import.meta.url);
@@ -62,10 +65,10 @@ async function cached(path, rebuild, compute) {
 // Исходные данные
 // ---------------------------------------------------------------------------
 
-/** Читает и проверяет конфигурацию перекрёстка. */
+/** Читает конфигурацию перекрёстка и проверяет её (cr_validation.js). */
 export async function loadConfig() {
   const config = JSON.parse(await readFile(CONFIG_PATH, 'utf8'));
-  return validateCycleConfig(config);
+  return validateConfig(config);
 }
 
 // ---------------------------------------------------------------------------
@@ -201,5 +204,3 @@ export async function main({ rebuild = false } = {}) {
 
   return { config, tables, evaluation, minimalPlan };
 }
-
-await main({ rebuild: true });

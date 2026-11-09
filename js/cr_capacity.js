@@ -34,99 +34,26 @@
  *  - Нет ввода-вывода, нет собственных данных и значений по умолчанию: все
  *    параметры приходят аргументами (из конфигурации перекрёстка).
  *  - Не зависит от других модулей и от Node, поэтому подходит и для браузера.
- *  - Входные данные проверяются (validateParams и проверки в публичных
- *    функциях): при ошибке бросается Error со списком проблем.
+ *  - Входные данные не проверяет: конфигурация проверяется один раз после
+ *    загрузки (cr_validation.js).
  */
 
 // ---------------------------------------------------------------------------
-// Входные данные: состав параметров и проверка
+// Параметры
 // ---------------------------------------------------------------------------
 //
-// Параметры машин (params) задаются снаружи, значений по умолчанию нет.
-// Правила для значений:
-//   positive    — число больше 0
-//   nonNegative — число не меньше 0
-//   fraction    — число от 0 (включительно) до 1 (не включая): разброс ±доля
-
-const PARAM_RULES = {
-  reactionTimeS: 'positive',             // время реакции водителя, с
-  reactionTimeDeviation: 'fraction',     // разброс реакции (0.35 = ±35%)
-  accelerationMs2: 'positive',           // ускорение разгона, м/с²
-  accelerationDeviation: 'fraction',
-  decelerationMs2: 'positive',           // комфортное (не паническое) замедление, м/с²
-  decelerationDeviation: 'fraction',
-  carLengthM: 'positive',                // длина машины, м
-  carLengthDeviation: 'fraction',
-  standingGapFraction: 'nonNegative',    // зазор между стоящими машинами, доля длины машины
-  stopLineOffsetM: 'nonNegative',        // отступ первой машины от стоп-линии/перехода, м
-  stopLineOffsetDeviation: 'fraction',
-  nonPunishableThresholdKmh: 'nonNegative', // макс. скорость водителя = лимит + uniform(0, порог), км/ч
-  yellowDurationS: 'positive',           // длительность жёлтого сигнала, с
-};
-
-const RULE_TEXT = {
-  positive: 'число больше 0',
-  nonNegative: 'число не меньше 0',
-  fraction: 'число от 0 до 1 (не включая 1)',
-};
+// Параметры машин (params) приходят снаружи из конфигурации, своих значений
+// по умолчанию у модуля нет. Состав params:
+//   reactionTimeS, reactionTimeDeviation          время реакции, с; разброс (0.35 = +-35%)
+//   accelerationMs2, accelerationDeviation        ускорение разгона, м/с2
+//   decelerationMs2, decelerationDeviation        комфортное замедление, м/с2
+//   carLengthM, carLengthDeviation                длина машины, м
+//   standingGapFraction                           зазор между стоящими машинами, доля длины
+//   stopLineOffsetM, stopLineOffsetDeviation      отступ первой машины от стоп-линии, м
+//   nonPunishableThresholdKmh                     макс. скорость водителя = лимит + uniform(0, порог)
+//   yellowDurationS                               длительность жёлтого, с
 
 const MAX_QUEUE_PER_LANE = 120; // защитный предел длины очереди (реалистично нужно куда меньше)
-
-function isNumber(x) {
-  return typeof x === 'number' && Number.isFinite(x);
-}
-
-function satisfiesRule(value, rule) {
-  if (!isNumber(value)) return false;
-  if (rule === 'positive') return value > 0;
-  if (rule === 'nonNegative') return value >= 0;
-  return value >= 0 && value < 1;
-}
-
-/**
- * Проверяет параметры машин: присутствуют все нужные, значения допустимы,
- * лишних ключей нет (так ловятся опечатки). Бросает Error со списком проблем.
- */
-export function validateParams(params) {
-  if (params === null || typeof params !== 'object') {
-    throw new Error('Параметры машин: ожидается объект');
-  }
-  const errors = [];
-  for (const [key, rule] of Object.entries(PARAM_RULES)) {
-    if (!satisfiesRule(params[key], rule)) {
-      errors.push(`${key}: ${RULE_TEXT[rule]}`);
-    }
-  }
-  for (const key of Object.keys(params)) {
-    if (!Object.prototype.hasOwnProperty.call(PARAM_RULES, key)) {
-      errors.push(`${key}: неизвестный параметр`);
-    }
-  }
-  if (errors.length > 0) {
-    throw new Error('Некорректные параметры машин:\n - ' + errors.join('\n - '));
-  }
-}
-
-function validateInputs(laneGroup, params, options) {
-  validateParams(params);
-  const errors = [];
-  if (!isNumber(laneGroup?.speedLimitKmh) || laneGroup.speedLimitKmh <= 0) {
-    errors.push('laneGroup.speedLimitKmh: число больше 0');
-  }
-  if (!Number.isInteger(laneGroup?.lanes) || laneGroup.lanes <= 0) {
-    errors.push('laneGroup.lanes: целое число больше 0');
-  }
-  if (!Number.isInteger(options?.trials) || options.trials <= 0) {
-    errors.push('options.trials: целое число больше 0');
-  }
-  const seed = options?.seed;
-  if (seed !== undefined && seed !== null && !Number.isInteger(seed)) {
-    errors.push('options.seed: целое число, null или не задан');
-  }
-  if (errors.length > 0) {
-    throw new Error('Некорректные входные данные модуля A:\n - ' + errors.join('\n - '));
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Вспомогательные функции
@@ -183,7 +110,7 @@ function generateVehicle(laneGroup, params, rng) {
  *
  * @param {number} greenDurationS - длительность зелёного сигнала, с
  * @param {{speedLimitKmh:number}} laneGroup - параметры полосы (скоростной лимит)
- * @param {object} params - физические параметры машин (состав: см. PARAM_RULES)
+ * @param {object} params - физические параметры машин (состав: см. «Параметры»)
  * @param {function} rng - функция-генератор случайных чисел в [0,1)
  * @returns {number} количество проехавших машин (целое)
  */
@@ -301,12 +228,11 @@ function percentile(sortedArr, p) {
  *
  * @param {number} greenDurationS - длительность зелёного, с
  * @param {{speedLimitKmh:number, lanes:number}} laneGroup - группа полос
- * @param {object} params - физические параметры машин (см. PARAM_RULES)
+ * @param {object} params - физические параметры машин (см. «Параметры»)
  * @param {{trials:number, seed?:number|null}} options - число прогонов и
  *   необязательный seed: с целым seed результат воспроизводим, иначе Math.random
  */
 export function computeDischargeStats(greenDurationS, laneGroup, params, options) {
-  validateInputs(laneGroup, params, options);
   const { trials, seed } = options;
 
   const results = new Array(trials);
@@ -334,20 +260,11 @@ export function computeDischargeStats(greenDurationS, laneGroup, params, options
  * Возвращает массив строк { greenDurationS, mean, min, max, p5, p95 }.
  *
  * @param {{speedLimitKmh:number, lanes:number}} laneGroup - группа полос
- * @param {object} params - физические параметры машин (см. PARAM_RULES)
+ * @param {object} params - физические параметры машин (см. «Параметры»)
  * @param {{minGreenS:number, maxGreenS:number, trials:number, seed?:number|null}} options
  */
 export function buildDischargeTable(laneGroup, params, options) {
-  validateInputs(laneGroup, params, options);
   const { minGreenS, maxGreenS } = options;
-  if (
-    !Number.isInteger(minGreenS) ||
-    !Number.isInteger(maxGreenS) ||
-    minGreenS < 1 ||
-    maxGreenS < minGreenS
-  ) {
-    throw new Error('Диапазон зелёного: minGreenS и maxGreenS целые секунды, 1 <= minGreenS <= maxGreenS');
-  }
 
   const table = [];
   for (let n = minGreenS; n <= maxGreenS; n++) {
