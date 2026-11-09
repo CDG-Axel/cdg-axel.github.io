@@ -1,4 +1,4 @@
-import { buildDischargeTable, EXAMPLE_LANE_GROUPS, DEFAULT_PARAMS } from './intersectionCapacity.js';
+import { buildDischargeTable, EXAMPLE_LANE_GROUPS, DEFAULT_PARAMS } from './cr_capacity.js';
 
 function printSample(label, table) {
   console.log(`\n=== ${label} ===`);
