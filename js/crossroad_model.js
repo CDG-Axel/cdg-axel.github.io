@@ -125,27 +125,21 @@ function fmt(value, digits = 1) {
 }
 
 function formatEvaluation(evaluation) {
-  const head =
-    'Фаза'.padEnd(12) +
-    'Зелёный'.padStart(9) +
-    'В цикле'.padStart(9) +
-    'Машин/цикл (p5–p95)'.padStart(24) +
-    'Машин/час'.padStart(11) +
-    'Эфф. зелёный'.padStart(14) +
-    'Ожидание'.padStart(10);
+  const tabs = [12, 9, 9, 24, 11, 14, 10];
+  const head = ['Фаза', 'Зелёный', 'В цикле', 'Машин/цикл (p5–p95)', 'Машин/час', 'Эфф. зелёный', 'Ожидание'];
+  const padded = arr => arr.map((v, i) => v[i? 'padStart': 'padEnd'](tabs[i])).join('');
 
-  const lines = [`Длина цикла: ${fmt(evaluation.cycleS, 0)} с`, head];
+  const lines = [`Длина цикла: ${fmt(evaluation.cycleS, 0)} с`, padded(head)];
   for (const p of evaluation.phases) {
-    const perCycle = `${fmt(p.vehiclesPerCycle.mean)} (${p.vehiclesPerCycle.p5}–${p.vehiclesPerCycle.p95})`;
-    lines.push(
-      p.id.padEnd(12) +
-        `${fmt(p.greenS, 0)} с`.padStart(9) +
-        `${fmt(p.phaseLengthS, 0)} с`.padStart(9) +
-        perCycle.padStart(24) +
-        fmt(p.vehiclesPerHour.mean, 0).padStart(11) +
-        `${fmt(p.effectiveGreenS)} с`.padStart(14) +
-        `${fmt(p.meanWaitS)} с`.padStart(10)
-    );
+    lines.push(padded([
+      p.id,
+      `${fmt(p.greenS, 0)} с`,
+      `${fmt(p.phaseLengthS, 0)} с`,
+      `${fmt(p.vehiclesPerCycle.mean)} (${p.vehiclesPerCycle.p5}–${p.vehiclesPerCycle.p95})`,
+      fmt(p.vehiclesPerHour.mean, 0),
+      `${fmt(p.effectiveGreenS)} с`,
+      `${fmt(p.meanWaitS)} с`
+    ]));
   }
   lines.push(
     `Итого: ${fmt(evaluation.total.vehiclesPerHour, 0)} машин/час, ` +
