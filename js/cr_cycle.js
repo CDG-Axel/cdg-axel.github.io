@@ -14,16 +14,15 @@
  * КОНФИГУРАЦИЯ (разделы, которые использует этот модуль)
  * ---------------------------------------------------------------------------
  * {
- *   "signal": {
- *     "yellowS": 5,       // жёлтый после каждого зелёного, с
- *     "greenMinS": 15,    // минимальный зелёный, с (целое)
- *     "greenMaxS": 75     // максимальный зелёный, с (целое)
+ *   "laneGroups": {       // группы полос; диапазон зелёного свойство дороги
+ *     "<id>": { "greenMinS": 15,   // минимальный зелёный, с (целое)
+ *               "greenMaxS": 75,   // максимальный зелёный, с (целое)
+ *               ... }              // остальное использует модуль A
  *   },
- *   "laneGroups": { "<id>": { ... } },   // группы полос (содержимое проверяет
- *                                        // и использует модуль A)
  *   "phases": [           // фазы в порядке следования в цикле
  *     { "id": "...", "name": "...", "laneGroup": "<id группы>",
  *       "greenS": 55,           // зелёный, с
+ *       "yellowS": 5,           // жёлтый после зелёного этой фазы, с
  *       "allRedAfterS": 0 }     // общий красный после жёлтого этой фазы, с
  *   ],
  *   "optimization": { "greenStepS": 5 },       // необязательно
@@ -32,9 +31,9 @@
  * }
  *
  * ТАБЛИЦЫ (аргумент tables)
- * { "<id группы>": [ { greenDurationS, mean, min, max, p5, p95 }, ... ] }
- * Строки идут подряд с шагом 1 с. Диапазон должен покрывать
- * signal.greenMinS..greenMaxS.
+ * { "<id фазы>": [ { greenDurationS, mean, min, max, p5, p95 }, ... ] }
+ * Таблица на каждую фазу (зависит от её жёлтого). Строки идут подряд с шагом
+ * 1 с. Диапазон должен покрывать greenMinS..greenMaxS группы полос фазы.
  *
  * ---------------------------------------------------------------------------
  * МОДЕЛЬ ОЖИДАНИЯ
@@ -113,7 +112,7 @@ function resolveGreens(config, greensOverride) {
 export function cycleLengthS(config, greens) {
   let total = 0;
   for (const phase of config.phases) {
-    total += greens[phase.id] + config.signal.yellowS + phase.allRedAfterS;
+    total += greens[phase.id] + phase.yellowS + phase.allRedAfterS;
   }
   return total;
 }
@@ -131,10 +130,9 @@ export function evaluatePlan(config, tables, greensOverride = {}) {
   const greens = resolveGreens(config, greensOverride);
   const cycleS = cycleLengthS(config, greens);
   const cyclesPerHour = 3600 / cycleS;
-  const yellowS = config.signal.yellowS;
 
   const phases = config.phases.map((phase) => {
-    const table = tables[phase.laneGroup];
+    const table = tables[phase.id];
     const greenS = greens[phase.id];
 
     const perCycle = {
@@ -151,9 +149,9 @@ export function evaluatePlan(config, tables, greensOverride = {}) {
       name: phase.name ?? phase.id,
       laneGroup: phase.laneGroup,
       greenS,
-      yellowS,
+      yellowS: phase.yellowS,
       allRedAfterS: phase.allRedAfterS,
-      phaseLengthS: greenS + yellowS + phase.allRedAfterS,
+      phaseLengthS: greenS + phase.yellowS + phase.allRedAfterS,
       vehiclesPerCycle: perCycle,
       vehiclesPerHour: {
         mean: perCycle.mean * cyclesPerHour,
@@ -193,7 +191,7 @@ export function evaluatePlan(config, tables, greensOverride = {}) {
  * допустимых значений либо показывает, что требование невыполнимо.
  *
  * @param {object} config - конфигурация перекрёстка
- * @param {object} tables - таблицы пропускной способности по группам полос
+ * @param {object} tables - таблицы пропускной способности по фазам
  * @param {object} demandVehPerHour - { idФазы: машин/час }; фаза без записи
  *   считается без требований и получает минимальный зелёный
  * @param {object} [options] - { statistic: 'mean' | 'p5' | 'p95' (по умолчанию
@@ -204,21 +202,26 @@ export function findMinimalPlan(config, tables, demandVehPerHour, options = {}) 
   const statistic = options.statistic ?? 'mean';
   const stepS = options.greenStepS ?? config.optimization.greenStepS;
 
-  const { greenMinS, greenMaxS } = config.signal;
-  const grid = [];
-  for (let g = greenMinS; g <= greenMaxS; g += stepS) {
-    grid.push(g);
+  // сетка зелёного каждой фазы строится по диапазону её группы полос
+  const grids = {};
+  for (const phase of config.phases) {
+    const { greenMinS, greenMaxS } = config.laneGroups[phase.laneGroup];
+    grids[phase.id] = [];
+    for (let g = greenMinS; g <= greenMaxS; g += stepS) {
+      grids[phase.id].push(g);
+    }
   }
 
-  let greens = Object.fromEntries(config.phases.map((p) => [p.id, grid[0]]));
-  const maxIterations = grid.length * config.phases.length + 2;
+  let greens = Object.fromEntries(config.phases.map((p) => [p.id, grids[p.id][0]]));
+  const maxIterations = Object.values(grids).reduce((n, grid) => n + grid.length, 0) + 2;
 
   for (let iteration = 0; iteration < maxIterations; iteration++) {
     const cycleS = cycleLengthS(config, greens);
     const next = {};
 
     for (const phase of config.phases) {
-      const table = tables[phase.laneGroup];
+      const table = tables[phase.id];
+      const grid = grids[phase.id];
       const requiredPerCycle = ((demand[phase.id] ?? 0) * cycleS) / 3600;
       const green = grid.find((g) => lookupVehicles(table, g, statistic) >= requiredPerCycle);
       if (green === undefined) {

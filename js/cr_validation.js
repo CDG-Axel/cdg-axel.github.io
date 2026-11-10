@@ -60,12 +60,6 @@ export function validateConfig(config) {
   }
   const errors = [];
 
-  // signal
-  const signal = config.signal ?? {};
-  checkNumber(errors, 'signal.yellowS', signal.yellowS, 'positive');
-  checkInteger(errors, 'signal.greenMinS', signal.greenMinS);
-  checkInteger(errors, 'signal.greenMaxS', signal.greenMaxS, signal.greenMinS ?? 1);
-
   // vehicle: все параметры обязательны, лишних ключей нет (так ловятся опечатки)
   const vehicle = config.vehicle ?? {};
   for (const [key, rule] of Object.entries(VEHICLE_RULES)) {
@@ -85,6 +79,8 @@ export function validateConfig(config) {
     for (const [id, group] of Object.entries(groups)) {
       checkNumber(errors, `laneGroups.${id}.speedLimitKmh`, group?.speedLimitKmh, 'positive');
       checkInteger(errors, `laneGroups.${id}.lanes`, group?.lanes);
+      checkInteger(errors, `laneGroups.${id}.greenMinS`, group?.greenMinS);
+      checkInteger(errors, `laneGroups.${id}.greenMaxS`, group?.greenMaxS, group?.greenMinS ?? 1);
     }
   }
 
@@ -105,9 +101,11 @@ export function validateConfig(config) {
       if (!isObject(groups) || !Object.hasOwn(groups, phase?.laneGroup)) {
         errors.push(`${where}.laneGroup: "${phase?.laneGroup}" нет среди laneGroups`);
       }
-      if (!(phase?.greenS >= signal.greenMinS && phase.greenS <= signal.greenMaxS)) {
-        errors.push(`${where}.greenS: число в диапазоне signal.greenMinS..greenMaxS`);
+      const group = isObject(groups) ? groups[phase?.laneGroup] : undefined;
+      if (!(phase?.greenS >= group?.greenMinS && phase.greenS <= group?.greenMaxS)) {
+        errors.push(`${where}.greenS: число в диапазоне greenMinS..greenMaxS своей группы полос`);
       }
+      checkNumber(errors, `${where}.yellowS`, phase?.yellowS, 'positive');
       checkNumber(errors, `${where}.allRedAfterS`, phase?.allRedAfterS, 'nonNegative');
     });
   }

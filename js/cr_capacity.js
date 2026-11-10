@@ -51,7 +51,6 @@
 //   standingGapFraction                           зазор между стоящими машинами, доля длины
 //   stopLineOffsetM, stopLineOffsetDeviation      отступ первой машины от стоп-линии, м
 //   nonPunishableThresholdKmh                     макс. скорость водителя = лимит + uniform(0, порог)
-//   yellowDurationS                               длительность жёлтого, с
 
 const MAX_QUEUE_PER_LANE = 120; // защитный предел длины очереди (реалистично нужно куда меньше)
 
@@ -106,16 +105,17 @@ function generateVehicle(laneGroup, params, rng) {
 /**
  * Симулирует разгон очереди машин на одной полосе за один "прогон" (одна
  * случайная реализация очереди) и возвращает число машин, успевших проехать
- * стоп-линию за greenDurationS секунд зелёного + жёлтый (params.yellowDurationS).
+ * стоп-линию за greenDurationS секунд зелёного + жёлтый (yellowDurationS).
  *
  * @param {number} greenDurationS - длительность зелёного сигнала, с
+ * @param {number} yellowDurationS - длительность жёлтого сигнала, с
  * @param {{speedLimitKmh:number}} laneGroup - параметры полосы (скоростной лимит)
  * @param {object} params - физические параметры машин (состав: см. «Параметры»)
  * @param {function} rng - функция-генератор случайных чисел в [0,1)
  * @returns {number} количество проехавших машин (целое)
  */
-export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
-  const horizon = greenDurationS + params.yellowDurationS;
+export function simulateSingleLane(greenDurationS, yellowDurationS, laneGroup, params, rng) {
+  const horizon = greenDurationS + yellowDurationS;
 
   let cumulativeStartDelay = 0; // время начала движения текущей машины от начала зелёного
   let prevFrontPos = 0;
@@ -205,10 +205,10 @@ export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
  * Симулирует ОДИН прогон для всей группы полос (например, 2 полосы главной
  * дороги) — суммирует независимые прогоны по каждой полосе.
  */
-export function simulatePhaseOnce(greenDurationS, laneGroup, params, rng) {
+export function simulatePhaseOnce(greenDurationS, yellowDurationS, laneGroup, params, rng) {
   let total = 0;
   for (let lane = 0; lane < laneGroup.lanes; lane++) {
-    total += simulateSingleLane(greenDurationS, laneGroup, params, rng);
+    total += simulateSingleLane(greenDurationS, yellowDurationS, laneGroup, params, rng);
   }
   return total;
 }
@@ -229,16 +229,17 @@ function percentile(sortedArr, p) {
  * @param {number} greenDurationS - длительность зелёного, с
  * @param {{speedLimitKmh:number, lanes:number}} laneGroup - группа полос
  * @param {object} params - физические параметры машин (см. «Параметры»)
- * @param {{trials:number, seed?:number|null}} options - число прогонов и
- *   необязательный seed: с целым seed результат воспроизводим, иначе Math.random
+ * @param {{yellowDurationS:number, trials:number, seed?:number|null}} options -
+ *   длительность жёлтого, число прогонов и необязательный seed: с целым seed
+ *   результат воспроизводим, иначе Math.random
  */
 export function computeDischargeStats(greenDurationS, laneGroup, params, options) {
-  const { trials, seed } = options;
+  const { yellowDurationS, trials, seed } = options;
 
   const results = new Array(trials);
   for (let k = 0; k < trials; k++) {
     const rng = Number.isInteger(seed) ? createSeededRng(seed + k) : Math.random;
-    results[k] = simulatePhaseOnce(greenDurationS, laneGroup, params, rng);
+    results[k] = simulatePhaseOnce(greenDurationS, yellowDurationS, laneGroup, params, rng);
   }
 
   results.sort((a, b) => a - b);
@@ -261,7 +262,7 @@ export function computeDischargeStats(greenDurationS, laneGroup, params, options
  *
  * @param {{speedLimitKmh:number, lanes:number}} laneGroup - группа полос
  * @param {object} params - физические параметры машин (см. «Параметры»)
- * @param {{minGreenS:number, maxGreenS:number, trials:number, seed?:number|null}} options
+ * @param {{yellowDurationS:number, minGreenS:number, maxGreenS:number, trials:number, seed?:number|null}} options
  */
 export function buildDischargeTable(laneGroup, params, options) {
   const { minGreenS, maxGreenS } = options;
