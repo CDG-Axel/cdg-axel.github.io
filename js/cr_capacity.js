@@ -1,7 +1,7 @@
 /**
  * Модуль A: физическая (кинематическая) модель разгона очереди автомобилей
  * на одной полосе перекрёстка и расчёт того, сколько машин успевает проехать
- * стоп-линию за заданное время зелёного сигнала (+ время жёлтого).
+ * стоп-линию за заданное время зелёного сигнала (с учётом проезда на жёлтом).
  *
  * КЛЮЧЕВЫЕ ДОПУЩЕНИЯ (v1):
  *  - Полосы одной группы (например, 2 полосы главной дороги) разгружаются
@@ -18,12 +18,16 @@
  * ЛОГИКА ПОДСЧЁТА "ПРОЕХАВШЕЙ" МАШИНЫ:
  *  - Если передний бампер машины пересекает стоп-линию до конца зелёного (N) —
  *    машина точно посчитана.
- *  - Если к моменту N машина ещё не пересекла линию, проверяется "дилемма-зона":
- *    может ли машина безопасно остановиться до линии (с учётом времени реакции
- *    и комфортного замедления)? Если НЕ может — она обязана продолжить движение
- *    и пересечь линию до конца жёлтого (N + 5с), и тогда тоже считается проехавшей.
- *    Если может — она останавливается и в этом цикле не считается (уходит в
- *    очередь следующего цикла — это уже забота модуля B).
+ *  - В момент N включается жёлтый, и все машины должны остановиться. Водитель
+ *    реагирует (время реакции; машина за это время продолжает разгон), затем по
+ *    текущей скорости и комфортному замедлению считается тормозной путь. Если он
+ *    не больше остатка до линии, машина останавливается и в этом цикле не
+ *    считается (уходит в очередь следующего цикла — забота модуля B). Если
+ *    больше (или линия пересечена, пока водитель реагировал), остановиться без
+ *    экстренного торможения нельзя, и машина продолжает движение, не сбавляя
+ *    скорость: она считается проехавшей. Так же сформулировано исключение в ПДД.
+ *  - От длительности жёлтого результат не зависит: жёлтый только страхует
+ *    проезд таких машин, и в модуле A его нет.
  *
  * Все "разбросы" параметров (длина, ускорение, замедление, реакция) заданы
  * как равномерное распределение ±% от базового значения. Максимальная скорость
@@ -105,18 +109,15 @@ function generateVehicle(laneGroup, params, rng) {
 /**
  * Симулирует разгон очереди машин на одной полосе за один "прогон" (одна
  * случайная реализация очереди) и возвращает число машин, успевших проехать
- * стоп-линию за greenDurationS секунд зелёного + жёлтый (yellowDurationS).
+ * стоп-линию за greenDurationS секунд зелёного (плюс проезжающие на жёлтом).
  *
  * @param {number} greenDurationS - длительность зелёного сигнала, с
- * @param {number} yellowDurationS - длительность жёлтого сигнала, с
  * @param {{speedLimitKmh:number}} laneGroup - параметры полосы (скоростной лимит)
  * @param {object} params - физические параметры машин (состав: см. «Параметры»)
  * @param {function} rng - функция-генератор случайных чисел в [0,1)
  * @returns {number} количество проехавших машин (целое)
  */
-export function simulateSingleLane(greenDurationS, yellowDurationS, laneGroup, params, rng) {
-  const horizon = greenDurationS + yellowDurationS;
-
+export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
   let cumulativeStartDelay = 0; // время начала движения текущей машины от начала зелёного
   let prevFrontPos = 0;
   let prevLength = 0;
@@ -163,25 +164,24 @@ export function simulateSingleLane(greenDurationS, yellowDurationS, laneGroup, p
     } else {
       const tauAtGreenEnd = greenDurationS - startDelay;
       if (tauAtGreenEnd > 0) {
-        let vAtGreenEnd, xAtGreenEnd;
-        if (tauAtGreenEnd <= tAcc) {
-          vAtGreenEnd = v.accelerationMs2 * tauAtGreenEnd;
-          xAtGreenEnd = frontPos + 0.5 * v.accelerationMs2 * tauAtGreenEnd * tauAtGreenEnd;
+        // Жёлтый включился в момент greenDurationS. Водитель реагирует
+        // reactionTimeS, и всё это время машина продолжает разгон.
+        const tau = tauAtGreenEnd + v.reactionTimeS;
+        let vDecision, xDecision;
+        if (tau <= tAcc) {
+          vDecision = v.accelerationMs2 * tau;
+          xDecision = frontPos + 0.5 * v.accelerationMs2 * tau * tau;
         } else {
-          vAtGreenEnd = v.maxSpeedMs;
-          xAtGreenEnd = xAtAcc + v.maxSpeedMs * (tauAtGreenEnd - tAcc);
+          vDecision = v.maxSpeedMs;
+          xDecision = xAtAcc + v.maxSpeedMs * (tau - tAcc);
         }
 
-        if (xAtGreenEnd < 0) {
-          const remaining = -xAtGreenEnd;
-          const stopDistance =
-            vAtGreenEnd * v.reactionTimeS + (vAtGreenEnd * vAtGreenEnd) / (2 * v.decelerationMs2);
-
-          // Не может безопасно остановиться -> обязана доехать. Считаем
-          // проехавшей, только если реально успевает до конца жёлтого.
-          if (remaining <= stopDistance && crossTimeAbs <= horizon) {
-            passed = true;
-          }
+        if (xDecision >= 0) {
+          passed = true; // пересекла линию, пока реагировала
+        } else if ((vDecision * vDecision) / (2 * v.decelerationMs2) > -xDecision) {
+          // тормозной путь длиннее остатка до линии: не остановится без
+          // экстренного торможения, значит продолжает движение
+          passed = true;
         }
       }
       // если tauAtGreenEnd <= 0 — машина ещё не начала движение, точно не проехала
@@ -205,10 +205,10 @@ export function simulateSingleLane(greenDurationS, yellowDurationS, laneGroup, p
  * Симулирует ОДИН прогон для всей группы полос (например, 2 полосы главной
  * дороги) — суммирует независимые прогоны по каждой полосе.
  */
-export function simulatePhaseOnce(greenDurationS, yellowDurationS, laneGroup, params, rng) {
+export function simulatePhaseOnce(greenDurationS, laneGroup, params, rng) {
   let total = 0;
   for (let lane = 0; lane < laneGroup.lanes; lane++) {
-    total += simulateSingleLane(greenDurationS, yellowDurationS, laneGroup, params, rng);
+    total += simulateSingleLane(greenDurationS, laneGroup, params, rng);
   }
   return total;
 }
@@ -229,17 +229,16 @@ function percentile(sortedArr, p) {
  * @param {number} greenDurationS - длительность зелёного, с
  * @param {{speedLimitKmh:number, lanes:number}} laneGroup - группа полос
  * @param {object} params - физические параметры машин (см. «Параметры»)
- * @param {{yellowDurationS:number, trials:number, seed?:number|null}} options -
- *   длительность жёлтого, число прогонов и необязательный seed: с целым seed
- *   результат воспроизводим, иначе Math.random
+ * @param {{trials:number, seed?:number|null}} options - число прогонов и
+ *   необязательный seed: с целым seed результат воспроизводим, иначе Math.random
  */
 export function computeDischargeStats(greenDurationS, laneGroup, params, options) {
-  const { yellowDurationS, trials, seed } = options;
+  const { trials, seed } = options;
 
   const results = new Array(trials);
   for (let k = 0; k < trials; k++) {
     const rng = Number.isInteger(seed) ? createSeededRng(seed + k) : Math.random;
-    results[k] = simulatePhaseOnce(greenDurationS, yellowDurationS, laneGroup, params, rng);
+    results[k] = simulatePhaseOnce(greenDurationS, laneGroup, params, rng);
   }
 
   results.sort((a, b) => a - b);
@@ -262,7 +261,7 @@ export function computeDischargeStats(greenDurationS, laneGroup, params, options
  *
  * @param {{speedLimitKmh:number, lanes:number}} laneGroup - группа полос
  * @param {object} params - физические параметры машин (см. «Параметры»)
- * @param {{yellowDurationS:number, minGreenS:number, maxGreenS:number, trials:number, seed?:number|null}} options
+ * @param {{minGreenS:number, maxGreenS:number, trials:number, seed?:number|null}} options
  */
 export function buildDischargeTable(laneGroup, params, options) {
   const { minGreenS, maxGreenS } = options;

@@ -31,9 +31,9 @@
  * }
  *
  * ТАБЛИЦЫ (аргумент tables)
- * { "<id фазы>": [ { greenDurationS, mean, min, max, p5, p95 }, ... ] }
- * Таблица на каждую фазу (зависит от её жёлтого). Строки идут подряд с шагом
- * 1 с. Диапазон должен покрывать greenMinS..greenMaxS группы полос фазы.
+ * { "<id группы>": [ { greenDurationS, mean, min, max, p5, p95 }, ... ] }
+ * Строки идут подряд с шагом 1 с. Диапазон должен покрывать
+ * greenMinS..greenMaxS группы полос.
  *
  * ---------------------------------------------------------------------------
  * МОДЕЛЬ ОЖИДАНИЯ
@@ -132,7 +132,7 @@ export function evaluatePlan(config, tables, greensOverride = {}) {
   const cyclesPerHour = 3600 / cycleS;
 
   const phases = config.phases.map((phase) => {
-    const table = tables[phase.id];
+    const table = tables[phase.laneGroup];
     const greenS = greens[phase.id];
 
     const perCycle = {
@@ -191,7 +191,7 @@ export function evaluatePlan(config, tables, greensOverride = {}) {
  * допустимых значений либо показывает, что требование невыполнимо.
  *
  * @param {object} config - конфигурация перекрёстка
- * @param {object} tables - таблицы пропускной способности по фазам
+ * @param {object} tables - таблицы пропускной способности по группам полос
  * @param {object} demandVehPerHour - { idФазы: машин/час }; фаза без записи
  *   считается без требований и получает минимальный зелёный
  * @param {object} [options] - { statistic: 'mean' | 'p5' | 'p95' (по умолчанию
@@ -220,7 +220,7 @@ export function findMinimalPlan(config, tables, demandVehPerHour, options = {}) 
     const next = {};
 
     for (const phase of config.phases) {
-      const table = tables[phase.id];
+      const table = tables[phase.laneGroup];
       const grid = grids[phase.id];
       const requiredPerCycle = ((demand[phase.id] ?? 0) * cycleS) / 3600;
       const green = grid.find((g) => lookupVehicles(table, g, statistic) >= requiredPerCycle);

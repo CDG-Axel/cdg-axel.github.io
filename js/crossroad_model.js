@@ -78,16 +78,14 @@ export async function loadConfig() {
 // ---------------------------------------------------------------------------
 
 /**
- * Считает таблицы по каждой фазе из конфигурации (таблица зависит от жёлтого
- * фазы, а полосы, скорость и диапазон зелёного берутся из её группы полос).
- * Возвращает { "<id фазы>": [ { greenDurationS, mean, min, max, p5, p95 }, ... ] }.
+ * Считает таблицы по каждой группе полос из конфигурации (полосы, скорость и
+ * диапазон зелёного берутся из группы). Возвращает
+ * { "<id группы>": [ { greenDurationS, mean, min, max, p5, p95 }, ... ] }.
  */
 function computeCapacityTables(config) {
   const tables = {};
-  for (const phase of config.phases) {
-    const laneGroup = config.laneGroups[phase.laneGroup];
-    tables[phase.id] = buildDischargeTable(laneGroup, config.vehicle, {
-      yellowDurationS: phase.yellowS,
+  for (const [id, laneGroup] of Object.entries(config.laneGroups)) {
+    tables[id] = buildDischargeTable(laneGroup, config.vehicle, {
       minGreenS: laneGroup.greenMinS,
       maxGreenS: laneGroup.greenMaxS,
       trials: config.tables?.trials,
