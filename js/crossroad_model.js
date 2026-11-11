@@ -126,7 +126,7 @@ function formatEvaluation(evaluation) {
   const head = ['Фаза', 'Зелёный', 'В цикле', 'Машин/цикл (p5–p95)', 'Машин/час', 'Эфф. зелёный', 'Ожидание'];
   const padded = arr => arr.map((v, i) => v[i? 'padStart': 'padEnd'](tabs[i])).join('');
 
-  const lines = [`Длина цикла: ${fmt(evaluation.cycleS, 0)} с`, padded(head)];
+  const lines = [padded(head)];
   for (const p of evaluation.phases) {
     lines.push(padded([
       p.id,
@@ -153,13 +153,7 @@ function formatMinimalPlan(result) {
       `а при максимальном зелёном успевает ${fmt(result.maxVehiclesPerCycle)}.`
     );
   }
-  const greens = Object.entries(result.greens)
-    .map(([id, g]) => `${id}=${g} с`)
-    .join(', ');
-  return (
-    `Минимальный план (${result.statistic}): ${greens}, цикл ${fmt(result.cycleS, 0)} с\n` +
-    formatEvaluation(result.evaluation)
-  );
+  return `Длина цикла: ${fmt(result.cycleS, 0)} с\n` + formatEvaluation(result.evaluation);
 }
 
 // ---------------------------------------------------------------------------
@@ -184,7 +178,7 @@ export async function main({ rebuild = false } = {}) {
   }
 
   const evaluation = evaluatePlan(config, tables);
-  console.log('\nТекущий план:');
+  console.log(`\nТекущий план (длина цикла: ${fmt(evaluation.cycleS, 0)} с):`);
   console.log(formatEvaluation(evaluation));
 
   const plans = {};

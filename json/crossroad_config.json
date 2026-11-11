@@ -12,19 +12,19 @@
     "standingGapFraction": 0.6667,
     "stopLineOffsetM": 1.0,
     "stopLineOffsetDeviation": 0.3,
-    "nonPunishableThresholdKmh": 20
+    "nonPunishableThresholdKmh": 5
   },
   "laneGroups": {
     "main": {
       "name": "Одна сторона главной дороги (2 полосы)",
-      "speedLimitKmh": 60,
+      "speedLimitKmh": 40,
       "lanes": 2,
       "greenMinS": 15,
       "greenMaxS": 75
     },
     "minor": {
       "name": "Пересекающая дорога, оба направления одновременно (по 1 полосе)",
-      "speedLimitKmh": 40,
+      "speedLimitKmh": 30,
       "lanes": 2,
       "greenMinS": 15,
       "greenMaxS": 75
@@ -36,7 +36,7 @@
       "name": "Главная дорога, сторона А (сначала трамвайные пути, потом дорога)",
       "laneGroup": "main",
       "greenS": 45,
-      "yellowS": 5,
+      "yellowS": 3,
       "allRedAfterS": 0
     },
     {
@@ -44,7 +44,7 @@
       "name": "Главная дорога, сторона Б (сначала дорога, потом трамвайные пути)",
       "laneGroup": "main",
       "greenS": 25,
-      "yellowS": 5,
+      "yellowS": 3,
       "allRedAfterS": 0
     },
     {
@@ -52,7 +52,7 @@
       "name": "Трамвайные пути и пересекающая дорога",
       "laneGroup": "minor",
       "greenS": 25,
-      "yellowS": 5,
+      "yellowS": 3,
       "allRedAfterS": 5
     }
   ],
@@ -70,14 +70,14 @@
       "minor_tram": 700
     },
     "weekday_evening": {
-      "main_a": 1500,
+      "main_a": 1600,
       "main_b": 900,
       "minor_tram": 800
     },
     "middle_day": {
       "main_a": 900,
-      "main_b": 500,
-      "minor_tram": 500
+      "main_b": 900,
+      "minor_tram": 800
     }
   }
 }
