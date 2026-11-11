@@ -25,9 +25,10 @@
  *       "yellowS": 5,           // жёлтый после зелёного этой фазы, с
  *       "allRedAfterS": 0 }     // общий красный после жёлтого этой фазы, с
  *   ],
- *   "optimization": { "greenStepS": 5 },       // необязательно
- *   "demandVehPerHour": { "<id фазы>": 900 }   // необязательно: требуемая
- *                                              // пропускная способность, маш/ч
+ *   "optimization": { "greenStepS": 1 },       // шаг сетки зелёного, с
+ *   "optimizationProfiles": {                  // профили: целевая пропускная
+ *     "<имя>": { "<id фазы>": 900, ... }       // способность каждой фазы, маш/ч
+ *   }                                          // (сумма по всем полосам группы)
  * }
  *
  * ТАБЛИЦЫ (аргумент tables)
@@ -183,24 +184,26 @@ export function evaluatePlan(config, tables, greensOverride = {}) {
 
 /**
  * Обратная задача: найти самые короткие зелёные, при которых каждая фаза
- * пропускает требуемое число машин в час.
+ * пропускает не меньше целевого числа машин в час (профиль оптимизации).
  *
- * Требуемое число машин за цикл зависит от длины цикла, а длина цикла от
- * зелёных, поэтому решаем итерацией от минимальных зелёных. Зелёные только
- * растут, так что итерация даёт наименьший из подходящих планов на сетке
- * допустимых значений либо показывает, что требование невыполнимо.
+ * Целевое число машин за цикл зависит от длины цикла, а длина цикла от
+ * зелёных, поэтому решаем итерацией: начинаем с минимальных зелёных, для
+ * каждой фазы берём наименьший зелёный, который выдерживает цель при текущем
+ * цикле, и повторяем, пока зелёные не перестанут меняться. Зелёные только
+ * растут, а любой допустимый план не меньше результата по каждой фазе, поэтому
+ * результат — единственный минимальный (в том числе по длине цикла) план на
+ * сетке. Если для фазы не хватает даже максимального зелёного, допустимого
+ * плана нет.
  *
  * @param {object} config - конфигурация перекрёстка
  * @param {object} tables - таблицы пропускной способности по группам полос
- * @param {object} demandVehPerHour - { idФазы: машин/час }; фаза без записи
- *   считается без требований и получает минимальный зелёный
- * @param {object} [options] - { statistic: 'mean' | 'p5' | 'p95' (по умолчанию
- *   'mean'), greenStepS: шаг сетки (иначе optimization.greenStepS из конфигурации) }
+ * @param {object} targets - профиль: { idФазы: машин/час } для каждой фазы
+ * @param {{statistic?: 'mean' | 'p5' | 'p95'}} [options] - по какому показателю
+ *   таблицы сравнивать с целью (по умолчанию 'mean')
  */
-export function findMinimalPlan(config, tables, demandVehPerHour, options = {}) {
-  const demand = demandVehPerHour ?? {};
+export function findMinimalPlan(config, tables, targets, options = {}) {
   const statistic = options.statistic ?? 'mean';
-  const stepS = options.greenStepS ?? config.optimization.greenStepS;
+  const stepS = config.optimization.greenStepS;
 
   // сетка зелёного каждой фазы строится по диапазону её группы полос
   const grids = {};
@@ -213,7 +216,8 @@ export function findMinimalPlan(config, tables, demandVehPerHour, options = {}) 
   }
 
   let greens = Object.fromEntries(config.phases.map((p) => [p.id, grids[p.id][0]]));
-  const maxIterations = Object.values(grids).reduce((n, grid) => n + grid.length, 0) + 2;
+  // каждая итерация, кроме последней, повышает хотя бы одну фазу хотя бы на шаг сетки
+  const maxIterations = Object.values(grids).reduce((n, grid) => n + grid.length - 1, 0) + 1;
 
   for (let iteration = 0; iteration < maxIterations; iteration++) {
     const cycleS = cycleLengthS(config, greens);
@@ -222,7 +226,7 @@ export function findMinimalPlan(config, tables, demandVehPerHour, options = {}) 
     for (const phase of config.phases) {
       const table = tables[phase.laneGroup];
       const grid = grids[phase.id];
-      const requiredPerCycle = ((demand[phase.id] ?? 0) * cycleS) / 3600;
+      const requiredPerCycle = (targets[phase.id] * cycleS) / 3600;
       const green = grid.find((g) => lookupVehicles(table, g, statistic) >= requiredPerCycle);
       if (green === undefined) {
         return {

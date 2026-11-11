@@ -120,12 +120,26 @@ export function validateConfig(config) {
   // optimization
   checkInteger(errors, 'optimization.greenStepS', config.optimization?.greenStepS);
 
-  // demandVehPerHour (необязательный раздел)
-  for (const [id, value] of Object.entries(config.demandVehPerHour ?? {})) {
-    if (!phaseIds.has(id)) {
-      errors.push(`demandVehPerHour.${id}: такой фазы нет`);
-    } else {
-      checkNumber(errors, `demandVehPerHour.${id}`, value, 'nonNegative');
+  // optimizationProfiles: профиль = цели пропускной способности (машин/час)
+  // для каждой фазы, ровно по одной на фазу
+  const profiles = config.optimizationProfiles;
+  if (!isObject(profiles) || Object.keys(profiles).length === 0) {
+    errors.push('optimizationProfiles: нужен объект хотя бы с одним профилем');
+  } else {
+    for (const [name, targets] of Object.entries(profiles)) {
+      const where = `optimizationProfiles.${name}`;
+      if (!isObject(targets)) {
+        errors.push(`${where}: нужен объект { id фазы: машин/час }`);
+        continue;
+      }
+      for (const id of phaseIds) {
+        checkNumber(errors, `${where}.${id}`, targets[id], 'nonNegative');
+      }
+      for (const id of Object.keys(targets)) {
+        if (!phaseIds.has(id)) {
+          errors.push(`${where}.${id}: такой фазы нет`);
+        }
+      }
     }
   }
 

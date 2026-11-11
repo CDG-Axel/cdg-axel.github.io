@@ -167,9 +167,8 @@ function formatMinimalPlan(result) {
 // ---------------------------------------------------------------------------
 
 /**
- * Считает текущий план светофора из конфигурации и печатает отчёт.
- * Если в конфигурации есть demandVehPerHour, дополнительно ищет минимальный
- * план под этот спрос.
+ * Считает текущий план светофора из конфигурации и печатает отчёт, затем для
+ * каждого профиля из optimizationProfiles ищет минимальный план под его цели.
  *
  * @param {{rebuild?: boolean}} [options] - rebuild: пересчитать таблицы, не
  *   используя кеш
@@ -188,14 +187,15 @@ export async function main({ rebuild = false } = {}) {
   console.log('\nТекущий план:');
   console.log(formatEvaluation(evaluation));
 
-  let minimalPlan = null;
-  if (config.demandVehPerHour) {
-    minimalPlan = findMinimalPlan(config, tables, config.demandVehPerHour);
-    console.log('\nМинимальный план под заданный спрос:');
-    console.log(formatMinimalPlan(minimalPlan));
+  const plans = {};
+  for (const [name, targets] of Object.entries(config.optimizationProfiles)) {
+    plans[name] = findMinimalPlan(config, tables, targets);
+    const goals = Object.entries(targets).map(([id, v]) => `${id}=${v}`).join(', ');
+    console.log(`\nПрофиль ${name} (цели, маш/ч: ${goals}):`);
+    console.log(formatMinimalPlan(plans[name]));
   }
 
-  return { config, tables, evaluation, minimalPlan };
+  return { config, tables, evaluation, plans };
 }
 
 // ---------------------------------------------------------------------------

@@ -35,7 +35,7 @@
       "id": "main_a",
       "name": "Главная дорога, сторона А (сначала трамвайные пути, потом дорога)",
       "laneGroup": "main",
-      "greenS": 55,
+      "greenS": 45,
       "yellowS": 5,
       "allRedAfterS": 0
     },
@@ -61,6 +61,23 @@
     "seed": 1
   },
   "optimization": {
-    "greenStepS": 5
+    "greenStepS": 1
+  },
+  "optimizationProfiles": {
+    "weekday_morning": {
+      "main_a": 1300,
+      "main_b": 700,
+      "minor_tram": 700
+    },
+    "weekday_evening": {
+      "main_a": 1500,
+      "main_b": 900,
+      "minor_tram": 800
+    },
+    "middle_day": {
+      "main_a": 900,
+      "main_b": 500,
+      "minor_tram": 500
+    }
   }
 }
