@@ -85,12 +85,7 @@ export async function loadConfig() {
 function computeCapacityTables(config) {
   const tables = {};
   for (const [id, laneGroup] of Object.entries(config.laneGroups)) {
-    tables[id] = buildDischargeTable(laneGroup, config.vehicle, {
-      minGreenS: laneGroup.greenMinS,
-      maxGreenS: laneGroup.greenMaxS,
-      trials: config.tables?.trials,
-      seed: config.tables?.seed,
-    });
+    tables[id] = buildDischargeTable(laneGroup, config.vehicle, config.options);
   }
   return tables;
 }
@@ -164,10 +159,9 @@ function formatMinimalPlan(result) {
  * Считает текущий план светофора из конфигурации и печатает отчёт, затем для
  * каждого профиля из optimizationProfiles ищет минимальный план под его цели.
  *
- * @param {{rebuild?: boolean}} [options] - rebuild: пересчитать таблицы, не
- *   используя кеш
+ * @param {boolean} [rebuild=true] - пересчитать таблицы, не используя кеш
  */
-export async function main({ rebuild = false } = {}) {
+export async function main(rebuild = true) {
   const config = await loadConfig();
   const tables = await getCapacityTables(config, rebuild);
 
@@ -196,4 +190,4 @@ export async function main({ rebuild = false } = {}) {
 // Запуск
 // ---------------------------------------------------------------------------
 
-await main({ rebuild: true });
+await main(true);

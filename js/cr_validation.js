@@ -110,15 +110,13 @@ export function validateConfig(config) {
     });
   }
 
-  // tables
-  checkInteger(errors, 'tables.trials', config.tables?.trials);
-  const seed = config.tables?.seed;
+  // options
+  checkInteger(errors, 'options.trials', config.options?.trials);
+  const seed = config.options?.seed;
   if (seed !== undefined && seed !== null && !Number.isInteger(seed)) {
-    errors.push('tables.seed: целое число, null или не задан');
+    errors.push('options.seed: целое число, null или не задан');
   }
-
-  // optimization
-  checkInteger(errors, 'optimization.greenStepS', config.optimization?.greenStepS);
+  checkInteger(errors, 'options.greenStepS', config.options?.greenStepS);
 
   // optimizationProfiles: профиль = цели пропускной способности (машин/час)
   // для каждой фазы, ровно по одной на фазу

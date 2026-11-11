@@ -256,18 +256,16 @@ export function computeDischargeStats(greenDurationS, laneGroup, params, options
 
 /**
  * Строит полную таблицу N -> статистика пропускной способности для
- * заданной группы полос, N от minGreenS до maxGreenS с шагом 1 секунда.
+ * заданной группы полос, N от greenMinS до greenMaxS группы с шагом 1 секунда.
  * Возвращает массив строк { greenDurationS, mean, min, max, p5, p95 }.
  *
- * @param {{speedLimitKmh:number, lanes:number}} laneGroup - группа полос
+ * @param {{speedLimitKmh:number, lanes:number, greenMinS:number, greenMaxS:number}} laneGroup - группа полос
  * @param {object} params - физические параметры машин (см. «Параметры»)
- * @param {{minGreenS:number, maxGreenS:number, trials:number, seed?:number|null}} options
+ * @param {{trials:number, seed?:number|null}} options
  */
 export function buildDischargeTable(laneGroup, params, options) {
-  const { minGreenS, maxGreenS } = options;
-
   const table = [];
-  for (let n = minGreenS; n <= maxGreenS; n++) {
+  for (let n = laneGroup.greenMinS; n <= laneGroup.greenMaxS; n++) {
     table.push(computeDischargeStats(n, laneGroup, params, options));
   }
   return table;

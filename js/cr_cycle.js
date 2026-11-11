@@ -25,7 +25,8 @@
  *       "yellowS": 5,           // жёлтый после зелёного этой фазы, с
  *       "allRedAfterS": 0 }     // общий красный после жёлтого этой фазы, с
  *   ],
- *   "optimization": { "greenStepS": 1 },       // шаг сетки зелёного, с
+ *   "options": { "trials": 1000, "seed": 1,    // прогоны и seed читает модуль A
+ *                "greenStepS": 1 },            // шаг сетки зелёного, с
  *   "optimizationProfiles": {                  // профили: целевая пропускная
  *     "<имя>": { "<id фазы>": 900, ... }       // способность каждой фазы, маш/ч
  *   }                                          // (сумма по всем полосам группы)
@@ -203,7 +204,7 @@ export function evaluatePlan(config, tables, greensOverride = {}) {
  */
 export function findMinimalPlan(config, tables, targets, options = {}) {
   const statistic = options.statistic ?? 'mean';
-  const stepS = config.optimization.greenStepS;
+  const stepS = config.options.greenStepS;
 
   // сетка зелёного каждой фазы строится по диапазону её группы полос
   const grids = {};
