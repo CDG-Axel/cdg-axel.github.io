@@ -6,10 +6,14 @@
  * КЛЮЧЕВЫЕ ДОПУЩЕНИЯ (v1):
  *  - Полосы одной группы (например, 2 полосы главной дороги) разгружаются
  *    независимо и параллельно — взаимовлияния между полосами нет.
- *  - Между машинами в очереди НЕ моделируется ограничение "не мочь обогнать/
- *    догнать впереди идущую" (кроме структурного случая, когда впереди стоящая
- *    машина не успевает проехать вообще — тогда все машины позади неё в этом
- *    цикле тоже не проезжают, т.к. подпирают её в очереди).
+ *  - Ограничение следования: минимальный зазор в движении равен зазору
+ *    стоящих машин (standingGapFraction * длина едущей сзади), поэтому машина
+ *    не может пройти от старта больше, чем любая машина впереди. Путь машины i
+ *    от стартовой позиции: min по j <= i от свободного пути машины j (разгон
+ *    до личной максимальной скорости, затем равномерное движение). Зазор,
+ *    зависящий от скорости (T_h * v), не моделируется.
+ *  - Если впереди стоящая машина не успевает проехать вообще, все машины позади
+ *    неё в этом цикле тоже не проезжают, т.к. подпирают её в очереди.
  *  - Трамваи в этом модуле не моделируются: их проезд не является "очередью,
  *    которая разгоняется" — это отдельная сущность с расписанием, которая
  *    учитывается на уровне модуля B / стратегии фаз.
@@ -87,6 +91,29 @@ function uniformRange(min, max, rng) {
   return min + rng() * (max - min);
 }
 
+/**
+ * Время от начала зелёного, когда машина при свободном движении (старт после
+ * реакции, разгон до максимальной скорости, затем равномерное движение)
+ * проходит distanceM метров от своей стартовой позиции.
+ */
+function timeToTravel(car, distanceM) {
+  if (distanceM <= 0) return car.startDelayS;
+  if (distanceM <= car.distAcc) {
+    return car.startDelayS + Math.sqrt((2 * distanceM) / car.accelerationMs2);
+  }
+  return car.startDelayS + car.tAcc + (distanceM - car.distAcc) / car.maxSpeedMs;
+}
+
+/** Пройденный путь и скорость машины при свободном движении в момент t. */
+function stateAt(car, t) {
+  const tau = t - car.startDelayS;
+  if (tau <= 0) return { distanceM: 0, speedMs: 0 };
+  if (tau <= car.tAcc) {
+    return { distanceM: 0.5 * car.accelerationMs2 * tau * tau, speedMs: car.accelerationMs2 * tau };
+  }
+  return { distanceM: car.distAcc + car.maxSpeedMs * (tau - car.tAcc), speedMs: car.maxSpeedMs };
+}
+
 /** Генерирует случайные физические параметры одной машины. */
 function generateVehicle(laneGroup, params, rng) {
   const maxSpeedKmh =
@@ -118,6 +145,7 @@ function generateVehicle(laneGroup, params, rng) {
  * @returns {number} количество проехавших машин (целое)
  */
 export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
+  const cars = []; // свободные кинематики уже сгенерированных машин очереди
   let cumulativeStartDelay = 0; // время начала движения текущей машины от начала зелёного
   let prevFrontPos = 0;
   let prevLength = 0;
@@ -129,7 +157,6 @@ export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
     // Каскадная реакция: машина реагирует на трогание идущей впереди
     // (первая — на сам сигнал светофора).
     cumulativeStartDelay += v.reactionTimeS;
-    const startDelay = cumulativeStartDelay;
 
     // Позиция переднего бампера относительно стоп-линии (линия = 0) в момент t=0.
     let frontPos;
@@ -142,50 +169,54 @@ export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
     }
 
     const tAcc = v.maxSpeedMs / v.accelerationMs2; // время выхода на макс. скорость
-    const xAtAcc = frontPos + 0.5 * v.accelerationMs2 * tAcc * tAcc;
+    const car = {
+      startDelayS: cumulativeStartDelay,
+      accelerationMs2: v.accelerationMs2,
+      maxSpeedMs: v.maxSpeedMs,
+      tAcc,
+      distAcc: 0.5 * v.accelerationMs2 * tAcc * tAcc,
+    };
+    cars.push(car);
 
-    // Момент (относительно startDelay) пересечения линии передним бампером.
-    let tCrossRel;
-    if (frontPos >= 0) {
-      tCrossRel = 0;
-    } else if (xAtAcc >= 0) {
-      // пересечение ещё в фазе разгона
-      tCrossRel = Math.sqrt((-2 * frontPos) / v.accelerationMs2);
-    } else {
-      // пересечение в фазе равномерного движения
-      tCrossRel = tAcc + -xAtAcc / v.maxSpeedMs;
+    // Момент пересечения линии передним бампером: с ограничением следования
+    // машина пересекает линию не раньше, чем любая машина впереди пройдёт тот же
+    // путь от своего старта (а своим свободным движением тоже не раньше себя).
+    const distToLine = -frontPos;
+    let crossTimeAbs = 0;
+    for (const c of cars) {
+      crossTimeAbs = Math.max(crossTimeAbs, timeToTravel(c, distToLine));
     }
-    const crossTimeAbs = startDelay + tCrossRel;
 
     let passed = false;
 
     if (crossTimeAbs <= greenDurationS) {
       passed = true;
-    } else {
-      const tauAtGreenEnd = greenDurationS - startDelay;
-      if (tauAtGreenEnd > 0) {
-        // Жёлтый включился в момент greenDurationS. Водитель реагирует
-        // reactionTimeS, и всё это время машина продолжает разгон.
-        const tau = tauAtGreenEnd + v.reactionTimeS;
-        let vDecision, xDecision;
-        if (tau <= tAcc) {
-          vDecision = v.accelerationMs2 * tau;
-          xDecision = frontPos + 0.5 * v.accelerationMs2 * tau * tau;
-        } else {
-          vDecision = v.maxSpeedMs;
-          xDecision = xAtAcc + v.maxSpeedMs * (tau - tAcc);
-        }
-
-        if (xDecision >= 0) {
-          passed = true; // пересекла линию, пока реагировала
-        } else if ((vDecision * vDecision) / (2 * v.decelerationMs2) > -xDecision) {
-          // тормозной путь длиннее остатка до линии: не остановится без
-          // экстренного торможения, значит продолжает движение
-          passed = true;
+    } else if (greenDurationS - car.startDelayS > 0) {
+      // Жёлтый включился в момент greenDurationS. Водитель реагирует
+      // reactionTimeS, и всё это время машина продолжает движение. Реальное
+      // состояние машины определяет самая "отстающая" из машин впереди (и она
+      // сама): путь равен минимальному, скорость берётся у неё же.
+      const tDecision = greenDurationS + v.reactionTimeS;
+      let vDecision = 0;
+      let travelled = Infinity;
+      for (const c of cars) {
+        const state = stateAt(c, tDecision);
+        if (state.distanceM < travelled) {
+          travelled = state.distanceM;
+          vDecision = state.speedMs;
         }
       }
-      // если tauAtGreenEnd <= 0 — машина ещё не начала движение, точно не проехала
+      const xDecision = frontPos + travelled;
+
+      if (xDecision >= 0) {
+        passed = true; // пересекла линию, пока реагировала
+      } else if ((vDecision * vDecision) / (2 * v.decelerationMs2) > -xDecision) {
+        // тормозной путь длиннее остатка до линии: не остановится без
+        // экстренного торможения, значит продолжает движение
+        passed = true;
+      }
     }
+    // если машина ещё не начала движение к концу зелёного, она точно не проехала
 
     if (!passed) {
       // Машина не проехала -> физически стоит в очереди и блокирует всех
