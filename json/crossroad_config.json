@@ -37,7 +37,7 @@
       "laneGroup": "main",
       "greenS": 45,
       "yellowS": 3,
-      "allRedAfterS": 0
+      "allRedAfterS": 3
     },
     {
       "id": "main_b",
@@ -45,7 +45,7 @@
       "laneGroup": "main",
       "greenS": 25,
       "yellowS": 3,
-      "allRedAfterS": 0
+      "allRedAfterS": 2
     },
     {
       "id": "minor_tram",
@@ -62,20 +62,46 @@
     "greenStepS": 1
   },
   "optimizationProfiles": {
+    "middle_day": {
+      "main_a": 800,
+      "main_b": 600,
+      "minor_tram": 500
+    },
     "weekday_morning": {
-      "main_a": 1300,
+      "main_a": 1000,
       "main_b": 700,
-      "minor_tram": 700
+      "minor_tram": 600
     },
     "weekday_evening": {
-      "main_a": 1600,
-      "main_b": 900,
-      "minor_tram": 800
+      "main_a": 1200,
+      "main_b": 800,
+      "minor_tram": 700
+    }
+  },
+  "trafficSurvey": {
+    "pre_traffic_jams": {
+      "cycle": 114,
+      "start": "16:30",
+      "main_a": [21, 22, 22, 31, 23, 22, 31, 24, 14, 20, 23, 23, 37],
+      "main_b": [19, 18, 19, 16, 7, 11, 19, 17, 4, 13, 24],
+      "minor_tram": [12, 4, 6, 9, 8, 13, 9, 9, 7, 11],
+      "note": "ситуация при пиковой загрузки, но еще без пробок"
     },
-    "middle_day": {
-      "main_a": 900,
-      "main_b": 900,
-      "minor_tram": 800
+    "traffic_jams_fading": {
+      "cycle": 114,
+      "start": "19:30",
+      "main_a": [18, 25, 21, 15, 15, 17, 13, 18, 10, 15, 29, 12, 19, 18],
+      "main_b": [20, 18, 4, 8, 9,9, 6, 10, 8, 13, 11, 14, 14, 6],
+      "minor_tram": [9, 10, 11, 7, 9, 11, 8, 7, 8, 10, 10, 10, 13, 6],
+      "note": "вначале пробка есть, но потом начинает рассасываться"
+    },
+    "post_traffic_jams": {
+      "cycle": 114,
+      "start": "21:00",
+      "main_a": [18, 31, 35, 13, 31, 19, 23, 5, 24, 8, 11, 22, 5],
+      "main_b": [4, 8, 12, 4, 6, 11, 8, 14, 4, 4, 10, 9, 8],
+      "minor_tram": [7, 6, 5, 6, 7, 9, 7, 5, 7, 7, 6, 6, 7],
+      "note": "пробок нет, но на главном направлении непонятная нагрузка"
     }
   }
 }
