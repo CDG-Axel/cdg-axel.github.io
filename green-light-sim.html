@@ -415,6 +415,14 @@
 
       <div class="mini">
         <div class="mini-row">
+          <label for="decelVarInput">Торможение на жёлтый (3.5 м/с²)</label>
+          <output id="decelVarValue" for="decelVarInput">± 25%</output>
+        </div>
+        <input type="range" id="decelVarInput" min="0" max="60" step="5" value="25">
+      </div>
+
+      <div class="mini">
+        <div class="mini-row">
           <label for="lengthVarInput">Длина машины (4.5 м)</label>
           <output id="lengthVarValue" for="lengthVarInput">± 15%</output>
         </div>
@@ -464,8 +472,10 @@
 
   <footer class="note">
     Модель упрощённая: каждая машина трогается через свою реакцию после машины впереди, разгоняется с собственным
-    ускорением до ограничения скорости и не может обогнать идущую впереди. Машины, успевшие пересечь стоп-линию
-    до конца зелёного, уезжают дальше и на жёлтый; остальные подъезжают к линии и останавливаются перед ней.
+    ускорением до личного потолка скорости (лимит + до 5 км/ч) и не может обогнать идущую впереди. Когда зелёный
+    заканчивается, водитель ещё в течение своей реакции продолжает ехать, затем сравнивает тормозной путь с
+    расстоянием до линии: если остановиться без экстренного торможения нельзя — проезжает на жёлтый, иначе тормозит
+    и останавливается перед линией.
   </footer>
 
 </div>
@@ -490,10 +500,13 @@
   const BASE = {
     reaction: 1.3,
     accel: 2.5,
+    decel: 3.5,
     length: 4.5,
-    minGap: 2.0,
-    stopOffset: 0.6
+    stopOffset: 1.0
   };
+  const STANDING_GAP_FRACTION = 0.6667; // gap between standing cars, as a share of the FOLLOWING car's own length
+  const STOP_OFFSET_DEVIATION_PCT = 30; // lead car's distance from the stop line: base ± 30%
+  const NON_PUNISHABLE_KMH = 5;         // each driver's personal top speed = limit + uniform(0, this)
   const YELLOW_DURATION = 3;
   const VIEW_BEHIND = 42;
   const VIEW_AHEAD = 15;
@@ -504,12 +517,11 @@
   const BOTTOM_PAD = 12;
   const SAFETY_EXTRA = 20;
   const SETTLE_EPS = 0.01; // m/frame — below this a car counts as "not moving"
-  const CREEP_SPEED = 3.5; // m/s — slow crawl speed for cars that re-pack the queue after being tagged "never started"
 
   const CAR_COLORS = ['#5C7A9C','#8C9B75','#A85C4B','#6E6259','#3E4A56','#9C8355','#6B5F73','#7A5C52','#4E7A72'];
 
   /* ---------------- state ---------------- */
-  const settings = { green:20, speedKmh:50, lanes:3, reactionVar:35, accelVar:25, lengthVar:15 };
+  const settings = { green:20, speedKmh:50, lanes:3, reactionVar:35, accelVar:25, decelVar:25, lengthVar:15 };
   let lanesCars = [];
   let ppm = 8;
   let running = false;
@@ -531,6 +543,7 @@
   const speedInput = document.getElementById('speedInput');
   const reactionVarInput = document.getElementById('reactionVarInput');
   const accelVarInput = document.getElementById('accelVarInput');
+  const decelVarInput = document.getElementById('decelVarInput');
   const lengthVarInput = document.getElementById('lengthVarInput');
   const lanesRadios = document.querySelectorAll('input[name="lanes"]');
 
@@ -558,15 +571,22 @@
   function buildLane(){
     const n = queueCountFor(settings.green, settings.reactionVar);
     const cars = [];
-    let pos = BASE.stopOffset;
+    let pos = 0;
     for(let i=0;i<n;i++){
       const length = varied(BASE.length, settings.lengthVar, 2.6);
       const accel = varied(BASE.accel, settings.accelVar, 0.6);
+      const decel = varied(BASE.decel, settings.decelVar, 0.8);
       const reactionDelay = varied(BASE.reaction, settings.reactionVar, 0.25);
-      if(i>0){ pos += cars[i-1].length + BASE.minGap; }
+      const stopOffsetM = varied(BASE.stopOffset, STOP_OFFSET_DEVIATION_PCT, 0.2);
+      const vMax = (settings.speedKmh + rand(0, NON_PUNISHABLE_KMH)) / 3.6;
+      // the following car chooses the gap, based on its own length
+      pos = (i === 0) ? stopOffsetM : pos + cars[i-1].length + STANDING_GAP_FRACTION*length;
       cars.push({
         length: length,
         accel: accel,
+        decel: decel,
+        vMax: vMax,
+        stopOffsetM: stopOffsetM,
         reactionDelay: reactionDelay,
         widthM: length*0.42,
         color: CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)],
@@ -577,9 +597,10 @@
         speedAtCross: null,
         mustStopAtLine: false,
         neverStarted: false,
-        creepFrom: null,
-        creepTo: null,
-        creepStartT: null,
+        stopT0: null,   // when the car begins rolling up to its place in the standing queue
+        slot: null,     // where it will finally stand
+        v: null,        // own speed while rolling up (null until it begins)
+        _speed: 0,
         _pos: pos,
         _prevFramePos: pos,
         _lastPos: null,
@@ -610,83 +631,129 @@
   function freePos(car, tt){
     const tau = tt - car.startTime;
     if(tau <= 0) return car.initialPos;
-    const vMax = settings.speedKmh/3.6;
-    const tToMax = vMax/car.accel;
+    const tToMax = car.vMax/car.accel;
     let dist;
     if(tau <= tToMax){
       dist = 0.5*car.accel*tau*tau;
     } else {
-      dist = 0.5*car.accel*tToMax*tToMax + vMax*(tau-tToMax);
+      dist = 0.5*car.accel*tToMax*tToMax + car.vMax*(tau-tToMax);
     }
     return car.initialPos - dist;
   }
 
-  // Mutates car._pos for every car; detects line-crossings live; once green
-  // ends, splits the not-yet-crossed cars into "will roll up to the line"
-  // and "never got a turn" groups. The latter smoothly creep forward (at a
-  // fixed crawl speed) into a re-packed spot right behind the former, so
-  // the queue still reads as one continuous line instead of popping in.
+  // Dilemma-zone decision at the moment green ends (same rule as the crossroad
+  // module): the driver keeps accelerating through their own reaction time,
+  // then compares braking distance v²/(2·decel) with the distance left to the
+  // line. Returns 'neverStarted' (hasn't moved yet), 'passes' (already over the
+  // line, or can't stop without emergency braking) or 'stops'.
+  function decideAtYellow(car, green){
+    const tau0 = green - car.startTime;
+    if(tau0 <= 0) return 'neverStarted';
+    const tau = tau0 + car.reactionDelay;
+    const tAcc = car.vMax/car.accel;
+    let vDecision, xDecision; // xDecision < 0 means still behind the line
+    if(tau <= tAcc){
+      vDecision = car.accel*tau;
+      xDecision = -car.initialPos + 0.5*car.accel*tau*tau;
+    } else {
+      vDecision = car.vMax;
+      xDecision = -car.initialPos + 0.5*car.accel*tAcc*tAcc + car.vMax*(tau-tAcc);
+    }
+    if(xDecision >= 0 || vDecision*vDecision/(2*car.decel) > -xDecision) return 'passes';
+    return 'stops';
+  }
+
+  // Rolls a car up to a stand-still at `target` (metres behind the line): it
+  // accelerates while there is room and brakes so as to stop exactly at the
+  // target — at its comfortable deceleration, harder only if it must. Stepped
+  // in small sub-steps so a long frame (e.g. a returning tab) stays accurate.
+  function advanceStopper(p, v, target, car, dt){
+    let left = dt;
+    while(left > 1e-6){
+      const h = Math.min(left, 0.05);
+      left -= h;
+      const gap = p - target;
+      if(gap <= 0.02){ if(gap > 0) p = target; v = 0; continue; }
+      const vAllow = Math.sqrt(2*car.decel*gap);
+      if(v > vAllow){
+        v = Math.max(0, v - Math.max(v*v/(2*gap), car.decel)*h);
+      } else {
+        v = Math.min(vAllow, car.vMax, v + car.accel*h);
+      }
+      p -= v*h;
+      if(p <= target){ p = target; v = 0; }
+    }
+    return { p:p, v:v };
+  }
+
+  // Mutates car._pos for every car; detects line-crossings live. When green
+  // ends every car that hasn't crossed is decided once (decideAtYellow): some
+  // keep driving through, the rest — including everybody queued behind the first
+  // one that stops — roll up (after their own reaction) to a stand-still right
+  // behind the car ahead, at the standing gap. The same rule serves the cars
+  // that were still waiting for their turn, so the queue closes up naturally.
   function stepPhysics(tt){
-    const vMax = settings.speedKmh/3.6;
     lanesCars.forEach(function(cars){
-      let prevPos = null, prevLen = 0;
+      let prevPos = null, prevLen = 0, prevInQueue = false;
       for(let i=0;i<cars.length;i++){
         const car = cars[i];
         const prevFramePos = car._pos;
+        const dt = car._lastT === null ? 0 : tt - car._lastT;
         let p;
-        if(car.neverStarted){
-          if(car.creepTo === null){
-            p = car.initialPos;
-          } else {
-            const dist = car.creepFrom - car.creepTo;
-            if(dist <= 0.001){
-              p = car.creepTo;
-            } else {
-              const travelTime = dist / CREEP_SPEED;
-              const frac = clampNum((tt - car.creepStartT)/travelTime, 0, 1);
-              const eased = 1 - Math.pow(1-frac, 3);
-              p = car.creepFrom - dist*eased;
-            }
-          }
+        if(car.stopT0 !== null && tt >= car.stopT0){
+          if(car.v === null) car.v = car.neverStarted ? 0 : clampNum(car._speed, 0, car.vMax);
+          const target = prevInQueue
+            ? prevPos + prevLen + STANDING_GAP_FRACTION*car.length
+            : car.stopOffsetM;
+          const s = advanceStopper(car._pos, car.v, target, car, dt);
+          p = s.p; car.v = s.v;
+        } else if(car.neverStarted){
+          p = car.initialPos;
         } else {
           p = freePos(car, tt);
-          if(prevPos !== null){
-            const minAllowed = prevPos + prevLen + BASE.minGap;
-            if(p < minAllowed) p = minAllowed;
-          }
-          if(car.mustStopAtLine && p < BASE.stopOffset) p = BASE.stopOffset;
-          if(!car.crossed && !car.mustStopAtLine && p <= 0){
-            car.crossed = true;
-            car.crossTime = tt;
-            if(car._lastT !== null && tt > car._lastT){
-              car.speedAtCross = Math.max(0, (car._lastPos - p) / (tt - car._lastT));
-            } else {
-              car.speedAtCross = Math.min(vMax, car.accel*Math.max(0, tt-car.startTime));
-            }
+        }
+        if(prevPos !== null){
+          const minAllowed = prevPos + prevLen + STANDING_GAP_FRACTION*car.length;
+          if(p < minAllowed) p = minAllowed;
+        }
+        if(car.mustStopAtLine && p < car.stopOffsetM) p = car.stopOffsetM;
+        if(!car.crossed && !car.mustStopAtLine && !car.neverStarted && p <= 0){
+          car.crossed = true;
+          car.crossTime = tt;
+          if(car._lastT !== null && tt > car._lastT){
+            car.speedAtCross = Math.max(0, (car._lastPos - p) / (tt - car._lastT));
+          } else {
+            car.speedAtCross = Math.min(car.vMax, car.accel*Math.max(0, tt-car.startTime));
           }
         }
+        car._speed = dt > 0 ? Math.max(0, (prevFramePos - p)/dt) : 0;
         car._lastPos = p;
         car._lastT = tt;
         car._prevFramePos = prevFramePos;
         car._pos = p;
         prevPos = p; prevLen = car.length;
+        prevInQueue = car.stopT0 !== null;
       }
     });
 
     if(!lateTagged && tt >= settings.green){
       lanesCars.forEach(function(cars){
-        let resting = null, prevLenR = 0;
+        let slot = null, prevLenR = 0;
+        let blocked = false; // a car ahead has stopped: nobody behind can pass it
         cars.forEach(function(car){
           if(car.crossed) return;
-          if(car.startTime <= settings.green) car.mustStopAtLine = true;
-          else car.neverStarted = true;
+          let kind = decideAtYellow(car, settings.green);
+          // 'passes' before the first stopper: no flag — keeps driving freely and
+          // crosses on yellow. Anyone behind a stopper is stuck behind it too.
+          if(blocked && kind === 'passes') kind = 'stops';
+          if(kind !== 'passes') blocked = true;
+          if(!blocked) return; // passing cars don't take a slot in the standing queue
 
-          resting = (resting === null) ? BASE.stopOffset : (resting + prevLenR + BASE.minGap);
-          if(car.neverStarted){
-            car.creepFrom = car._pos;
-            car.creepTo = resting;
-            car.creepStartT = tt;
-          }
+          slot = (slot === null) ? car.stopOffsetM : (slot + prevLenR + STANDING_GAP_FRACTION*car.length);
+          car.slot = slot;
+          car.stopT0 = settings.green + car.reactionDelay;
+          if(kind === 'stops') car.mustStopAtLine = true;
+          else car.neverStarted = true;
           prevLenR = car.length;
         });
       });
@@ -698,11 +765,14 @@
     let active = false;
     lanesCars.forEach(function(cars){
       cars.forEach(function(c){
-        if(c.crossed && c._pos > EXIT_AT) active = true;
-        if(c.mustStopAtLine && Math.abs(c._pos - c._prevFramePos) > SETTLE_EPS) active = true;
-        if(c.neverStarted && c.creepTo !== null){
-          const remaining = Math.abs(c._pos - c.creepTo);
-          if(remaining > 0.05 && c._pos < VIEW_BEHIND + 4) active = true;
+        if(c.crossed){
+          if(c._pos > EXIT_AT) active = true;
+        } else if(c.slot !== null && c.slot > VIEW_BEHIND + 4){
+          // will settle out of sight — not worth waiting for
+        } else if(c.stopT0 !== null && t < c.stopT0){
+          active = true; // hasn't begun rolling up yet
+        } else if(Math.abs(c._pos - c._prevFramePos) > SETTLE_EPS){
+          active = true; // still moving (braking, rolling up, or driving on through yellow)
         }
       });
     });
@@ -910,6 +980,7 @@
     settings.speedKmh = parseFloat(speedInput.value);
     settings.reactionVar = parseFloat(reactionVarInput.value);
     settings.accelVar = parseFloat(accelVarInput.value);
+    settings.decelVar = parseFloat(decelVarInput.value);
     settings.lengthVar = parseFloat(lengthVarInput.value);
     const checked = document.querySelector('input[name="lanes"]:checked');
     settings.lanes = checked ? parseInt(checked.value,10) : 3;
@@ -920,12 +991,14 @@
     const speedValue = document.getElementById('speedValue');
     const reactionVarValue = document.getElementById('reactionVarValue');
     const accelVarValue = document.getElementById('accelVarValue');
+    const decelVarValue = document.getElementById('decelVarValue');
     const lengthVarValue = document.getElementById('lengthVarValue');
     return function refreshOutputs(){
       greenValue.textContent = parseFloat(greenInput.value).toFixed(0) + ' с';
       speedValue.textContent = parseFloat(speedInput.value).toFixed(0) + ' км/ч';
       reactionVarValue.textContent = '± ' + reactionVarInput.value + '%';
       accelVarValue.textContent = '± ' + accelVarInput.value + '%';
+      decelVarValue.textContent = '± ' + decelVarInput.value + '%';
       lengthVarValue.textContent = '± ' + lengthVarInput.value + '%';
     };
   })();
@@ -942,12 +1015,12 @@
   }
 
   function setControlsEnabled(enabled){
-    const allInputs = [greenInput, speedInput, reactionVarInput, accelVarInput, lengthVarInput];
+    const allInputs = [greenInput, speedInput, reactionVarInput, accelVarInput, decelVarInput, lengthVarInput];
     allInputs.forEach(function(inp){ inp.disabled = !enabled; });
     lanesRadios.forEach(function(r){ r.disabled = !enabled; });
   }
 
-  [greenInput, speedInput, reactionVarInput, accelVarInput, lengthVarInput].forEach(function(inp){
+  [greenInput, speedInput, reactionVarInput, accelVarInput, decelVarInput, lengthVarInput].forEach(function(inp){
     inp.addEventListener('input', refreshOutputs);
     inp.addEventListener('change', function(){ if(!running) rebuildAndRender(); });
   });
