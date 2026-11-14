@@ -3,13 +3,13 @@
   "vehicle": {
     "reactionTimeS": 1.3,
     "reactionTimeDeviation": 0.35,
-    "accelerationMs2": 2.5,
+    "accelerationMs2":  2.0,
     "accelerationDeviation": 0.25,
     "decelerationMs2": 3.5,
     "decelerationDeviation": 0.25,
     "carLengthM": 4.5,
     "carLengthDeviation": 0.15,
-    "standingGapFraction": 0.6667,
+    "standingGapFraction": 0.7,
     "stopLineOffsetM": 1.0,
     "stopLineOffsetDeviation": 0.3,
     "nonPunishableThresholdKmh": 5
