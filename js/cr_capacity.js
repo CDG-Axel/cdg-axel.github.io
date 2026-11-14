@@ -12,6 +12,12 @@
  *    от стартовой позиции: min по j <= i от свободного пути машины j (разгон
  *    до личной максимальной скорости, затем равномерное движение). Зазор,
  *    зависящий от скорости (T_h * v), не моделируется.
+ *  - Разгон: ускорение линейно падает со скоростью, a(v) = a0 * (1 - (1 - kappa)
+ *    * v / vmax), где a0 - стартовое ускорение, kappa - доля стартового
+ *    ускорения, остающаяся на максимальной скорости водителя (kappa = 1 -
+ *    постоянное ускорение). Путь и скорость выражаются явно: v(t) = vf * (1 -
+ *    exp(-c * t)), x(t) = vf * (t - (1 - exp(-c * t)) / c), где vf = vmax / (1 -
+ *    kappa), c = a0 / vf. Время прохождения заданного пути ищется дихотомией.
  *  - Если впереди стоящая машина не успевает проехать вообще, все машины позади
  *    неё в этом цикле тоже не проезжают, т.к. подпирают её в очереди.
  *  - Трамваи в этом модуле не моделируются: их проезд не является "очередью,
@@ -53,7 +59,8 @@
 // Параметры машин (params) приходят снаружи из конфигурации, своих значений
 // по умолчанию у модуля нет. Состав params:
 //   reactionTimeS, reactionTimeDeviation          время реакции, с; разброс (0.35 = +-35%)
-//   accelerationMs2, accelerationDeviation        ускорение разгона, м/с2
+//   accelerationMs2, accelerationDeviation        стартовое ускорение, м/с2
+//   accelerationAtMaxSpeedFraction                доля стартового ускорения на макс. скорости водителя (0..1]
 //   decelerationMs2, decelerationDeviation        комфортное замедление, м/с2
 //   carLengthM, carLengthDeviation                длина машины, м
 //   standingGapFraction                           зазор между стоящими машинами, доля длины
@@ -92,16 +99,57 @@ function uniformRange(min, max, rng) {
 }
 
 /**
- * Время от начала зелёного, когда машина при свободном движении (старт после
- * реакции, разгон до максимальной скорости, затем равномерное движение)
- * проходит distanceM метров от своей стартовой позиции.
+ * Свободная кинематика машины: старт после реакции, затем разгон до личной
+ * максимальной скорости (ускорение падает со скоростью, см. шапку модуля) и
+ * равномерное движение.
+ */
+function makeCar(startDelayS, accelerationMs2, maxSpeedMs, speedFraction) {
+  const car = { startDelayS, accelerationMs2, maxSpeedMs, speedFraction };
+  if (speedFraction >= 1) {
+    car.tAcc = maxSpeedMs / accelerationMs2;
+    car.distAcc = 0.5 * accelerationMs2 * car.tAcc * car.tAcc;
+  } else {
+    car.freeSpeedMs = maxSpeedMs / (1 - speedFraction); // скорость, к которой стремится разгон
+    car.rate = accelerationMs2 / car.freeSpeedMs;
+    car.tAcc = -Math.log(speedFraction) / car.rate;
+    car.distAcc = accelerationDistance(car, car.tAcc);
+  }
+  return car;
+}
+
+/** Путь за tau секунд разгона (tau не больше tAcc). */
+function accelerationDistance(car, tau) {
+  if (car.speedFraction >= 1) return 0.5 * car.accelerationMs2 * tau * tau;
+  return car.freeSpeedMs * (tau - (1 - Math.exp(-car.rate * tau)) / car.rate);
+}
+
+/** Скорость через tau секунд разгона (tau не больше tAcc). */
+function accelerationSpeed(car, tau) {
+  if (car.speedFraction >= 1) return car.accelerationMs2 * tau;
+  return car.freeSpeedMs * (1 - Math.exp(-car.rate * tau));
+}
+
+/**
+ * Время от начала зелёного, когда машина при свободном движении проходит
+ * distanceM метров от своей стартовой позиции.
  */
 function timeToTravel(car, distanceM) {
   if (distanceM <= 0) return car.startDelayS;
-  if (distanceM <= car.distAcc) {
+  if (distanceM > car.distAcc) {
+    return car.startDelayS + car.tAcc + (distanceM - car.distAcc) / car.maxSpeedMs;
+  }
+  if (car.speedFraction >= 1) {
     return car.startDelayS + Math.sqrt((2 * distanceM) / car.accelerationMs2);
   }
-  return car.startDelayS + car.tAcc + (distanceM - car.distAcc) / car.maxSpeedMs;
+  // путь на участке разгона монотонно растёт со временем: дихотомия
+  let low = 0;
+  let high = car.tAcc;
+  for (let i = 0; i < 30; i++) {
+    const mid = (low + high) / 2;
+    if (accelerationDistance(car, mid) < distanceM) low = mid;
+    else high = mid;
+  }
+  return car.startDelayS + high;
 }
 
 /** Пройденный путь и скорость машины при свободном движении в момент t. */
@@ -109,7 +157,7 @@ function stateAt(car, t) {
   const tau = t - car.startDelayS;
   if (tau <= 0) return { distanceM: 0, speedMs: 0 };
   if (tau <= car.tAcc) {
-    return { distanceM: 0.5 * car.accelerationMs2 * tau * tau, speedMs: car.accelerationMs2 * tau };
+    return { distanceM: accelerationDistance(car, tau), speedMs: accelerationSpeed(car, tau) };
   }
   return { distanceM: car.distAcc + car.maxSpeedMs * (tau - car.tAcc), speedMs: car.maxSpeedMs };
 }
@@ -168,14 +216,12 @@ export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
       frontPos = prevFrontPos - prevLength - gapStopped;
     }
 
-    const tAcc = v.maxSpeedMs / v.accelerationMs2; // время выхода на макс. скорость
-    const car = {
-      startDelayS: cumulativeStartDelay,
-      accelerationMs2: v.accelerationMs2,
-      maxSpeedMs: v.maxSpeedMs,
-      tAcc,
-      distAcc: 0.5 * v.accelerationMs2 * tAcc * tAcc,
-    };
+    const car = makeCar(
+      cumulativeStartDelay,
+      v.accelerationMs2,
+      v.maxSpeedMs,
+      params.accelerationAtMaxSpeedFraction,
+    );
     cars.push(car);
 
     // Момент пересечения линии передним бампером: с ограничением следования

@@ -3,8 +3,9 @@
   "vehicle": {
     "reactionTimeS": 1.3,
     "reactionTimeDeviation": 0.35,
-    "accelerationMs2":  2.0,
+    "accelerationMs2": 2.0,
     "accelerationDeviation": 0.25,
+    "accelerationAtMaxSpeedFraction": 0.5,
     "decelerationMs2": 3.5,
     "decelerationDeviation": 0.25,
     "carLengthM": 4.5,
