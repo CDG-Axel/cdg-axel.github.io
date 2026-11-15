@@ -83,10 +83,13 @@ export async function loadConfig() {
  * { "<id группы>": [ { greenDurationS, mean, min, max, p5, p95 }, ... ] }.
  */
 function computeCapacityTables(config) {
+  const start = Date.now();
   const tables = {};
   for (const [id, laneGroup] of Object.entries(config.laneGroups)) {
     tables[id] = buildDischargeTable(laneGroup, config.vehicle, config.options);
   }
+  const time = ((Date.now() - start) / 1000).toFixed(2);
+  console.log(`Пересчитаны таблицы пропускной способности, время - ${time} сек`);
   return tables;
 }
 

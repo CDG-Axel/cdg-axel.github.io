@@ -17,7 +17,9 @@
  *    ускорения, остающаяся на максимальной скорости водителя (kappa = 1 -
  *    постоянное ускорение). Путь и скорость выражаются явно: v(t) = vf * (1 -
  *    exp(-c * t)), x(t) = vf * (t - (1 - exp(-c * t)) / c), где vf = vmax / (1 -
- *    kappa), c = a0 / vf. Время прохождения заданного пути ищется дихотомией.
+ *    kappa), c = a0 / vf. Обращать эти формулы (искать время по пути) не нужно:
+ *    машина пересекла линию к концу зелёного, если пройденный к этому моменту
+ *    путь не меньше расстояния до линии.
  *  - Если впереди стоящая машина не успевает проехать вообще, все машины позади
  *    неё в этом цикле тоже не проезжают, т.к. подпирают её в очереди.
  *  - Трамваи в этом модуле не моделируются: их проезд не является "очередью,
@@ -129,29 +131,6 @@ function accelerationSpeed(car, tau) {
   return car.freeSpeedMs * (1 - Math.exp(-car.rate * tau));
 }
 
-/**
- * Время от начала зелёного, когда машина при свободном движении проходит
- * distanceM метров от своей стартовой позиции.
- */
-function timeToTravel(car, distanceM) {
-  if (distanceM <= 0) return car.startDelayS;
-  if (distanceM > car.distAcc) {
-    return car.startDelayS + car.tAcc + (distanceM - car.distAcc) / car.maxSpeedMs;
-  }
-  if (car.speedFraction >= 1) {
-    return car.startDelayS + Math.sqrt((2 * distanceM) / car.accelerationMs2);
-  }
-  // путь на участке разгона монотонно растёт со временем: дихотомия
-  let low = 0;
-  let high = car.tAcc;
-  for (let i = 0; i < 30; i++) {
-    const mid = (low + high) / 2;
-    if (accelerationDistance(car, mid) < distanceM) low = mid;
-    else high = mid;
-  }
-  return car.startDelayS + high;
-}
-
 /** Пройденный путь и скорость машины при свободном движении в момент t. */
 function stateAt(car, t) {
   const tau = t - car.startDelayS;
@@ -195,6 +174,9 @@ function generateVehicle(laneGroup, params, rng) {
 export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
   const cars = []; // свободные кинематики уже сгенерированных машин очереди
   let cumulativeStartDelay = 0; // время начала движения текущей машины от начала зелёного
+  // Минимальный путь от старта среди машин очереди к концу зелёного: так далеко
+  // от своей стартовой позиции может уехать каждая из них (ограничение следования).
+  let minDistanceAtGreenEnd = Infinity;
   let prevFrontPos = 0;
   let prevLength = 0;
   let count = 0;
@@ -224,18 +206,16 @@ export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
     );
     cars.push(car);
 
-    // Момент пересечения линии передним бампером: с ограничением следования
-    // машина пересекает линию не раньше, чем любая машина впереди пройдёт тот же
-    // путь от своего старта (а своим свободным движением тоже не раньше себя).
+    // Ограничение следования: машина проходит от своей стартовой позиции не
+    // больше, чем любая машина впереди (и она сама) при свободном движении.
+    // К концу зелёного линия пересечена, если этот минимальный путь не меньше
+    // расстояния до линии.
+    minDistanceAtGreenEnd = Math.min(minDistanceAtGreenEnd, stateAt(car, greenDurationS).distanceM);
     const distToLine = -frontPos;
-    let crossTimeAbs = 0;
-    for (const c of cars) {
-      crossTimeAbs = Math.max(crossTimeAbs, timeToTravel(c, distToLine));
-    }
 
     let passed = false;
 
-    if (crossTimeAbs <= greenDurationS) {
+    if (minDistanceAtGreenEnd >= distToLine) {
       passed = true;
     } else if (greenDurationS - car.startDelayS > 0) {
       // Жёлтый включился в момент greenDurationS. Водитель реагирует
