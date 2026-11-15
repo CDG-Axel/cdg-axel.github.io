@@ -12,13 +12,12 @@
 //   positive    - число больше 0
 //   nonNegative - число не меньше 0
 //   fraction    - число от 0 (включительно) до 1 (не включая): разброс +-доля
-//   share       - число больше 0 и не больше 1: доля от базового значения
 const VEHICLE_RULES = {
   reactionTimeS: 'positive',
   reactionTimeDeviation: 'fraction',
   accelerationMs2: 'positive',
   accelerationDeviation: 'fraction',
-  accelerationAtMaxSpeedFraction: 'share',
+  accelerationZeroSpeedKmh: 'positive',
   decelerationMs2: 'positive',
   decelerationDeviation: 'fraction',
   carLengthM: 'positive',
@@ -33,7 +32,6 @@ const NUMBER_RULES = {
   positive: [(x) => x > 0, 'число больше 0'],
   nonNegative: [(x) => x >= 0, 'число не меньше 0'],
   fraction: [(x) => x >= 0 && x < 1, 'число от 0 до 1 (не включая 1)'],
-  share: [(x) => x > 0 && x <= 1, 'число больше 0 и не больше 1'],
 };
 
 function checkNumber(errors, path, value, rule) {

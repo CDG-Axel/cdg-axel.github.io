@@ -12,14 +12,21 @@
  *    от стартовой позиции: min по j <= i от свободного пути машины j (разгон
  *    до личной максимальной скорости, затем равномерное движение). Зазор,
  *    зависящий от скорости (T_h * v), не моделируется.
- *  - Разгон: ускорение линейно падает со скоростью, a(v) = a0 * (1 - (1 - kappa)
- *    * v / vmax), где a0 - стартовое ускорение, kappa - доля стартового
- *    ускорения, остающаяся на максимальной скорости водителя (kappa = 1 -
- *    постоянное ускорение). Путь и скорость выражаются явно: v(t) = vf * (1 -
- *    exp(-c * t)), x(t) = vf * (t - (1 - exp(-c * t)) / c), где vf = vmax / (1 -
- *    kappa), c = a0 / vf. Обращать эти формулы (искать время по пути) не нужно:
- *    машина пересекла линию к концу зелёного, если пройденный к этому моменту
- *    путь не меньше расстояния до линии.
+ *  - Разгон: ускорение линейно падает со скоростью до нуля при скорости v_f
+ *    (accelerationZeroSpeedKmh): a(v) = a0 * (1 - v / v_f), где a0 - стартовое
+ *    ускорение. Кривая одна для всех водителей (свойство машины), водители
+ *    различаются стартовым ускорением и желаемой скоростью vmax, на которой
+ *    разгон заканчивается (там ускорение ещё не нуль). Путь и скорость выражаются
+ *    явно: v(t) = v_f * (1 - exp(-c * t)), x(t) = v_f * (t - (1 - exp(-c * t)) / c),
+ *    c = a0 / v_f; время разгона до vmax: -ln(1 - vmax / v_f) / c. Обращать эти
+ *    формулы (искать время по пути) не нужно: машина пересекла линию к концу
+ *    зелёного, если пройденный к этому моменту путь не меньше расстояния до линии.
+ *    v_f должна быть больше любой скорости водителя: если она меньше лимита плюс
+ *    нештрафуемый порог, v_f принимается равной этой сумме (ускорение самых
+ *    быстрых водителей гаснет только у их максимальной скорости).
+ *    Модель из: Akcelik R., Besley M. (2002). Queue Discharge Flow and Speed Models
+ *    for Signalised Intersections. Transportation and Traffic Theory in the 21st
+ *    Century (15th ISTTT, Adelaide), Pergamon, pp. 99-118.
  *  - Если впереди стоящая машина не успевает проехать вообще, все машины позади
  *    неё в этом цикле тоже не проезжают, т.к. подпирают её в очереди.
  *  - Трамваи в этом модуле не моделируются: их проезд не является "очередью,
@@ -62,7 +69,7 @@
 // по умолчанию у модуля нет. Состав params:
 //   reactionTimeS, reactionTimeDeviation          время реакции, с; разброс (0.35 = +-35%)
 //   accelerationMs2, accelerationDeviation        стартовое ускорение, м/с2
-//   accelerationAtMaxSpeedFraction                доля стартового ускорения на макс. скорости водителя (0..1]
+//   accelerationZeroSpeedKmh                      скорость, при которой ускорение падает до нуля (v_f), км/ч
 //   decelerationMs2, decelerationDeviation        комфортное замедление, м/с2
 //   carLengthM, carLengthDeviation                длина машины, м
 //   standingGapFraction                           зазор между стоящими машинами, доля длины
@@ -103,31 +110,24 @@ function uniformRange(min, max, rng) {
 /**
  * Свободная кинематика машины: старт после реакции, затем разгон до личной
  * максимальной скорости (ускорение падает со скоростью, см. шапку модуля) и
- * равномерное движение.
+ * равномерное движение. freeSpeedMs (v_f) не меньше maxSpeedMs; при равенстве
+ * ускорение гаснет только асимптотически, и время разгона бесконечно.
  */
-function makeCar(startDelayS, accelerationMs2, maxSpeedMs, speedFraction) {
-  const car = { startDelayS, accelerationMs2, maxSpeedMs, speedFraction };
-  if (speedFraction >= 1) {
-    car.tAcc = maxSpeedMs / accelerationMs2;
-    car.distAcc = 0.5 * accelerationMs2 * car.tAcc * car.tAcc;
-  } else {
-    car.freeSpeedMs = maxSpeedMs / (1 - speedFraction); // скорость, к которой стремится разгон
-    car.rate = accelerationMs2 / car.freeSpeedMs;
-    car.tAcc = -Math.log(speedFraction) / car.rate;
-    car.distAcc = accelerationDistance(car, car.tAcc);
-  }
+function makeCar(startDelayS, accelerationMs2, maxSpeedMs, freeSpeedMs) {
+  const rate = accelerationMs2 / freeSpeedMs;
+  const tAcc = -Math.log(Math.max(0, 1 - maxSpeedMs / freeSpeedMs)) / rate;
+  const car = { startDelayS, maxSpeedMs, freeSpeedMs, rate, tAcc };
+  car.distAcc = accelerationDistance(car, tAcc);
   return car;
 }
 
 /** Путь за tau секунд разгона (tau не больше tAcc). */
 function accelerationDistance(car, tau) {
-  if (car.speedFraction >= 1) return 0.5 * car.accelerationMs2 * tau * tau;
   return car.freeSpeedMs * (tau - (1 - Math.exp(-car.rate * tau)) / car.rate);
 }
 
 /** Скорость через tau секунд разгона (tau не больше tAcc). */
 function accelerationSpeed(car, tau) {
-  if (car.speedFraction >= 1) return car.accelerationMs2 * tau;
   return car.freeSpeedMs * (1 - Math.exp(-car.rate * tau));
 }
 
@@ -177,6 +177,10 @@ export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
   // Минимальный путь от старта среди машин очереди к концу зелёного: так далеко
   // от своей стартовой позиции может уехать каждая из них (ограничение следования).
   let minDistanceAtGreenEnd = Infinity;
+  // v_f не меньше скорости самого быстрого водителя (лимит + нештрафуемый порог)
+  const freeSpeedMs = kmhToMs(
+    Math.max(params.accelerationZeroSpeedKmh, laneGroup.speedLimitKmh + params.nonPunishableThresholdKmh),
+  );
   let prevFrontPos = 0;
   let prevLength = 0;
   let count = 0;
@@ -202,7 +206,7 @@ export function simulateSingleLane(greenDurationS, laneGroup, params, rng) {
       cumulativeStartDelay,
       v.accelerationMs2,
       v.maxSpeedMs,
-      params.accelerationAtMaxSpeedFraction,
+      freeSpeedMs,
     );
     cars.push(car);
 

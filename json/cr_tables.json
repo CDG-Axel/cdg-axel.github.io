@@ -2,7 +2,7 @@
   "main": [
     {
       "greenDurationS": 15,
-      "mean": 13.941,
+      "mean": 14,
       "min": 12,
       "max": 17,
       "p5": 13,
@@ -10,7 +10,7 @@
     },
     {
       "greenDurationS": 16,
-      "mean": 15.033,
+      "mean": 15.086,
       "min": 13,
       "max": 18,
       "p5": 14,
@@ -18,7 +18,7 @@
     },
     {
       "greenDurationS": 17,
-      "mean": 16.066,
+      "mean": 16.121,
       "min": 14,
       "max": 18,
       "p5": 15,
@@ -26,15 +26,15 @@
     },
     {
       "greenDurationS": 18,
-      "mean": 17.112,
+      "mean": 17.177,
       "min": 14,
       "max": 20,
       "p5": 16,
-      "p95": 18
+      "p95": 19
     },
     {
       "greenDurationS": 19,
-      "mean": 18.19,
+      "mean": 18.262,
       "min": 15,
       "max": 21,
       "p5": 17,
@@ -42,7 +42,7 @@
     },
     {
       "greenDurationS": 20,
-      "mean": 19.29,
+      "mean": 19.35,
       "min": 16,
       "max": 22,
       "p5": 18,
@@ -50,7 +50,7 @@
     },
     {
       "greenDurationS": 21,
-      "mean": 20.326,
+      "mean": 20.397,
       "min": 18,
       "max": 23,
       "p5": 19,
@@ -58,15 +58,15 @@
     },
     {
       "greenDurationS": 22,
-      "mean": 21.4,
-      "min": 18,
+      "mean": 21.485,
+      "min": 19,
       "max": 24,
       "p5": 20,
       "p95": 23
     },
     {
       "greenDurationS": 23,
-      "mean": 22.452,
+      "mean": 22.511,
       "min": 20,
       "max": 25,
       "p5": 21,
@@ -74,7 +74,7 @@
     },
     {
       "greenDurationS": 24,
-      "mean": 23.486,
+      "mean": 23.54,
       "min": 21,
       "max": 26,
       "p5": 22,
@@ -82,7 +82,7 @@
     },
     {
       "greenDurationS": 25,
-      "mean": 24.529,
+      "mean": 24.586,
       "min": 22,
       "max": 28,
       "p5": 23,
@@ -90,7 +90,7 @@
     },
     {
       "greenDurationS": 26,
-      "mean": 25.544,
+      "mean": 25.608,
       "min": 23,
       "max": 28,
       "p5": 24,
@@ -98,7 +98,7 @@
     },
     {
       "greenDurationS": 27,
-      "mean": 26.575,
+      "mean": 26.632,
       "min": 24,
       "max": 29,
       "p5": 25,
@@ -106,7 +106,7 @@
     },
     {
       "greenDurationS": 28,
-      "mean": 27.617,
+      "mean": 27.661,
       "min": 24,
       "max": 30,
       "p5": 26,
@@ -114,7 +114,7 @@
     },
     {
       "greenDurationS": 29,
-      "mean": 28.613,
+      "mean": 28.665,
       "min": 26,
       "max": 32,
       "p5": 27,
@@ -122,7 +122,7 @@
     },
     {
       "greenDurationS": 30,
-      "mean": 29.671,
+      "mean": 29.712,
       "min": 27,
       "max": 33,
       "p5": 28,
@@ -130,7 +130,7 @@
     },
     {
       "greenDurationS": 31,
-      "mean": 30.685,
+      "mean": 30.731,
       "min": 28,
       "max": 33,
       "p5": 29,
@@ -138,7 +138,7 @@
     },
     {
       "greenDurationS": 32,
-      "mean": 31.725,
+      "mean": 31.796,
       "min": 29,
       "max": 34,
       "p5": 30,
@@ -146,7 +146,7 @@
     },
     {
       "greenDurationS": 33,
-      "mean": 32.736,
+      "mean": 32.784,
       "min": 30,
       "max": 36,
       "p5": 31,
@@ -154,7 +154,7 @@
     },
     {
       "greenDurationS": 34,
-      "mean": 33.798,
+      "mean": 33.853,
       "min": 31,
       "max": 37,
       "p5": 32,
@@ -162,7 +162,7 @@
     },
     {
       "greenDurationS": 35,
-      "mean": 34.791,
+      "mean": 34.847,
       "min": 32,
       "max": 38,
       "p5": 33,
@@ -170,7 +170,7 @@
     },
     {
       "greenDurationS": 36,
-      "mean": 35.802,
+      "mean": 35.86,
       "min": 33,
       "max": 39,
       "p5": 34,
@@ -178,23 +178,23 @@
     },
     {
       "greenDurationS": 37,
-      "mean": 36.833,
+      "mean": 36.894,
       "min": 34,
       "max": 41,
       "p5": 35,
-      "p95": 38
+      "p95": 39
     },
     {
       "greenDurationS": 38,
-      "mean": 37.873,
-      "min": 34,
+      "mean": 37.931,
+      "min": 35,
       "max": 41,
       "p5": 36,
       "p95": 40
     },
     {
       "greenDurationS": 39,
-      "mean": 38.884,
+      "mean": 38.929,
       "min": 36,
       "max": 42,
       "p5": 37,
@@ -202,7 +202,7 @@
     },
     {
       "greenDurationS": 40,
-      "mean": 39.898,
+      "mean": 39.943,
       "min": 37,
       "max": 43,
       "p5": 38,
@@ -210,7 +210,7 @@
     },
     {
       "greenDurationS": 41,
-      "mean": 40.952,
+      "mean": 41,
       "min": 38,
       "max": 44,
       "p5": 39,
@@ -218,7 +218,7 @@
     },
     {
       "greenDurationS": 42,
-      "mean": 41.993,
+      "mean": 42.058,
       "min": 39,
       "max": 46,
       "p5": 40,
@@ -226,7 +226,7 @@
     },
     {
       "greenDurationS": 43,
-      "mean": 43.047,
+      "mean": 43.104,
       "min": 40,
       "max": 47,
       "p5": 41,
@@ -234,7 +234,7 @@
     },
     {
       "greenDurationS": 44,
-      "mean": 44.048,
+      "mean": 44.105,
       "min": 41,
       "max": 47,
       "p5": 42,
@@ -242,7 +242,7 @@
     },
     {
       "greenDurationS": 45,
-      "mean": 45.109,
+      "mean": 45.163,
       "min": 42,
       "max": 49,
       "p5": 43,
@@ -250,15 +250,15 @@
     },
     {
       "greenDurationS": 46,
-      "mean": 46.122,
+      "mean": 46.181,
       "min": 43,
-      "max": 49,
+      "max": 50,
       "p5": 44,
       "p95": 48
     },
     {
       "greenDurationS": 47,
-      "mean": 47.109,
+      "mean": 47.183,
       "min": 44,
       "max": 51,
       "p5": 45,
@@ -266,7 +266,7 @@
     },
     {
       "greenDurationS": 48,
-      "mean": 48.132,
+      "mean": 48.178,
       "min": 44,
       "max": 52,
       "p5": 46,
@@ -274,15 +274,15 @@
     },
     {
       "greenDurationS": 49,
-      "mean": 49.144,
+      "mean": 49.212,
       "min": 45,
-      "max": 52,
+      "max": 53,
       "p5": 47,
       "p95": 51
     },
     {
       "greenDurationS": 50,
-      "mean": 50.229,
+      "mean": 50.287,
       "min": 47,
       "max": 54,
       "p5": 48,
@@ -290,7 +290,7 @@
     },
     {
       "greenDurationS": 51,
-      "mean": 51.217,
+      "mean": 51.271,
       "min": 48,
       "max": 56,
       "p5": 49,
@@ -298,7 +298,7 @@
     },
     {
       "greenDurationS": 52,
-      "mean": 52.252,
+      "mean": 52.298,
       "min": 49,
       "max": 57,
       "p5": 50,
@@ -306,15 +306,15 @@
     },
     {
       "greenDurationS": 53,
-      "mean": 53.311,
+      "mean": 53.373,
       "min": 50,
       "max": 57,
-      "p5": 51,
+      "p5": 52,
       "p95": 55
     },
     {
       "greenDurationS": 54,
-      "mean": 54.32,
+      "mean": 54.369,
       "min": 51,
       "max": 58,
       "p5": 52,
@@ -322,7 +322,7 @@
     },
     {
       "greenDurationS": 55,
-      "mean": 55.306,
+      "mean": 55.362,
       "min": 52,
       "max": 60,
       "p5": 53,
@@ -330,7 +330,7 @@
     },
     {
       "greenDurationS": 56,
-      "mean": 56.297,
+      "mean": 56.348,
       "min": 53,
       "max": 60,
       "p5": 54,
@@ -338,7 +338,7 @@
     },
     {
       "greenDurationS": 57,
-      "mean": 57.318,
+      "mean": 57.384,
       "min": 54,
       "max": 62,
       "p5": 55,
@@ -346,15 +346,15 @@
     },
     {
       "greenDurationS": 58,
-      "mean": 58.325,
+      "mean": 58.378,
       "min": 55,
-      "max": 62,
+      "max": 63,
       "p5": 56,
       "p95": 60
     },
     {
       "greenDurationS": 59,
-      "mean": 59.381,
+      "mean": 59.433,
       "min": 55,
       "max": 63,
       "p5": 57,
@@ -362,7 +362,7 @@
     },
     {
       "greenDurationS": 60,
-      "mean": 60.404,
+      "mean": 60.468,
       "min": 57,
       "max": 64,
       "p5": 58,
@@ -370,7 +370,7 @@
     },
     {
       "greenDurationS": 61,
-      "mean": 61.427,
+      "mean": 61.483,
       "min": 58,
       "max": 65,
       "p5": 59,
@@ -378,15 +378,15 @@
     },
     {
       "greenDurationS": 62,
-      "mean": 62.477,
+      "mean": 62.53,
       "min": 59,
       "max": 66,
-      "p5": 60,
+      "p5": 61,
       "p95": 65
     },
     {
       "greenDurationS": 63,
-      "mean": 63.469,
+      "mean": 63.537,
       "min": 60,
       "max": 67,
       "p5": 61,
@@ -394,7 +394,7 @@
     },
     {
       "greenDurationS": 64,
-      "mean": 64.477,
+      "mean": 64.534,
       "min": 60,
       "max": 68,
       "p5": 62,
@@ -402,7 +402,7 @@
     },
     {
       "greenDurationS": 65,
-      "mean": 65.465,
+      "mean": 65.537,
       "min": 61,
       "max": 69,
       "p5": 63,
@@ -410,23 +410,23 @@
     },
     {
       "greenDurationS": 66,
-      "mean": 66.537,
+      "mean": 66.6,
       "min": 63,
       "max": 71,
-      "p5": 64,
+      "p5": 65,
       "p95": 69
     },
     {
       "greenDurationS": 67,
-      "mean": 67.578,
+      "mean": 67.627,
       "min": 63,
       "max": 72,
-      "p5": 65,
+      "p5": 66,
       "p95": 70
     },
     {
       "greenDurationS": 68,
-      "mean": 68.629,
+      "mean": 68.689,
       "min": 64,
       "max": 73,
       "p5": 67,
@@ -434,7 +434,7 @@
     },
     {
       "greenDurationS": 69,
-      "mean": 69.656,
+      "mean": 69.708,
       "min": 65,
       "max": 74,
       "p5": 68,
@@ -442,31 +442,31 @@
     },
     {
       "greenDurationS": 70,
-      "mean": 70.657,
+      "mean": 70.727,
       "min": 66,
-      "max": 74,
+      "max": 75,
       "p5": 69,
       "p95": 73
     },
     {
       "greenDurationS": 71,
-      "mean": 71.66,
+      "mean": 71.736,
       "min": 67,
-      "max": 75,
+      "max": 76,
       "p5": 70,
       "p95": 74
     },
     {
       "greenDurationS": 72,
-      "mean": 72.682,
+      "mean": 72.739,
       "min": 68,
-      "max": 77,
-      "p5": 70,
+      "max": 78,
+      "p5": 71,
       "p95": 75
     },
     {
       "greenDurationS": 73,
-      "mean": 73.719,
+      "mean": 73.778,
       "min": 70,
       "max": 78,
       "p5": 72,
@@ -474,57 +474,57 @@
     },
     {
       "greenDurationS": 74,
-      "mean": 74.735,
+      "mean": 74.793,
       "min": 71,
       "max": 79,
-      "p5": 72,
+      "p5": 73,
       "p95": 77
     },
     {
       "greenDurationS": 75,
-      "mean": 75.739,
+      "mean": 75.796,
       "min": 71,
       "max": 80,
-      "p5": 73,
+      "p5": 74,
       "p95": 78
     }
   ],
   "minor": [
     {
       "greenDurationS": 15,
-      "mean": 13.434,
+      "mean": 13.621,
       "min": 12,
       "max": 15,
       "p5": 12,
-      "p95": 14
-    },
-    {
-      "greenDurationS": 16,
-      "mean": 14.356,
-      "min": 12,
-      "max": 17,
-      "p5": 13,
       "p95": 15
     },
     {
-      "greenDurationS": 17,
-      "mean": 15.308,
-      "min": 13,
-      "max": 18,
+      "greenDurationS": 16,
+      "mean": 14.525,
+      "min": 12,
+      "max": 17,
       "p5": 14,
       "p95": 16
     },
     {
-      "greenDurationS": 18,
-      "mean": 16.245,
+      "greenDurationS": 17,
+      "mean": 15.518,
       "min": 14,
       "max": 18,
-      "p5": 15,
+      "p5": 14,
       "p95": 17
     },
     {
+      "greenDurationS": 18,
+      "mean": 16.389,
+      "min": 14,
+      "max": 18,
+      "p5": 15,
+      "p95": 18
+    },
+    {
       "greenDurationS": 19,
-      "mean": 17.16,
+      "mean": 17.342,
       "min": 15,
       "max": 19,
       "p5": 16,
@@ -532,7 +532,7 @@
     },
     {
       "greenDurationS": 20,
-      "mean": 18.113,
+      "mean": 18.281,
       "min": 16,
       "max": 20,
       "p5": 17,
@@ -540,7 +540,7 @@
     },
     {
       "greenDurationS": 21,
-      "mean": 19.025,
+      "mean": 19.173,
       "min": 17,
       "max": 21,
       "p5": 18,
@@ -548,7 +548,7 @@
     },
     {
       "greenDurationS": 22,
-      "mean": 19.941,
+      "mean": 20.127,
       "min": 18,
       "max": 22,
       "p5": 19,
@@ -556,15 +556,15 @@
     },
     {
       "greenDurationS": 23,
-      "mean": 20.882,
-      "min": 18,
+      "mean": 21.05,
+      "min": 19,
       "max": 23,
       "p5": 20,
       "p95": 22
     },
     {
       "greenDurationS": 24,
-      "mean": 21.836,
+      "mean": 22.006,
       "min": 20,
       "max": 24,
       "p5": 21,
@@ -572,31 +572,31 @@
     },
     {
       "greenDurationS": 25,
-      "mean": 22.774,
-      "min": 20,
+      "mean": 22.938,
+      "min": 21,
       "max": 25,
       "p5": 22,
       "p95": 24
     },
     {
       "greenDurationS": 26,
-      "mean": 23.685,
-      "min": 21,
+      "mean": 23.856,
+      "min": 22,
       "max": 26,
-      "p5": 22,
+      "p5": 23,
       "p95": 25
     },
     {
       "greenDurationS": 27,
-      "mean": 24.628,
-      "min": 22,
+      "mean": 24.803,
+      "min": 23,
       "max": 27,
-      "p5": 23,
+      "p5": 24,
       "p95": 26
     },
     {
       "greenDurationS": 28,
-      "mean": 25.542,
+      "mean": 25.706,
       "min": 23,
       "max": 28,
       "p5": 24,
@@ -604,7 +604,7 @@
     },
     {
       "greenDurationS": 29,
-      "mean": 26.467,
+      "mean": 26.634,
       "min": 24,
       "max": 29,
       "p5": 25,
@@ -612,7 +612,7 @@
     },
     {
       "greenDurationS": 30,
-      "mean": 27.402,
+      "mean": 27.552,
       "min": 25,
       "max": 30,
       "p5": 26,
@@ -620,15 +620,15 @@
     },
     {
       "greenDurationS": 31,
-      "mean": 28.308,
+      "mean": 28.471,
       "min": 26,
-      "max": 31,
+      "max": 32,
       "p5": 27,
       "p95": 30
     },
     {
       "greenDurationS": 32,
-      "mean": 29.237,
+      "mean": 29.419,
       "min": 27,
       "max": 32,
       "p5": 28,
@@ -636,7 +636,7 @@
     },
     {
       "greenDurationS": 33,
-      "mean": 30.186,
+      "mean": 30.346,
       "min": 28,
       "max": 33,
       "p5": 29,
@@ -644,55 +644,55 @@
     },
     {
       "greenDurationS": 34,
-      "mean": 31.112,
-      "min": 28,
+      "mean": 31.294,
+      "min": 29,
       "max": 34,
       "p5": 30,
       "p95": 33
     },
     {
       "greenDurationS": 35,
-      "mean": 32.015,
+      "mean": 32.187,
       "min": 30,
       "max": 35,
       "p5": 31,
-      "p95": 33
-    },
-    {
-      "greenDurationS": 36,
-      "mean": 32.963,
-      "min": 30,
-      "max": 36,
-      "p5": 32,
       "p95": 34
     },
     {
-      "greenDurationS": 37,
-      "mean": 33.926,
-      "min": 31,
-      "max": 37,
+      "greenDurationS": 36,
+      "mean": 33.177,
+      "min": 30,
+      "max": 36,
       "p5": 32,
       "p95": 35
     },
     {
-      "greenDurationS": 38,
-      "mean": 34.837,
-      "min": 32,
-      "max": 38,
+      "greenDurationS": 37,
+      "mean": 34.106,
+      "min": 31,
+      "max": 37,
       "p5": 33,
       "p95": 36
     },
     {
-      "greenDurationS": 39,
-      "mean": 35.755,
-      "min": 33,
-      "max": 39,
+      "greenDurationS": 38,
+      "mean": 35.004,
+      "min": 32,
+      "max": 38,
       "p5": 34,
       "p95": 37
     },
     {
+      "greenDurationS": 39,
+      "mean": 35.927,
+      "min": 33,
+      "max": 39,
+      "p5": 34,
+      "p95": 38
+    },
+    {
       "greenDurationS": 40,
-      "mean": 36.669,
+      "mean": 36.834,
       "min": 34,
       "max": 41,
       "p5": 35,
@@ -700,7 +700,7 @@
     },
     {
       "greenDurationS": 41,
-      "mean": 37.645,
+      "mean": 37.81,
       "min": 35,
       "max": 41,
       "p5": 36,
@@ -708,7 +708,7 @@
     },
     {
       "greenDurationS": 42,
-      "mean": 38.579,
+      "mean": 38.748,
       "min": 36,
       "max": 42,
       "p5": 37,
@@ -716,7 +716,7 @@
     },
     {
       "greenDurationS": 43,
-      "mean": 39.479,
+      "mean": 39.639,
       "min": 37,
       "max": 43,
       "p5": 38,
@@ -724,7 +724,7 @@
     },
     {
       "greenDurationS": 44,
-      "mean": 40.403,
+      "mean": 40.549,
       "min": 37,
       "max": 43,
       "p5": 39,
@@ -732,7 +732,7 @@
     },
     {
       "greenDurationS": 45,
-      "mean": 41.301,
+      "mean": 41.504,
       "min": 39,
       "max": 45,
       "p5": 40,
@@ -740,7 +740,7 @@
     },
     {
       "greenDurationS": 46,
-      "mean": 42.269,
+      "mean": 42.424,
       "min": 39,
       "max": 46,
       "p5": 41,
@@ -748,15 +748,15 @@
     },
     {
       "greenDurationS": 47,
-      "mean": 43.158,
-      "min": 40,
-      "max": 46,
-      "p5": 41,
+      "mean": 43.347,
+      "min": 41,
+      "max": 47,
+      "p5": 42,
       "p95": 45
     },
     {
       "greenDurationS": 48,
-      "mean": 44.13,
+      "mean": 44.316,
       "min": 41,
       "max": 47,
       "p5": 43,
@@ -764,23 +764,23 @@
     },
     {
       "greenDurationS": 49,
-      "mean": 45.076,
+      "mean": 45.254,
       "min": 42,
       "max": 48,
-      "p5": 43,
+      "p5": 44,
       "p95": 47
     },
     {
       "greenDurationS": 50,
-      "mean": 46.018,
+      "mean": 46.183,
       "min": 43,
       "max": 49,
-      "p5": 44,
+      "p5": 45,
       "p95": 48
     },
     {
       "greenDurationS": 51,
-      "mean": 46.874,
+      "mean": 47.057,
       "min": 44,
       "max": 50,
       "p5": 45,
@@ -788,7 +788,7 @@
     },
     {
       "greenDurationS": 52,
-      "mean": 47.821,
+      "mean": 47.995,
       "min": 45,
       "max": 52,
       "p5": 46,
@@ -796,39 +796,39 @@
     },
     {
       "greenDurationS": 53,
-      "mean": 48.714,
-      "min": 45,
+      "mean": 48.9,
+      "min": 46,
       "max": 52,
       "p5": 47,
-      "p95": 50
-    },
-    {
-      "greenDurationS": 54,
-      "mean": 49.66,
-      "min": 46,
-      "max": 53,
-      "p5": 48,
       "p95": 51
     },
     {
-      "greenDurationS": 55,
-      "mean": 50.6,
-      "min": 47,
-      "max": 54,
-      "p5": 49,
+      "greenDurationS": 54,
+      "mean": 49.84,
+      "min": 46,
+      "max": 53,
+      "p5": 48,
       "p95": 52
     },
     {
-      "greenDurationS": 56,
-      "mean": 51.523,
-      "min": 48,
-      "max": 55,
-      "p5": 50,
+      "greenDurationS": 55,
+      "mean": 50.779,
+      "min": 47,
+      "max": 54,
+      "p5": 49,
       "p95": 53
     },
     {
+      "greenDurationS": 56,
+      "mean": 51.703,
+      "min": 49,
+      "max": 56,
+      "p5": 50,
+      "p95": 54
+    },
+    {
       "greenDurationS": 57,
-      "mean": 52.478,
+      "mean": 52.671,
       "min": 49,
       "max": 57,
       "p5": 51,
@@ -836,7 +836,7 @@
     },
     {
       "greenDurationS": 58,
-      "mean": 53.435,
+      "mean": 53.605,
       "min": 50,
       "max": 57,
       "p5": 52,
@@ -844,15 +844,15 @@
     },
     {
       "greenDurationS": 59,
-      "mean": 54.335,
+      "mean": 54.485,
       "min": 51,
       "max": 57,
-      "p5": 52,
+      "p5": 53,
       "p95": 56
     },
     {
       "greenDurationS": 60,
-      "mean": 55.217,
+      "mean": 55.414,
       "min": 52,
       "max": 60,
       "p5": 53,
@@ -860,7 +860,7 @@
     },
     {
       "greenDurationS": 61,
-      "mean": 56.126,
+      "mean": 56.303,
       "min": 53,
       "max": 60,
       "p5": 54,
@@ -868,7 +868,7 @@
     },
     {
       "greenDurationS": 62,
-      "mean": 57.023,
+      "mean": 57.226,
       "min": 54,
       "max": 61,
       "p5": 55,
@@ -876,15 +876,15 @@
     },
     {
       "greenDurationS": 63,
-      "mean": 57.96,
-      "min": 54,
+      "mean": 58.125,
+      "min": 55,
       "max": 62,
       "p5": 56,
       "p95": 60
     },
     {
       "greenDurationS": 64,
-      "mean": 58.902,
+      "mean": 59.078,
       "min": 55,
       "max": 63,
       "p5": 57,
@@ -892,15 +892,15 @@
     },
     {
       "greenDurationS": 65,
-      "mean": 59.839,
+      "mean": 59.989,
       "min": 56,
-      "max": 63,
+      "max": 64,
       "p5": 58,
       "p95": 62
     },
     {
       "greenDurationS": 66,
-      "mean": 60.729,
+      "mean": 60.896,
       "min": 57,
       "max": 64,
       "p5": 59,
@@ -908,23 +908,23 @@
     },
     {
       "greenDurationS": 67,
-      "mean": 61.647,
+      "mean": 61.836,
       "min": 58,
-      "max": 65,
+      "max": 66,
       "p5": 60,
       "p95": 64
     },
     {
       "greenDurationS": 68,
-      "mean": 62.595,
+      "mean": 62.766,
       "min": 59,
-      "max": 66,
+      "max": 67,
       "p5": 61,
       "p95": 65
     },
     {
       "greenDurationS": 69,
-      "mean": 63.525,
+      "mean": 63.692,
       "min": 60,
       "max": 67,
       "p5": 62,
@@ -932,23 +932,23 @@
     },
     {
       "greenDurationS": 70,
-      "mean": 64.379,
-      "min": 60,
+      "mean": 64.537,
+      "min": 61,
       "max": 68,
       "p5": 62,
-      "p95": 66
-    },
-    {
-      "greenDurationS": 71,
-      "mean": 65.313,
-      "min": 61,
-      "max": 70,
-      "p5": 63,
       "p95": 67
     },
     {
+      "greenDurationS": 71,
+      "mean": 65.5,
+      "min": 61,
+      "max": 70,
+      "p5": 63,
+      "p95": 68
+    },
+    {
       "greenDurationS": 72,
-      "mean": 66.226,
+      "mean": 66.403,
       "min": 62,
       "max": 70,
       "p5": 64,
@@ -956,15 +956,15 @@
     },
     {
       "greenDurationS": 73,
-      "mean": 67.183,
+      "mean": 67.369,
       "min": 63,
-      "max": 71,
+      "max": 72,
       "p5": 65,
       "p95": 69
     },
     {
       "greenDurationS": 74,
-      "mean": 68.104,
+      "mean": 68.295,
       "min": 64,
       "max": 73,
       "p5": 66,
@@ -972,7 +972,7 @@
     },
     {
       "greenDurationS": 75,
-      "mean": 69.046,
+      "mean": 69.227,
       "min": 65,
       "max": 73,
       "p5": 67,
