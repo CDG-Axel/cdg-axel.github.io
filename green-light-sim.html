@@ -470,6 +470,7 @@
     </section>
   </main>
 
+  <!-- Keep this note and the info popup below in step with the physics in the script. -->
   <footer class="note">
     Модель упрощённая: каждая машина трогается через свою реакцию после машины впереди, разгоняется с собственным
     ускорением до личного потолка скорости (лимит + до 5 км/ч) и не может обогнать идущую впереди. Когда зелёный
@@ -497,6 +498,13 @@
   'use strict';
 
   /* ---------------- constants ---------------- */
+  // The physics follows the crossroad project's cr_capacity.js, and the base values
+  // below (and the slider defaults in the markup) come from its crossroad_config.json:
+  // when that module changes, this page should follow it (see green-light-sim.md).
+  //
+  // Position convention: a car's position is its distance behind the stop line in
+  // metres — positive before the line, 0 at the line, negative after it. (The module
+  // uses the opposite sign.)
   const BASE = {
     length: 4.5,
     stopOffset: 1.0
@@ -512,8 +520,8 @@
   const ACCEL_ZERO_SPEED_KMH = 90;
   const NON_PUNISHABLE_KMH = 5;         // each driver's personal top speed = limit + uniform(0, this)
   // queue length per lane: enough for the longest green and quickest drivers the sliders allow
-  const QUEUE_CARS = 200;
-  const YELLOW_DURATION = 3;
+  const QUEUE_CARS = 200; // a fixed pool, so changing sliders never changes the field
+  const YELLOW_DURATION = 3; // display only: as in the module, the yellow's length doesn't affect who passes
   const VIEW_BEHIND = 42;
   const VIEW_AHEAD = 15;
   const VIEW_TOTAL = VIEW_BEHIND + VIEW_AHEAD;
@@ -527,6 +535,8 @@
   const CAR_COLORS = ['#5C7A9C','#8C9B75','#A85C4B','#6E6259','#3E4A56','#9C8355','#6B5F73','#7A5C52','#4E7A72'];
 
   /* ---------------- state ---------------- */
+  // reaction/accel/decel are the sliders' values; their spread is fixed (…_DEVIATION_PCT).
+  // lengthVar is the one exception: its slider sets the spread (base length BASE.length).
   const settings = { green:20, speedKmh:50, lanes:3, reaction:1.3, accel:2, decel:3.5, lengthVar:15 };
   let lanesCars = [];
   let ppm = 8;
@@ -935,6 +945,7 @@
     return '<div class="tile"><div class="value">'+value+'</div><div class="label">'+label+'</div></div>';
   }
 
+  // Exactly three tiles, on purpose: totals, per lane, mean speed at the line.
   const updateLiveResults = (function(){
     const resultsGrid = document.getElementById('resultsGrid');
     return function updateLiveResults(){
