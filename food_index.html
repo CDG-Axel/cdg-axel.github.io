@@ -108,7 +108,7 @@ h1{
   letter-spacing:-0.01em;
 }
 .hero p{
-  font-size:15.5px;
+  font-size:16px;
   line-height:1.6;
   color:var(--ink-soft);
   max-width:640px;
@@ -184,13 +184,13 @@ h1{
   padding:10px 32px 10px 30px;
   border-radius:0;
   border:none;
-  border-bottom:1.5px solid var(--line);
+  border-bottom:2px solid var(--line);
   background:transparent;
   appearance:none;
   -webkit-appearance:none;
   -moz-appearance:none;
   font-family:'Inter', sans-serif;
-  font-size:14.5px;
+  font-size:16px;
   color:var(--ink);
   outline:none;
   transition:border-color .15s ease;
@@ -244,11 +244,14 @@ h1{
 }
 .result-count{
   font-family:'IBM Plex Mono', monospace;
-  font-size:12.5px;
+  font-size:13px;
   color:var(--ink-soft);
   white-space:nowrap;
 }
 .result-count b{color:var(--forest-deep);}
+.result-count .found-part{display:none;}
+.result-count.searching .found-part{display:inline;}
+.result-count.searching .all-part{display:none;}
 
 /* ---------- Section nav chips ---------- */
 .nav-chips{
@@ -351,7 +354,7 @@ td.num{
   font-size:13px;
   color:var(--ink-soft);
 }
-td.dash{color:var(--ink-faint);}
+.dash{color:var(--ink-faint);}
 
 .macro-prot{color:var(--prot); font-weight:600;}
 .macro-fat{color:var(--fat); font-weight:600;}
@@ -429,7 +432,7 @@ td.dash{color:var(--ink-faint);}
 }
 .empty-state p{
   color:var(--ink-soft);
-  font-size:14.5px;
+  font-size:15px;
 }
 
 footer{
@@ -438,7 +441,7 @@ footer{
   padding:20px 24px 0;
   border-top:1px solid var(--line);
   font-family:'IBM Plex Mono', monospace;
-  font-size:11.5px;
+  font-size:12px;
   color:var(--ink-faint);
 }
 
@@ -463,14 +466,14 @@ footer{
   col.col-carb{width:34px;}
   col.col-rate{width:18px;}
 
-  thead th{padding:8px 3px; font-size:9.5px;}
+  thead th{padding:8px 3px; font-size:10px;}
   tbody td{padding:8px 3px; font-size:12px;}
 
   th .th-full{display:none;}
   th .th-short{display:inline;}
 
   td.name{
-    font-size:12.5px;
+    font-size:12px;
     max-width:0;
     white-space:nowrap;
     overflow:hidden;
@@ -481,7 +484,7 @@ footer{
   .gi-bar{display:none;}
   .gi-num{font-size:11px; padding:1px 4px;}
 
-  td.num{font-size:11.5px;}
+  td.num{font-size:11px;}
   .macro-prot, .macro-fat, .macro-carb{font-size:11px;}
 
   .rate-dots{display:none;}
@@ -510,12 +513,12 @@ footer{
   <div class="filter-inner">
     <div class="search-wrap">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input type="text" id="search" placeholder="Найти продукт, например «яблоко»…" autocomplete="off"/>
+      <input type="text" id="search" aria-label="Поиск продукта" placeholder="Найти продукт, например «яблоко»…" autocomplete="off"/>
       <button type="button" id="clearSearch" class="clear-btn" aria-label="Очистить поиск" title="Очистить" disabled>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
-    <div class="result-count" id="resultCount"></div>
+    <div class="result-count" id="resultCount" aria-live="polite"><span class="found-part">Найдено <b id="foundCount"></b> из </span><span class="all-part">Всего </span><b id="totalCount"></b><span class="all-part"> продуктов</span></div>
   </div>
 </div>
 
@@ -539,7 +542,18 @@ const chipsEl = document.getElementById('navChips');
 const searchEl = document.getElementById('search');
 const clearBtn = document.getElementById('clearSearch');
 const resultCountEl = document.getElementById('resultCount');
+const foundCountEl = document.getElementById('foundCount');
 const emptyStateEl = document.getElementById('emptyState');
+
+function createElement(tagName, classList = [], attributes = {}, text = undefined) {
+  const newElem = document.createElement(tagName);
+  for (const cls of classList) if (cls !== '') newElem.classList.add(cls);
+  for (const [name, value] of Object.entries(attributes)) {
+    if (value != null) newElem.setAttribute(name, value.toString());
+  }
+  if (text !== undefined) newElem.appendChild(document.createTextNode(text));
+  return newElem;
+}
 
 function giCategory(gi){
   if(gi === undefined || gi === null) return null;
@@ -553,39 +567,116 @@ function fmt(n){
   return (Math.round(n*10)/10).toString().replace('.', ',');
 }
 
+function normalize(str){
+  return str.toLowerCase().replace(/ё/g, 'е').trim();
+}
+
+/* ---------- Cell content: each function returns a node to put into a <td> ---------- */
+
+function renderDash(){
+  return createElement('span', ['dash'], {}, '—');
+}
+
 function renderGi(gi){
-  if(gi === undefined || gi === null){
-    return '<span class="dash">—</span>';
-  }
+  if(gi === undefined || gi === null) return renderDash();
   const cat = giCategory(gi);
-  const pct = Math.max(4, Math.min(100, (gi/110)*100));
-  return `<span class="gi-badge">
-    <span class="gi-num ${cat}">${gi}</span>
-    <span class="gi-bar"><i class="${cat}" style="width:${pct}%"></i></span>
-  </span>`;
+  const pct = Math.max(4, Math.min(100, Math.round((gi/110)*100)));
+
+  const badge = createElement('span', ['gi-badge']);
+  badge.appendChild(createElement('span', ['gi-num', cat], {}, String(gi)));
+
+  const bar = createElement('span', ['gi-bar']);
+  const fill = createElement('i', [cat]);
+  fill.style.width = pct + '%';
+  bar.appendChild(fill);
+  badge.appendChild(bar);
+  return badge;
 }
 
 function renderNum(v){
   const f = fmt(v);
-  return f === null ? '<span class="dash">—</span>' : f;
+  return f === null ? renderDash() : document.createTextNode(f);
 }
 
 function renderMacro(v, cls){
   const f = fmt(v);
-  return f === null ? '<span class="dash">—</span>' : `<span class="${cls}">${f}</span>`;
+  return f === null ? renderDash() : createElement('span', [cls], {}, f);
 }
 
 function renderRate(r){
-  if(r === undefined || r === null) return '<span class="dash">—</span>';
-  let dots = '';
-  for(let i=1;i<=5;i++){
-    dots += `<i class="${i<=r ? 'on':''}"></i>`;
+  if(r === undefined || r === null) return renderDash();
+  const label = `Оценка ${r} из 5`;
+
+  const dots = createElement('span', ['rate', 'rate-dots'], {'role': 'img', 'aria-label': label});
+  for(let i = 1; i <= 5; i++){
+    dots.appendChild(createElement('i', i <= r ? ['on'] : []));
   }
-  return `<span class="rate rate-dots">${dots}</span><span class="rate rate-compact">${r}</span>`;
+  const compact = createElement('span', ['rate', 'rate-compact'], {'role': 'img', 'aria-label': label}, String(r));
+
+  const frag = document.createDocumentFragment();
+  frag.appendChild(dots);
+  frag.appendChild(compact);
+  return frag;
 }
+
+/* ---------- Table pieces ---------- */
+
+function createRow(name, p){
+  const tr = createElement('tr', ['row']);
+  tr.appendChild(createElement('td', ['name'], {}, name));
+
+  const cells = [
+    renderGi(p.gi),
+    renderNum(p.kcal),
+    renderMacro(p.prot, 'macro-prot'),
+    renderMacro(p.fat, 'macro-fat'),
+    renderMacro(p.carb, 'macro-carb'),
+    renderRate(p.rate)
+  ];
+  for(const content of cells){
+    const td = createElement('td', ['num']);
+    td.appendChild(content);
+    tr.appendChild(td);
+  }
+  return tr;
+}
+
+function createTable(rows){
+  const table = createElement('table');
+
+  const colgroup = createElement('colgroup');
+  ['name', 'gi', 'kcal', 'prot', 'fat', 'carb', 'rate'].forEach(v => {
+    colgroup.appendChild(createElement('col', ['col-' + v]));
+  });
+  table.appendChild(colgroup);
+
+  const headRow = createElement('tr');
+  headRow.appendChild(createElement('th', [], {'scope': 'col'}, 'Продукт'));
+  headRow.appendChild(createElement('th', ['num'], {'scope': 'col'}, 'ГИ'));
+  headRow.appendChild(createElement('th', ['num'], {'scope': 'col'}, 'Ккал'));
+  [['Белки', 'Б'], ['Жиры', 'Ж'], ['Углев.', 'У'], ['Оценка', '★']].forEach(([full, short]) => {
+    const th = createElement('th', ['num'], {'scope': 'col'});
+    th.appendChild(createElement('span', ['th-full'], {}, full));
+    th.appendChild(createElement('span', ['th-short'], {}, short));
+    headRow.appendChild(th);
+  });
+  const thead = createElement('thead');
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = createElement('tbody');
+  rows.forEach(tr => tbody.appendChild(tr));
+  table.appendChild(tbody);
+
+  return table;
+}
+
+/* ---------- Build the page in memory, then swap it in ---------- */
 
 let totalCount = 0;
 const sectionEntries = [];
+const sectionNodes = [];
+const chipNodes = [];
 
 SECTION_META.forEach(meta => {
   const products = DATA[meta.key];
@@ -594,70 +685,42 @@ SECTION_META.forEach(meta => {
   if(names.length === 0) return;
 
   const sectionId = 'sec-' + meta.key;
-  const section = document.createElement('section');
-  section.className = 'section';
-  section.id = sectionId;
 
-  const rowsHtml = names.map(name => {
-    const p = products[name];
+  // rows: [{ el, key }] — key is the normalized name used by search
+  const rows = [];
+  const trNodes = [];
+  names.forEach(name => {
+    const tr = createRow(name, products[name]);
+    rows.push({ el: tr, key: normalize(name) });
+    trNodes.push(tr);
     totalCount++;
-    return `<tr class="row" data-name="${name.toLowerCase()}">
-      <td class="name">${name}</td>
-      <td class="num">${renderGi(p.gi)}</td>
-      <td class="num">${renderNum(p.kcal)}</td>
-      <td class="num">${renderMacro(p.prot, 'macro-prot')}</td>
-      <td class="num">${renderMacro(p.fat, 'macro-fat')}</td>
-      <td class="num">${renderMacro(p.carb, 'macro-carb')}</td>
-      <td class="num">${renderRate(p.rate)}</td>
-    </tr>`;
-  }).join('');
+  });
 
-  section.innerHTML = `
-    <div class="section-head">
-      <h2>${meta.title}</h2>
-      <span class="section-count" data-count>${names.length} продуктов</span>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <colgroup>
-          <col class="col-name">
-          <col class="col-gi">
-          <col class="col-kcal">
-          <col class="col-prot">
-          <col class="col-fat">
-          <col class="col-carb">
-          <col class="col-rate">
-        </colgroup>
-        <thead>
-          <tr>
-            <th>Продукт</th>
-            <th class="num">ГИ</th>
-            <th class="num">Ккал</th>
-            <th class="num"><span class="th-full">Белки</span><span class="th-short">Б</span></th>
-            <th class="num"><span class="th-full">Жиры</span><span class="th-short">Ж</span></th>
-            <th class="num"><span class="th-full">Углев.</span><span class="th-short">У</span></th>
-            <th class="num"><span class="th-full">Оценка</span><span class="th-short">★</span></th>
-          </tr>
-        </thead>
-        <tbody>${rowsHtml}</tbody>
-      </table>
-    </div>
-  `;
-  sectionsEl.appendChild(section);
+  const section = createElement('section', ['section'], {'id': sectionId});
 
-  const chip = document.createElement('a');
-  chip.className = 'chip';
-  chip.href = '#' + sectionId;
-  chip.dataset.sectionId = sectionId;
-  chip.innerHTML = `${meta.title}<span>${names.length}</span>`;
-  chipsEl.appendChild(chip);
+  const head = createElement('div', ['section-head']);
+  head.appendChild(createElement('h2', [], {}, meta.title));
+  const countEl = createElement('span', ['section-count'], {}, `${names.length} продуктов`);
+  head.appendChild(countEl);
+  section.appendChild(head);
 
-  sectionEntries.push({ key: meta.key, sectionEl: section, chipEl: chip, total: names.length });
+  const tableWrap = createElement('div', ['table-wrap']);
+  tableWrap.appendChild(createTable(trNodes));
+  section.appendChild(tableWrap);
+
+  const chip = createElement('a', ['chip'], {'href': '#' + sectionId}, meta.title);
+  chip.appendChild(createElement('span', [], {}, String(names.length)));
+
+  sectionNodes.push(section);
+  chipNodes.push(chip);
+  sectionEntries.push({ key: meta.key, sectionEl: section, chipEl: chip, countEl: countEl, rows: rows, total: names.length });
 });
 
-function normalize(str){
-  return str.toLowerCase().replace(/ё/g, 'е').trim();
-}
+sectionsEl.replaceChildren(...sectionNodes);
+chipsEl.replaceChildren(...chipNodes);
+document.getElementById('totalCount').textContent = totalCount;
+
+/* ---------- Search ---------- */
 
 function applyFilter(){
   const query = normalize(searchEl.value);
@@ -665,27 +728,32 @@ function applyFilter(){
   let anySectionVisible = false;
 
   sectionEntries.forEach(entry => {
-    const rows = entry.sectionEl.querySelectorAll('tbody tr.row');
     let visibleInSection = 0;
-    rows.forEach(row => {
-      const matches = query === '' || normalize(row.dataset.name).includes(query);
-      row.classList.toggle('row-hidden', !matches);
+    entry.rows.forEach(({ el, key }) => {
+      const matches = query === '' || key.includes(query);
+      el.classList.toggle('row-hidden', !matches);
       if(matches) visibleInSection++;
     });
 
     const sectionVisible = visibleInSection > 0;
     entry.sectionEl.classList.toggle('hidden', !sectionVisible);
     entry.chipEl.classList.toggle('chip-empty', !sectionVisible);
-    entry.sectionEl.querySelector('[data-count]').textContent =
+    if(sectionVisible){
+      entry.chipEl.removeAttribute('aria-disabled');
+      entry.chipEl.removeAttribute('tabindex');
+    } else {
+      entry.chipEl.setAttribute('aria-disabled', 'true');
+      entry.chipEl.setAttribute('tabindex', '-1');
+    }
+    entry.countEl.textContent =
       query === '' ? `${entry.total} продуктов` : `${visibleInSection} из ${entry.total}`;
 
     visibleTotal += visibleInSection;
     if(sectionVisible) anySectionVisible = true;
   });
 
-  resultCountEl.innerHTML = query === ''
-    ? `Всего <b>${totalCount}</b> продуктов`
-    : `Найдено <b>${visibleTotal}</b> из ${totalCount}`;
+  foundCountEl.textContent = visibleTotal;
+  resultCountEl.classList.toggle('searching', query !== '');
 
   emptyStateEl.classList.toggle('show', !anySectionVisible);
   clearBtn.disabled = searchEl.value.length === 0;
