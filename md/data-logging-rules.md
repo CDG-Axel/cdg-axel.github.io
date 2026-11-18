@@ -44,37 +44,57 @@
 
 ```json
 {
-  "days_left": "32d12h",
+  "days_left": "24d10h",
   "cards": {
-    "total": 143,
-    "stars": 611,
+    "total": 158,
+    "stars": 1130,
     "missing": {
       "1": 0,
       "2": 0,
       "3": 0,
       "4": 0,
       "5": 0,
-      "gold": 9,
-      "legendary": 8
+      "gold": 1,
+      "legendary": 1
     },
     "dupes": {
-      "1": 84,
-      "2": 68,
-      "3": 36,
-      "4": 13,
-      "5": 4,
-      "gold": 3
+      "1": 173,
+      "2": 139,
+      "3": 87,
+      "4": 28,
+      "5": 6,
+      "gold": 10
     }
   },
-  "home_pass_unclaimed": 8,
-  "expedition_claimed": 3,
+  "past_runs": {
+    "bonus": { "G": 2, "B": 6 },
+    "event_chests_opened": 1,
+    "expedition_claimed": 6,
+    "home_pass_claimed": 8
+  },
   "collection_start_stars": 176,
-  "event_chests_opened": 1,
-  "past_runs_bonus": { "G": 2, "B": 6 },
-  "current_bonus": { "G": -2, "R": 2, "D": -1 },
-  "future_bonus": { "R": -1 }
+  "home_pass_claimed": 9,
+  "expedition_claimed": 15,
+  "current_bonus": { "G": -2, "B": 2, "R": 2, "D": -1 },
+  "future_bonus": {}
 }
 ```
+
+`expedition_claimed`, `home_pass_claimed` и `event_chests_opened` — накопительные счетчики за весь event. Значения в `past_runs` — состояние на момент закрытия прошлых проходов. Вклад текущего прохода равен разности. Если верхнего `event_chests_opened` нет, он равен `past_runs.event_chests_opened`.
+
+`past_runs.bonus` — сумма поправок всех прошлых проходов. В первом проходе `past_runs` отсутствует или нулевой.
+
+### 3.1. Календарь
+
+Календарь определяется по данным файлов:
+
+- начало текущего прохода — `hs-exchange.current.start_date`;
+- имя event — имя текущей коллекции без номера прохода в конце (`Отпускная коллекция 2` → `Отпускная коллекция`);
+- `event_start` — `start_date` записи в `history` с именем event; если такой записи нет (первый проход), это `current.start_date`;
+- `event_end = event_start + 63 дня`;
+- момент снепшота = `event_end − days_left`.
+
+Другие записи `history` (коллекции прошлых событий) не используются.
 
 ## 4. Карты и звезды
 
@@ -100,7 +120,8 @@ cards.total = 160 - sum(cards.missing)
 Проверка звезд текущего прохода:
 
 ```text
-cards.stars = collection_start_stars + nominal(cards.dupes)
+cards.stars = collection_start_stars + nominal(cards.dupes) − 500 × сундуки_текущего_прохода
+сундуки_текущего_прохода = event_chests_opened − past_runs.event_chests_opened
 ```
 
 Где:
@@ -115,7 +136,7 @@ gold = 10
 legendary = 20
 ```
 
-`event_chests_opened` не участвует в проверке звезд текущего прохода. Сундуки, открытые на закрытие прошлого прохода, уже отражены в `collection_start_stars`.
+Сундуки, открытые на закрытие прошлых проходов, уже отражены в `collection_start_stars`.
 
 ## 5. Обмен
 
@@ -187,7 +208,7 @@ drop_duplicate_stars =
 Поля:
 
 ```text
-past_runs_bonus
+past_runs.bonus
   накопительная поправка прошлых проходов внутри текущего 63-дневного event.
 
 current_bonus
@@ -209,24 +230,26 @@ future_bonus
 Для анализа всего события:
 
 ```text
-event_bonus = past_runs_bonus + current_bonus
+event_bonus = past_runs.bonus + current_bonus
 ```
 
 ## 8. Переход между проходами
 
-Если новый проход начат после получения всех наград дня:
+Когда коллекция собрана и начинается новая:
 
 ```text
-past_runs_bonus += current_bonus
+past_runs.bonus += current_bonus
 current_bonus = {}
 future_bonus = {}
 ```
 
+`past_runs.expedition_claimed`, `past_runs.home_pass_claimed` и `past_runs.event_chests_opened` получают текущие накопительные значения.
+
 Если новый проход начат внутри дня, и часть колод дня ушла в прошлый проход:
 
 ```text
-past_runs_bonus += old_current_bonus
-past_runs_bonus += old_decks
+past_runs.bonus += current_bonus
+past_runs.bonus += old_decks
 current_bonus = -old_decks
 future_bonus = {}
 ```
@@ -237,22 +260,22 @@ future_bonus = {}
 
 ```json
 {
-  "old_current_bonus": { "B": 4, "R": -1 },
+  "current_bonus_before": { "B": 4, "R": -1 },
   "old_decks": { "G": 2, "B": 2, "R": 1 }
 }
 ```
 
-После перехода:
+После перехода (если `past_runs.bonus` был пуст):
 
 ```json
 {
-  "past_runs_bonus": { "G": 2, "B": 6 },
+  "past_runs": { "bonus": { "G": 2, "B": 6 } },
   "current_bonus": { "G": -2, "B": -2, "R": -1 },
   "future_bonus": {}
 }
 ```
 
-Дальше `current_bonus` продолжает накапливаться только для нового прохода.
+Все, что было взято или не взято в прошлых проходах, отражено в `past_runs`. Дальше `current_bonus` накапливается только для нового прохода.
 
 ## 9. Типовые поправки
 
@@ -314,29 +337,18 @@ future_bonus = {}
 
 ## 10. Домашний пропуск и экспедиция
 
-Домашний пропуск:
-
-```
-"home_pass_unclaimed": 8
-```
-
-Сколько наград домашнего пропуска еще не получено.
-
-Экспедиция:
-
-```
-  "expedition_claimed": 3
-```
-
-Сколько наград экспедиции уже получено из 8.
-
-Интерпретация:
+Счетчики накопительные за event, текущий проход считается через разность с `past_runs`:
 
 ```text
-0-6 = столько наград реально взято
-7 = последняя награда, скорее всего, засолена
-8 = экспедиция закрыта полностью
+взято_в_текущем_проходе = home_pass_claimed − past_runs.home_pass_claimed
+взято_в_текущем_проходе = expedition_claimed − past_runs.expedition_claimed
 ```
+
+Каждый цикл содержит 8 наград.
+
+- При старте новой экспедиции невзятые награды прошлой пропадают.
+- При старте нового домашнего пропуска невзятые награды прошлого выдаются автоматически в текущий проход и входят в `home_pass_claimed`.
+- Все упущенное фиксируется в `current_bonus` со знаком минус.
 
 ## 11. Открытые колоды
 
@@ -369,13 +381,13 @@ opened_decks_event =
 + start_decks_of_all_runs
 + home_pass_claimed_decks
 + expedition_claimed_decks
-+ past_runs_bonus
++ past_runs.bonus
 + current_bonus
 ```
 
 ## 12. Формат отчета
 
-Отчет должен быть машинно-генерируемым: без рассуждений, только расчетные данные, проверки и расхождения.
+Отчет `hs-exchange-review.md` генерирует скрипт `generate_report.py` по двум файлам снепшота, без участия ИИ. Только расчетные данные, проверки и расхождения, без рассуждений.
 
 Обязательные разделы:
 
