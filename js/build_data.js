@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 /* ===== Настройки ===== */
-const DATA_DIR = "c:/downloads";               // каталог с выгрузками и результатом
+const DATA_DIR = "../population";               // каталог с выгрузками и результатом
 const INPUT_FILES = ["Array params.csv", "Single Params 2025.csv", "Single Params 2100.csv", "Total Pop.csv"];
 const OUTPUT_FILE = "countries_data.json";     // если файл уже есть, он обновляется, а не создаётся заново
 const VARIANT_ID = 4;                          // 4 = Median
